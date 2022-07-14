@@ -9,6 +9,7 @@ library(dplyr)
 library(readr)
 library(readxl)
 
+#Change directory to where ever needed, make sure to replace "\" with "/"
 directory = 'C:/Users/ansleybr/OneDrive - Colostate/AWQP/Caz Steamboat Data'
 
 setwd(directory)
