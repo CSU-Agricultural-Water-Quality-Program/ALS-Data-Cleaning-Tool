@@ -3,6 +3,7 @@
 # 7/13/2022
 
 # TODO create fxns: 1) processing df, 2) clean data for graphing, 3) graphing
+# TODO create dictionary instead of ifelse() e.g., foo = c(a=1, b=2, etc.)
 
 # Tool to merge multiple excel files into one and create categories for analysis
 
@@ -19,12 +20,12 @@ directory = 'C:/Users/ansleybr/OneDrive - Colostate/AWQP/Caz Steamboat Data'
 setwd(directory)
 
 # import xls files and merge into single df
-df <- list.files(path=directory) %>% 
-  lapply(read_xls) %>% 
+df <- list.files(path=directory) %>%
+  lapply(read_xls) %>%
   bind_rows
 
 # Create Inflow/outflow/other source column based on FieldID
-df$source = ifelse(grepl('IN', df$FieldID), 'Inflow', 
+df$source = ifelse(grepl('IN', df$FieldID), 'Inflow',
                    ifelse(grepl('OT|UYM', df$FieldID), 'Outflow',
                            ifelse(grepl('LABQC', df$FieldID),'LABQC', 'Point_Sample')))
 
@@ -38,7 +39,7 @@ df$location = ifelse(grepl('SCI',df$FieldID), 'Stagecoach_In',
                                                         ifelse(grepl('SCO', df$FieldID), 'Stagecoach_Out', NA)))))))
 # Create sample type column base on FieldID
 df$type = ifelse(grepl('G|GB|DB',df$FieldID), 'Grab',
-                     ifelse(grepl('LC', df$FieldID),'Low_Cost', 
+                     ifelse(grepl('LC', df$FieldID),'Low_Cost',
                             ifelse(grepl('LABQC', df$FieldID), 'LABQC', 'ISCO')))
 # Create subset dataframe to check categorization algorithm
 dfID = df[c('FieldID','type')]
@@ -74,4 +75,3 @@ p = ggplot(df_P, aes(x = source, y = FinalResult, fill=source)) +
            theme_bw() +
            theme(axis.title.y = element_text(margin=margin(t = 0, r = 20, b = 0, l = 0)))
 p
-
