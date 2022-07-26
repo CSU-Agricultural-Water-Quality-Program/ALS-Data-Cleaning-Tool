@@ -67,11 +67,13 @@ df_a = subset(df, df$IndTestName == 'TOTAL_PHOSPHORUS')
 #df_P = subset(df_a, df_a$location == 'Legacy_Ranch' | df_a$location == 'Upper_Yampa')
 
 p = ggplot(df_P, aes(x = source, y = FinalResult, fill=source)) +
-           geom_bar(stat='identity') +
+           geom_bar(stat = "summary", fun='mean') +
            facet_wrap(~location) +
            xlab('') +
            ylab('Total Phosphorus, mg/L') +
            ggtitle('Water Quality Analysis for Yampa River Valley') +
-           theme_bw() +
-           theme(axis.title.y = element_text(margin=margin(t = 0, r = 20, b = 0, l = 0)))
+           theme_classic() +
+           # below is not working
+           #theme(axis.title.y = element_text(margin=margin(t = 0, r = 20, b = 0, l = 0))) +
+           theme(plot.title = element_text(hjust = 0.5))
 p
