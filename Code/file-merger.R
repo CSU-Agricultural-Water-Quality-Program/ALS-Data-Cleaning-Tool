@@ -13,50 +13,73 @@ library(readr)
 library(readxl)
 library(ggplot2)
 library(lattice)
+library(rvest)
+library(xml2)
+install.packages("rvest")
+# Global Variables
+directory <- file.choose()
 
-#Change directory to where ever needed, make sure to replace "\" with "/"
-directory = 'C:/Users/ansleybr/OneDrive - Colostate/AWQP/Caz Steamboat Data'
+import.Data <- function(directory) {
+       # ALS exports data as xls, but it is actually htm, so it requires some cleaning here
+  # import htm files and merge into single df
+  df <- list.files(path=directory) %>%
+    lapply(read_xls) %>%
+    bind_rows
+  return(df)
+}
 
-setwd(directory)
+cleanData <- function(df) {
+  # Clean imported dataframe for merging, graphing, etc.
+  # Drop LABQC columns
+  df = subset(df, df$type != 'LABQC')
 
-# import xls files and merge into single df
-df <- list.files(path=directory) %>%
-  lapply(read_xls) %>%
-  bind_rows
+  # drop columns containing only NAs
+  df = Filter(function(x)!all(is.na(x)), df)
 
-# Create Inflow/outflow/other source column based on FieldID
-df$source = ifelse(grepl('IN', df$FieldID), 'Inflow',
-                   ifelse(grepl('OT|UYM', df$FieldID), 'Outflow',
-                           ifelse(grepl('LABQC', df$FieldID),'LABQC', 'Point_Sample')))
+  # replace spaces in test name column for graphing
+  df$IndTestName = gsub(" ", "_", df$IndTestName)
 
-# Create location column based on FieldID
-df$location = ifelse(grepl('SCI',df$FieldID), 'Stagecoach_In',
-                     ifelse(grepl('SCA', df$FieldID),'Stagecoach_Above',
-                            ifelse(grepl('00', df$FieldID),'Stagecoach_Install',
-                                   ifelse(grepl('TR', df$FieldID),'Todds_Ranch',
-                                          ifelse(grepl('SB-L', df$FieldID),'Legacy_Ranch',
-                                                 ifelse(grepl('Y', df$FieldID), 'Upper_Yampa',
-                                                        ifelse(grepl('SCO', df$FieldID), 'Stagecoach_Out', NA)))))))
-# Create sample type column base on FieldID
-df$type = ifelse(grepl('G|GB|DB',df$FieldID), 'Grab',
-                     ifelse(grepl('LC', df$FieldID),'Low_Cost',
-                            ifelse(grepl('LABQC', df$FieldID), 'LABQC', 'ISCO')))
-# Create subset dataframe to check categorization algorithm
-dfID = df[c('FieldID','type')]
+  # convert results to numeric values
+  df$FinalResult = as.numeric(df$FinalResult)
+  return(df)
+}
 
+processData <- function(df) {
+       # Create Inflow/outflow/other source column based on FieldID
+       df$source = ifelse(grepl('IN', df$FieldID), 'Inflow',
+                      ifelse(grepl('OT|UYM', df$FieldID), 'Outflow',
+                                    ifelse(grepl('LABQC', df$FieldID),'LABQC', 'Point_Sample')))
+       
+       # Create location column based on FieldID
+       df$location = ifelse(grepl('SCI',df$FieldID), 'Stagecoach_In',
+                             ifelse(grepl('SCA', df$FieldID),'Stagecoach_Above',
+                                   ifelse(grepl('00', df$FieldID),'Stagecoach_Install',
+                                           ifelse(grepl('TR', df$FieldID),'Todds_Ranch',
+                                                 ifelse(grepl('SB-L', df$FieldID),'Legacy_Ranch',
+                                                         ifelse(grepl('Y', df$FieldID), 'Upper_Yampa',
+                                                               ifelse(grepl('SCO', df$FieldID), 'Stagecoach_Out', NA)))))))
+       # Create sample type column base on FieldID
+       df$type = ifelse(grepl('G|GB|DB',df$FieldID), 'Grab',
+                             ifelse(grepl('LC', df$FieldID),'Low_Cost',
+                                   ifelse(grepl('LABQC', df$FieldID), 'LABQC', 'ISCO')))
+       # Create subset dataframe to check categorization algorithm
+       dfID = df[c('FieldID','type')]
+       return(df)
+}
 
-# DATA CLEANING
-# Drop LABQC columns
-df = subset(df, df$type != 'LABQC')
-
-# drop columns containing only NAs
-df = Filter(function(x)!all(is.na(x)), df)
-
-# replace spaces in test name column for graphing
-df$IndTestName = gsub(" ", "_", df$IndTestName)
-
-# convert results to numeric values
-df$FinalResult = as.numeric(df$FinalResult)
+graphData <- function(df) {
+       # Create bar plot of results by source
+       p = ggplot(df, aes(x = source, y = FinalResult, fill=source)) +
+         geom_bar(stat = "summary", fun='mean') +
+         facet_wrap(~location) +
+         xlab('') +
+         ylab('Total Phosphorus, mg/L') +
+         ggtitle('Water Quality Analysis for Yampa River Valley') +
+         theme_classic() +
+         theme(axis.title.y = element_text(margin=margin(t = 0, r = 20, b = 0, l = 0))) +
+         theme(plot.title = element_text(hjust = 0.5))
+       return(p)
+}
 
 
 # Important Graphs
