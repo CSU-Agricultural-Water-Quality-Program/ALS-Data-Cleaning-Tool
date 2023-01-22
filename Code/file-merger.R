@@ -7,15 +7,20 @@
 
 # Tool to merge multiple excel files into one and create categories for analysis
 
-library(magrittr)
-library(dplyr)
-library(readr)
-library(readxl)
-library(ggplot2)
-library(lattice)
-library(rvest)
-library(xml2)
+#library(magrittr)
+#library(dplyr)
+#library(readr)
+#library(readxl)
+#library(ggplot2)
+#library(lattice)
+#library(rvest)
+#library(xml2)
+
+install.packages("cli")
+install.packages("rlang")
+install.packages("lifecycle")
 install.packages("rvest")
+
 # Global Variables
 directory <- file.choose()
 
