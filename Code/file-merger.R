@@ -1,107 +1,111 @@
-# Steamboat Data Clean and Merge 2022
+# ALS to AWQP Data Clean and Merge Tool
 # AJ Brown and Caz Bell
 # 7/13/2022
+# Updated 22 Jan 2023
 
-# TODO create fxns: 1) processing df, 2) clean data for graphing, 3) graphing
-# TODO create dictionary instead of ifelse() e.g., foo = c(a=1, b=2, etc.)
+# TODO: finish process_data function
+# TODO: finish listFiles function
+# TODO: test script on multiple files
 
-# Tool to merge multiple excel files into one and create categories for analysis
+# Tool to clean and merge multiple htm files directly downloaded
+# from the ALS global portal into one and create categories for 
+# future analysis by AWQP staff.
 
-#library(magrittr)
-#library(dplyr)
-#library(readr)
-#library(readxl)
-#library(ggplot2)
-#library(lattice)
-#library(rvest)
-#library(xml2)
+# Script process flow:
+# 1) Import data
+# 2) Clean data
+# 3) Process data
+  # this will involve the creation of dictionaries to convert codes to names
+  # it will also create new identifying columns based on the dictionaries
+# 4) Repeat for each htm file desired and merge into one df
+# 5) Graph and analyze data as desired
 
-install.packages("cli")
-install.packages("rlang")
-install.packages("lifecycle")
-install.packages("rvest")
+# Import libraries
+library(magrittr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(ggplot2)
+library(lattice)
+library(rvest)
+library(xml2)
 
 # Global Variables
 directory <- file.choose()
 
-import.Data <- function(directory) {
-       # ALS exports data as xls, but it is actually htm, so it requires some cleaning here
+import_data <- function(directory) {
+  # ALS exports data as xls, but it is actually htm, so it requires some cleaning here
+  df <- read_html(directory) %>% # read in html file
+    html_table() %>% # convert to table
+    data.frame() # convert to dataframe
+  return(df) # return dataframe
+}
+
+clean_data <- function(df) {
+  # Clean imported dataframe for merging, graphing, etc.
+  df <-df[!grepl("Sample:", df$Name),] %>% # Drop unnecessary rows containing the word "sample:"
+    mutate_at(c('RESULT','MDL','RL','PERCENT.MOISTURE','PERCENT.SOLID'), as.numeric) # convert numeric columns to numeric
+  return(df)
+}
+
+process_data <- function(df) {
+  location.dict = c(
+    'BT' = 'Berthoud',
+    'ASO' = 'ARDEC South - Org',
+    'ASC' = 'ARDEC South -  Conv',
+    'A2' = 'ARDEC 2200',
+    'MOL' = 'Molina',
+    'GU' = 'Gunnison',
+    'K' = 'Kerbel',
+    'YJ' = 'Yellow Jacket ',
+    'UYM' = 'Yampa',
+    'LG' = 'Legacy',
+    'AV' = 'AVRC Star',
+    'BAR' = 'Barley',
+    'HOL' = 'Big Hollow',
+    'SCI' = 'Stage Coach In',
+    'SCA' = 'Stage Coach Above',
+    'SB' = 'Stagecoach',
+    'TR' = 'Todds Ranch ',
+    'UYM' = 'Upper Yampa')
+  trt.dict = c(
+    'ST1' = 'ST1',
+    'ST2' = 'ST2',
+    'CT1' = 'CT1',
+    'CT2' = 'CT2',
+    'MT1' = 'MT1',
+    'MT2' = 'MT2',
+    'INF' = 'Inflow',
+    'RVA' = 'River A',
+    'RVB' = 'River B',
+    'RVMID' = 'River Middle',
+    'PZE' = 'Piezometer East',
+    'PZW' = 'Piezometer West',
+    'TDR' = 'Tile Drainage River',
+    'TDL' = 'Tile Drainage Lake',
+    'CON' = 'Confluence',
+    'UP' = 'Upstream of Bridge',
+    'DOWN' = 'Downstream of Bridge',
+    'MID' = 'Middle at Bridge',
+    'ANF' = 'Arapahoe Natl. Forest',
+    'WC' = 'Willow Creek',
+    'DP' = 'Duck Pond',
+    'CUL' = 'Upper willow at @ culvert (swale)',
+    'FP' = 'Fish Pond',
+    'FR2' = 'Fire 2')
+  method.dict = c(
+    'ISC' = 'ISCO',
+    'LC' = 'Low-Cost Sampler',
+    'GB' = 'Grab Sample')
+  eventType.dict = c(
+    'IN' = 'Inflow',
+    'OUT' = 'Outflow')
+}
+
+listFiles <- function(directory) {
   # import htm files and merge into single df
   df <- list.files(path=directory) %>%
     lapply(read_xls) %>%
     bind_rows
   return(df)
 }
-
-cleanData <- function(df) {
-  # Clean imported dataframe for merging, graphing, etc.
-  # Drop LABQC columns
-  df = subset(df, df$type != 'LABQC')
-
-  # drop columns containing only NAs
-  df = Filter(function(x)!all(is.na(x)), df)
-
-  # replace spaces in test name column for graphing
-  df$IndTestName = gsub(" ", "_", df$IndTestName)
-
-  # convert results to numeric values
-  df$FinalResult = as.numeric(df$FinalResult)
-  return(df)
-}
-
-processData <- function(df) {
-       # Create Inflow/outflow/other source column based on FieldID
-       df$source = ifelse(grepl('IN', df$FieldID), 'Inflow',
-                      ifelse(grepl('OT|UYM', df$FieldID), 'Outflow',
-                                    ifelse(grepl('LABQC', df$FieldID),'LABQC', 'Point_Sample')))
-       
-       # Create location column based on FieldID
-       df$location = ifelse(grepl('SCI',df$FieldID), 'Stagecoach_In',
-                             ifelse(grepl('SCA', df$FieldID),'Stagecoach_Above',
-                                   ifelse(grepl('00', df$FieldID),'Stagecoach_Install',
-                                           ifelse(grepl('TR', df$FieldID),'Todds_Ranch',
-                                                 ifelse(grepl('SB-L', df$FieldID),'Legacy_Ranch',
-                                                         ifelse(grepl('Y', df$FieldID), 'Upper_Yampa',
-                                                               ifelse(grepl('SCO', df$FieldID), 'Stagecoach_Out', NA)))))))
-       # Create sample type column base on FieldID
-       df$type = ifelse(grepl('G|GB|DB',df$FieldID), 'Grab',
-                             ifelse(grepl('LC', df$FieldID),'Low_Cost',
-                                   ifelse(grepl('LABQC', df$FieldID), 'LABQC', 'ISCO')))
-       # Create subset dataframe to check categorization algorithm
-       dfID = df[c('FieldID','type')]
-       return(df)
-}
-
-graphData <- function(df) {
-       # Create bar plot of results by source
-       p = ggplot(df, aes(x = source, y = FinalResult, fill=source)) +
-         geom_bar(stat = "summary", fun='mean') +
-         facet_wrap(~location) +
-         xlab('') +
-         ylab('Total Phosphorus, mg/L') +
-         ggtitle('Water Quality Analysis for Yampa River Valley') +
-         theme_classic() +
-         theme(axis.title.y = element_text(margin=margin(t = 0, r = 20, b = 0, l = 0))) +
-         theme(plot.title = element_text(hjust = 0.5))
-       return(p)
-}
-
-
-# Important Graphs
-
-# Generic bar plot tool
-
-df_a = subset(df, df$IndTestName == 'TOTAL_PHOSPHORUS')
-#df_P = subset(df_a, df_a$location == 'Legacy_Ranch' | df_a$location == 'Upper_Yampa')
-
-p = ggplot(df_P, aes(x = source, y = FinalResult, fill=source)) +
-           geom_bar(stat = "summary", fun='mean') +
-           facet_wrap(~location) +
-           xlab('') +
-           ylab('Total Phosphorus, mg/L') +
-           ggtitle('Water Quality Analysis for Yampa River Valley') +
-           theme_classic() +
-           # below is not working
-           #theme(axis.title.y = element_text(margin=margin(t = 0, r = 20, b = 0, l = 0))) +
-           theme(plot.title = element_text(hjust = 0.5))
-p
