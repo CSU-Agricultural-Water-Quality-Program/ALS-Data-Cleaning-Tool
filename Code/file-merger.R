@@ -21,14 +21,16 @@
 # 5) Graph and analyze data as desired
 
 # Import libraries
-library(magrittr)
-library(dplyr)
-library(readr)
-library(readxl)
-library(ggplot2)
-library(lattice)
-library(rvest)
-library(xml2)
+package.list <- c("magrittr", "dplyr", "readr", "readxl", "ggplot2", "lattice", "rvest", "xml2")
+packageLoad <- function(packages){
+  for (i in packages) {
+    if (!require(i, character.only = TRUE)) {
+      install.packages(i)
+      library(i, character.only = TRUE)
+    }
+  }
+}
+packageLoad(package.list)
 
 # Global Variables
 directory <- file.choose()
