@@ -21,7 +21,15 @@
 # 5) Graph and analyze data as desired
 
 # Import libraries
-package.list <- c("magrittr", "dplyr", "readr", "readxl", "ggplot2", "lattice", "rvest", "xml2")
+package.list <- c("magrittr",
+                  "dplyr",
+                  "readr",
+                  "readxl",
+                  "ggplot2",
+                  "lattice",
+                  "rvest",
+                  "xml2",
+                  "purrr")
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -36,37 +44,26 @@ packageLoad(package.list)
 # Working directory
 directory <- file.choose()
 # Dictionaries for converting ID codes to names
-location.dict = c(
-  "BT" = "Berthoud",
-  "ASO" = "ARDEC South - Org",
-  "ASC" = "ARDEC South -  Conv",
-  "A2" = "ARDEC 2200",
-  "MOL" = "Molina",
-  "GU" = "Gunnison",
-  "K" = "Kerbel",
-  "ST1" = "Kerbel",
-  "ST2" = "Kerbel",
-  "CT1" = "Kerbel",
-  "CT2" = "Kerbel",
-  "MT1" = "Kerbel",
-  "MT2" = "Kerbel",
-  "INF" = "Kerbel",
-  "YJ" = "Yellow Jacket ",
-  "UYM" = "Yampa",
-  "LG" = "Legacy",
-  "AV" = "AVRC STAR",
-  "AVST1" = "AVRC STAR",
-  "AVST2" = "AVRC STAR",
-  "AVCT1" = "AVRC STAR",
-  "AVST2" = "AVRC STAR",
-  "BAR" = "Barley",
-  "HOL" = "Big Hollow",
-  "SCI" = "Stage Coach In",
-  "SCA" = "Stage Coach Above",
-  "SB" = "Stagecoach",
-  "TR" = "Todds Ranch ",
-  "UYM" = "Upper Yampa")
-trt.dict = c(
+location.dict <- list(
+  "Berthoud" = "BT",
+  "ARDEC South - Org" = "ASO",
+  "ARDEC South -  Conv" = "ASC",
+  "ARDEC 2200" = "A2",
+  "Molina" = "MOL",
+  "Gunnison" = "GU",
+  "Kerbel" = c("K", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
+  "Yellow Jacket " = "YJ",
+  "Yampa" = "UYM",
+  "Legacy" = "LG",
+  "AVRC STAR" = c("AV", "AVST1", "AVST2", "AVCT1", "AVCT2"),
+  "Barley" = "BAR",
+  "Big Hollow" = "HOL",
+  "Stage Coach In" = "SCI",
+  "Stage Coach Above" = "SCA",
+  "Stagecoach" = "SB",
+  "Todds Ranch" = "TR",
+  "Upper Yampa" = "UYM")
+trt.dict <- c(
   "ST1" = "ST1",
   "ST2" = "ST2",
   "CT1" = "CT1",
@@ -91,16 +88,23 @@ trt.dict = c(
   "CUL" = "Upper willow at @ culvert (swale)",
   "FP" = "Fish Pond",
   "FR2" = "Fire 2")
-method.dict = c(
+method.dict <- c(
   "ISC" = "ISCO",
   "LC" = "Low-Cost Sampler",
   "GB" = "Grab Sample")
-eventType_dict = c(
+eventType.dict <- c(
   "IN" = "Inflow",
   "OUT" = "Outflow")
 
+reverseList <- function(list) {
+  # Reverse the key pairs order of a list
+  rev.list <- with(stack(location.dict), split(as.character(ind), values))
+  return(rev.list)
+}
+
 importData <- function(directory) {
-  # ALS exports data as xls, but it is actually htm, so it requires some cleaning here
+  # ALS exports data as xls, but it is actually htm,
+   # so it requires some cleaning here.
   df <- read_html(directory) %>% # read in html file
     html_table() %>% # convert to table
     data.frame() # convert to dataframe
@@ -109,19 +113,38 @@ importData <- function(directory) {
 
 cleanData <- function(df) {
   # Clean imported dataframe for merging, graphing, etc.
-  df <-df[!grepl("Sample:", df$SAMPLE.ID),] %>% # Drop unnecessary rows containing the word "sample:"
-    # mutate_at(c("RESULT","MDL","RL","PERCENT.MOISTURE","PERCENT.SOLID"), as.numeric) # convert numeric columns to numeric if needed
+   # Drop unnecessary rows containing the word "sample:"
+  df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
+    # convert numeric columns to numeric if needed
+    mutate_at(c("RESULT",
+                "DILUTION",
+                "MDL",
+                "RL",
+                "PERCENT.MOISTURE",
+                "PERCENT.SOLID"),
+               as.numeric)
   return(df)
 }
 
 processData <- function(df) {
   # Process data to create new columns for analysis based on ID codes
-  df$duplicate <- ifelse(grepl("-D", df$SAMPLE.ID, fixed=F), TRUE, FALSE) # create duplicate column
-  df$location <- gsub("-.*", "", df$SAMPLE.ID) %>% # create location column
-    # TODO: convert location codes to names; see below links 
-    # https://stackoverflow.com/questions/7547597/dictionary-style-replace-multiple-items
-    # https://stackoverflow.com/questions/1105659/how-to-add-variable-key-value-pair-to-list-object
-    mutate(location = recode(location.dict)) # convert ID codes to names
+   # create duplicate column
+  df$duplicate <- ifelse(grepl("-D", df$SAMPLE.ID, fixed = FALSE), TRUE, FALSE)
+   # create location ID column
+  df$location.id <- gsub("-.*", "", df$SAMPLE.ID)
+   # convert ID codes to names
+  vec <- data.frame(location.name = unlist(lapply(df2$location.id, 
+                    FUN = function(x){reverseList(location.dict)[[x]]})))
+  df <- cbind(df, vec)
+  #TODO: finish this function with the rest of the dictionaries
+  return(df)
+}
+
+executeFxns <- function(directory) {
+  # execute all previous functions and return final dataframe
+  df <- importData(directory) %>%
+    cleanData() %>%
+    processData()
   return(df)
 }
 
