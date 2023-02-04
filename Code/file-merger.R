@@ -70,31 +70,31 @@ trt.dict <- c(
   "CT2" = "CT2",
   "MT1" = "MT1",
   "MT2" = "MT2",
-  "INF" = "Inflow",
-  "RVA" = "River A",
-  "RVB" = "River B",
-  "RVMID" = "River Middle",
-  "PZE" = "Piezometer East",
-  "PZW" = "Piezometer West",
-  "TDR" = "Tile Drainage River",
-  "TDL" = "Tile Drainage Lake",
-  "CON" = "Confluence",
-  "UP" = "Upstream of Bridge",
-  "DOWN" = "Downstream of Bridge",
-  "MID" = "Middle at Bridge",
-  "ANF" = "Arapahoe Natl. Forest",
-  "WC" = "Willow Creek",
-  "DP" = "Duck Pond",
-  "CUL" = "Upper willow at @ culvert (swale)",
-  "FP" = "Fish Pond",
-  "FR2" = "Fire 2")
+  "Inflow" = "INF",
+  "River A" = "RVA",
+  "River B" = "RVB",
+  "River Middle" = "RVMID",
+  "Piezometer East" = "PZE",
+  "Piezometer West" = "PZW",
+  "Tile Drainage River" = "TDR",
+  "Tile Drainage Lake" = "TDL",
+  "Confluence" = "CON",
+  "Upstream of Bridge" = "UP",
+  "Downstream of Bridge" = "DOWN",
+  "Middle at Bridge" = "MID",
+  "Arapahoe Natl. Forest" = "ANF",
+  "Willow Creek" = "WC",
+  "Duck Pond" = "DP",
+  "Upper willow at @ culvert (swale)" = "CUL",
+  "Fish Pond" = "FP",
+  "Fire 2" = "FR2")
 method.dict <- c(
-  "ISC" = "ISCO",
-  "LC" = "Low-Cost Sampler",
-  "GB" = "Grab Sample")
+  "ISCO" = "ISC",
+  "Low-Cost Sampler" = "LC",
+  "Grab Sample" = "GB")
 eventType.dict <- c(
-  "IN" = "Inflow",
-  "OUT" = "Outflow")
+  "Inflow" = "IN",
+  "Outflow" = "OUT")
 
 reverseList <- function(list) {
   # Reverse the key pairs order of a list
