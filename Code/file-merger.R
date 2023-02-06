@@ -28,8 +28,7 @@ package.list <- c("magrittr",
                   "ggplot2",
                   "lattice",
                   "rvest",
-                  "xml2",
-                  "purrr")
+                  "xml2")
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
