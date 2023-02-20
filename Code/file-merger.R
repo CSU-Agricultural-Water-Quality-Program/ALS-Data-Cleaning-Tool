@@ -114,7 +114,13 @@ cleanData <- function(df) {
   # Clean imported dataframe for merging, graphing, etc.
    # Drop unnecessary rows containing the word "sample:"
   df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
-    # convert numeric columns to numeric if needed
+    # convert values containing "<" to 0
+    mutate(RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
+         # create column to indicate if a result value was a non-detect
+         non_detect = ifelse(RESULT == 0, TRUE, FALSE),
+         # change "N/A" to NA in any column
+         across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
+    # convert select columns to numeric if needed
     mutate_at(c("RESULT",
                 "DILUTION",
                 "MDL",
@@ -146,6 +152,13 @@ executeFxns <- function(directory) {
     processData()
   return(df)
 }
+
+# temporary code for testing
+df3 <- importData(directory)
+df2 <- cleanData(df3)
+df <- processData(df2)
+df_final <- executeFxns(directory)
+
 
 listFiles <- function(directory) {
   # import htm files and merge into single df
