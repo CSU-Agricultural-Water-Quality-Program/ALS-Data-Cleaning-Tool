@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+
+</style>
+<!--[if gte mso 9]>
+
+<![endif]-->
+</head>
+<body>
+	<div id="ctl00_CPH_CorpWideWrapper_ucWorkorder_ucWorkorderResults_ucWorkorderResultsBySample_RG_WorkorderResultsBySample_GridData" class="rgDataDiv" style="position:relative;overflow-x:auto;overflow-y:auto;width:100%;height:500px;">
+
+<table class=" rgClipCells" rules="cols" border="1" id="ctl00_CPH_CorpWideWrapper_ucWorkorder_ucWorkorderResults_ucWorkorderResultsBySample_RG_WorkorderResultsBySample_ctl00" style="width:100%;table-layout:fixed;overflow:hidden;empty-cells:show;">
+	<thead>
+		<tr>
+			<th scope="col">SAMPLE ID</th><th scope="col">LAB ID</th><th scope="col">METHOD</th><th scope="col">CAS NUMBER</th><th scope="col">ANALYTE</th><th scope="col">RESULT</th><th scope="col">UNITS</th><th scope="col">DILUTION</th><th scope="col">RESULT REPORTED TO</th><th scope="col">MDL</th><th scope="col">RL</th><th scope="col">REPORT BASIS</th><th scope="col">PERCENT MOISTURE</th><th scope="col">PERCENT SOLID</th>
+		</tr>
+	</thead><tbody>
+	<tr>
+		<td>Sample: BT-G4-PZE / 2207213-1</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BT-G4-PZE</td><td>2207213-1</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="background-color:#74BDFB;mso-number-format:\@;">4.7</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">1.9</td><td style="mso-number-format:0\.00;">2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-PZE</td><td>2207213-1</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="background-color:#74BDFB;mso-number-format:\@;">7.7</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-PZE</td><td>2207213-1</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 7.5</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">3.4</td><td style="mso-number-format:0\.00;">7.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-PZE</td><td>2207213-1</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="background-color:#74BDFB;mso-number-format:\@;">26</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-PZE</td><td>2207213-1</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.083</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: HOL-G4-MID / 2207213-10</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>HOL-G4-MID</td><td>2207213-10</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="mso-number-format:\@;">&lt; 5</td><td>MG/L</td><td style="mso-number-format:0\.00;">25</td><td>PRL</td><td style="mso-number-format:0\.00;">4.7</td><td style="mso-number-format:0\.00;">5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-MID</td><td>2207213-10</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="mso-number-format:\@;">&lt; 0.2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-MID</td><td>2207213-10</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 19</td><td>MG/L</td><td style="mso-number-format:0\.00;">25</td><td>PRL</td><td style="mso-number-format:0\.00;">8.5</td><td style="mso-number-format:0\.00;">19</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-MID</td><td>2207213-10</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="mso-number-format:\@;">&lt; 1.5</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-MID</td><td>2207213-10</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.21</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BT-G4-PZW / 2207213-2</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BT-G4-PZW</td><td>2207213-2</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="mso-number-format:\@;">&lt; 2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">1.9</td><td style="mso-number-format:0\.00;">2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-PZW</td><td>2207213-2</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.47</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-PZW</td><td>2207213-2</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 7.5</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">3.4</td><td style="mso-number-format:0\.00;">7.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-PZW</td><td>2207213-2</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="background-color:#74BDFB;mso-number-format:\@;">15</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-PZW</td><td>2207213-2</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="mso-number-format:\@;">&lt; 0.05</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BT-G4-RVA / 2207213-3</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BT-G4-RVA</td><td>2207213-3</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="mso-number-format:\@;">&lt; 2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">1.9</td><td style="mso-number-format:0\.00;">2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVA</td><td>2207213-3</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="mso-number-format:\@;">&lt; 0.2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVA</td><td>2207213-3</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 7.5</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">3.4</td><td style="mso-number-format:0\.00;">7.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVA</td><td>2207213-3</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="mso-number-format:\@;">&lt; 1.5</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVA</td><td>2207213-3</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.1</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BT-G4-RVB / 2207213-4</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BT-G4-RVB</td><td>2207213-4</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="mso-number-format:\@;">&lt; 2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">1.9</td><td style="mso-number-format:0\.00;">2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVB</td><td>2207213-4</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="mso-number-format:\@;">&lt; 0.2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVB</td><td>2207213-4</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 7.5</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">3.4</td><td style="mso-number-format:0\.00;">7.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVB</td><td>2207213-4</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="background-color:#74BDFB;mso-number-format:\@;">3.3</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVB</td><td>2207213-4</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.11</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BT-G4-RVMID / 2207213-5</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BT-G4-RVMID</td><td>2207213-5</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="mso-number-format:\@;">&lt; 2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">1.9</td><td style="mso-number-format:0\.00;">2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVMID</td><td>2207213-5</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="mso-number-format:\@;">&lt; 0.2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVMID</td><td>2207213-5</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 7.5</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">3.4</td><td style="mso-number-format:0\.00;">7.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVMID</td><td>2207213-5</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="mso-number-format:\@;">&lt; 1.5</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-RVMID</td><td>2207213-5</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.11</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BT-G4-TDR / 2207213-6</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BT-G4-TDR</td><td>2207213-6</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="mso-number-format:\@;">&lt; 2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">1.9</td><td style="mso-number-format:0\.00;">2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-TDR</td><td>2207213-6</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="mso-number-format:\@;">&lt; 0.2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-TDR</td><td>2207213-6</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 7.5</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">3.4</td><td style="mso-number-format:0\.00;">7.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-TDR</td><td>2207213-6</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="background-color:#74BDFB;mso-number-format:\@;">4.1</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BT-G4-TDR</td><td>2207213-6</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.11</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: HOL-G4-CON / 2207213-7</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>HOL-G4-CON</td><td>2207213-7</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="background-color:#74BDFB;mso-number-format:\@;">2.8</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">1.9</td><td style="mso-number-format:0\.00;">2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-CON</td><td>2207213-7</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="background-color:#74BDFB;mso-number-format:\@;">3.4</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-CON</td><td>2207213-7</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 7.5</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">3.4</td><td style="mso-number-format:0\.00;">7.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-CON</td><td>2207213-7</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="background-color:#74BDFB;mso-number-format:\@;">4.2</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-CON</td><td>2207213-7</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.34</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: HOL-G4-DOWN / 2207213-8</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>HOL-G4-DOWN</td><td>2207213-8</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="mso-number-format:\@;">&lt; 2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">1.9</td><td style="mso-number-format:0\.00;">2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-DOWN</td><td>2207213-8</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="mso-number-format:\@;">&lt; 0.2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-DOWN</td><td>2207213-8</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 7.5</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">3.4</td><td style="mso-number-format:0\.00;">7.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-DOWN</td><td>2207213-8</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="mso-number-format:\@;">&lt; 1.5</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-DOWN</td><td>2207213-8</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.28</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: HOL-G4-UP / 2207213-9</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>HOL-G4-UP</td><td>2207213-9</td><td>EPA300.0 [300Nitrate]_W</td><td>14797-55-8</td><td>NITRATE AS N</td><td style="mso-number-format:\@;">&lt; 5</td><td>MG/L</td><td style="mso-number-format:0\.00;">25</td><td>PRL</td><td style="mso-number-format:0\.00;">4.7</td><td style="mso-number-format:0\.00;">5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-UP</td><td>2207213-9</td><td>EPA353.2 [353.2NO2NO3]_W</td><td>1-005</td><td>NITRATE/NITRITE AS N</td><td style="mso-number-format:\@;">&lt; 0.2</td><td>MG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">0.095</td><td style="mso-number-format:0\.00;">0.2</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-UP</td><td>2207213-9</td><td>EPA300.0 [300OPHOS]_W</td><td>14265-44-2</td><td>ORTHOPHOSPHATE AS P</td><td style="mso-number-format:\@;">&lt; 19</td><td>MG/L</td><td style="mso-number-format:0\.00;">25</td><td>PRL</td><td style="mso-number-format:0\.00;">8.5</td><td style="mso-number-format:0\.00;">19</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-UP</td><td>2207213-9</td><td>EPA200.8 [SE200.8]_W</td><td>7782-49-2</td><td>SELENIUM</td><td style="mso-number-format:\@;">&lt; 1.5</td><td>UG/L</td><td style="mso-number-format:0\.00;">10</td><td>PRL</td><td style="mso-number-format:0\.00;">&nbsp;</td><td style="mso-number-format:0\.00;">1.5</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>HOL-G4-UP</td><td>2207213-9</td><td>EPA365.2 [365.2TPHOS]_W</td><td>7723-14-0</td><td>TOTAL PHOSPHORUS</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.14</td><td>MG/L</td><td style="mso-number-format:0\.00;">1</td><td>PRL</td><td style="mso-number-format:0\.00;">0.033</td><td style="mso-number-format:0\.00;">0.05</td><td>As Received</td><td>&nbsp;</td><td>N/A</td>
+	</tr>
+	</tbody>
+
+</table>	</div>
+</body></html>
