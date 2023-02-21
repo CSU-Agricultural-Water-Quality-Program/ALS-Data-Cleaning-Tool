@@ -42,11 +42,13 @@ packageLoad(package.list)
 
 # Global Variables
  # Working file_path
-file_path <- file.choose()
+file_path <- "./Example Data/AVRC.xls"
+# file_path <- file.choose()
  # Set the default file directory to the directory containing the selected file
 directory <- dirname(file_path)
  # Dictionaries for interpreting sample ID codes
-location.dict <- list(
+
+location.dict <- c(
   "Berthoud" = "BT",
   "ARDEC South - Org" = "ASO",
   "ARDEC South -  Conv" = "ASC",
@@ -64,12 +66,13 @@ location.dict <- list(
   "Stage Coach Above" = "SCA",
   "Stagecoach" = "SB",
   "Todds Ranch" = "TR",
-  "Upper Yampa" = "UYM")
+  "Upper Yampa" = "UYM"
+  )
 trt.dict <- c(
-  "ST1" = C("ST1", "AVST1"),
-  "ST2" = C("ST2", "AVST2"),
-  "CT1" = C("CT1", "AVCT1"),
-  "CT2" = C("CT2", "AVCT2"),
+  "ST1" = c("ST1", "AVST1"),
+  "ST2" = c("ST2", "AVST2"),
+  "CT1" = c("CT1", "AVCT1"),
+  "CT2" = c("CT2", "AVCT2"),
   "MT1" = "MT1",
   "MT2" = "MT2",
   "Inflow" = "INF",
@@ -89,14 +92,17 @@ trt.dict <- c(
   "Duck Pond" = "DP",
   "Upper willow at @ culvert (swale)" = "CUL",
   "Fish Pond" = "FP",
-  "Fire 2" = "FR2")
+  "Fire 2" = "FR2"
+  )
 method.dict <- c(
   "ISCO" = c("ISC", "IN", "OT"),
-  "Low-Cost Sampler" = c("LC", "LCIN", "LCOT"),
-  "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"))
+  "Low-Cost Sampler" = c("LC", "INLC", "OTLC"),
+  "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9")
+  )
 eventType.dict <- c(
   "Inflow" = "IN",
-  "Outflow" = c("OUT", "OT"))
+  "Outflow" = c("OUT", "OT")
+  )
 
 # Functions
 map_values <- function(text, dict) {
@@ -160,6 +166,10 @@ cleanData <- function(df) {
 
 processData <- function(df) {
   # Process data to create new columns for analysis based on ID codes
+  text_cols <- c("location.name",
+                   "treatment.name",
+                   "method.name",
+                   "event.type")
   df %>%
     mutate(
       # create duplicate column
@@ -173,9 +183,12 @@ processData <- function(df) {
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
       # create event type name column based on Sample ID
       event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
-    ) %>%
+      ) %>%
     # if event type is NA, use "Point Sample" as default
-    mutate(y = if_else(is.na(y), "Point Sample", y))
+    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)
+    ) %>%
+    # remove numbers from new columns due to dict mapping
+    mutate_at(text_cols, ~ gsub("[0-9]", "", .))
 }
 
 executeFxns <- function(file_path) {
@@ -197,7 +210,7 @@ listFiles <- function(directory) {
 
 # Execute functions and view resulting dataframe:
  # For a single file
-df_final <- executeFxns(directory) # works
+df_final <- executeFxns(file_path)
 View(df_final)
  # For multiple files in a given directory
 df_final_merged <- listFiles(directory)
