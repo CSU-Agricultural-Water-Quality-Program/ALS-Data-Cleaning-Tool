@@ -1,24 +1,24 @@
 # ALS to AWQP Data Clean and Merge Tool
 # AJ Brown and Caz Bell
-# 7/13/2022
-# Updated 22 Jan 2023
-
-# TODO: finish process_data function
-# TODO: finish listFiles function
-# TODO: test script on multiple files
+# Started: 7/13/2022
+# First working version: 20 Feb 2023
 
 # Tool to clean and merge multiple htm files directly downloaded
-# from the ALS global portal into one and create categories for 
+# from the ALS global portal into one and create categories for
 # future analysis by AWQP staff.
 
 # Script process flow:
-# 1) Import data
-# 2) Clean data
-# 3) Process data
-  # this will involve the creation of dictionaries to convert codes to names
-  # it will also create new identifying columns based on the dictionaries
-# 4) Repeat for each htm file desired and merge into one df
-# 5) Graph and analyze data as desired
+# 1) Define global variables
+ # 1a) Working file_path
+ # 1b) Set the default file directory
+ # 1c) Define dictionaries for interpreting sample ID codes
+# 2) Import data
+# 3) Clean data
+# 4) Process data
+ # this will involve the creation of dictionaries to convert codes to names
+ # it will also create new identifying columns based on the dictionaries
+# 5) Repeat for each htm file desired and merge into one df
+# 6) Export data as csv
 
 # Import libraries
 package.list <- c("magrittr",
@@ -28,7 +28,8 @@ package.list <- c("magrittr",
                   "ggplot2",
                   "lattice",
                   "rvest",
-                  "xml2")
+                  "xml2",
+                  "stringr")
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -40,9 +41,11 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 
 # Global Variables
-# Working directory
-directory <- file.choose()
-# Dictionaries for converting ID codes to names
+ # Working file_path
+file_path <- file.choose()
+ # Set the default file directory to the directory containing the selected file
+directory <- dirname(file_path)
+ # Dictionaries for interpreting sample ID codes
 location.dict <- list(
   "Berthoud" = "BT",
   "ARDEC South - Org" = "ASO",
@@ -63,10 +66,10 @@ location.dict <- list(
   "Todds Ranch" = "TR",
   "Upper Yampa" = "UYM")
 trt.dict <- c(
-  "ST1" = "ST1",
-  "ST2" = "ST2",
-  "CT1" = "CT1",
-  "CT2" = "CT2",
+  "ST1" = C("ST1", "AVST1"),
+  "ST2" = C("ST2", "AVST2"),
+  "CT1" = C("CT1", "AVCT1"),
+  "CT2" = C("CT2", "AVCT2"),
   "MT1" = "MT1",
   "MT2" = "MT2",
   "Inflow" = "INF",
@@ -88,23 +91,47 @@ trt.dict <- c(
   "Fish Pond" = "FP",
   "Fire 2" = "FR2")
 method.dict <- c(
-  "ISCO" = "ISC",
-  "Low-Cost Sampler" = "LC",
-  "Grab Sample" = "GB")
+  "ISCO" = c("ISC", "IN", "OT"),
+  "Low-Cost Sampler" = c("LC", "LCIN", "LCOT"),
+  "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"))
 eventType.dict <- c(
   "Inflow" = "IN",
-  "Outflow" = "OUT")
+  "Outflow" = c("OUT", "OT"))
 
-reverseList <- function(list) {
-  # Reverse the key pairs order of a list
-  rev.list <- with(stack(location.dict), split(as.character(ind), values))
-  return(rev.list)
+# Functions
+map_values <- function(text, dict) {
+ # function to map sample ID text to dictionary values
+  # Split the text by spaces
+  text_values <- unlist(strsplit(text, "-"))
+
+  # Map each value to the corresponding dictionary value
+  mapped_values <- lapply(text_values, function(x) {
+    for (key in names(dict)) {
+      if (x %in% dict[[key]]) {
+        return(key)
+      }
+    }
+    return(NA)
+  })
+
+  # Combine the mapped values into a single vector
+  combined_values <- unlist(mapped_values)
+
+  # Remove any NAs
+  combined_values <- combined_values[!is.na(combined_values)]
+
+  # Return the first combined value (or NA if there are no values)
+  if (length(combined_values) > 0) {
+    return(combined_values[1])
+  } else {
+    return(NA)
+  }
 }
 
-importData <- function(directory) {
+importData <- function(file_path) {
   # ALS exports data as xls, but it is actually htm,
    # so it requires some cleaning here.
-  df <- read_html(directory) %>% # read in html file
+  df <- read_html(file_path) %>% # read in html file
     html_table() %>% # convert to table
     data.frame() # convert to dataframe
   return(df) # return dataframe
@@ -133,37 +160,50 @@ cleanData <- function(df) {
 
 processData <- function(df) {
   # Process data to create new columns for analysis based on ID codes
-   # create duplicate column
-  df$duplicate <- ifelse(grepl("-D", df$SAMPLE.ID, fixed = FALSE), TRUE, FALSE)
-   # create location ID column
-  df$location.id <- gsub("-.*", "", df$SAMPLE.ID)
-   # convert ID codes to names
-  vec <- data.frame(location.name = unlist(lapply(df2$location.id, 
-                    FUN = function(x){reverseList(location.dict)[[x]]})))
-  df <- cbind(df, vec)
-  #TODO: finish this function with the rest of the dictionaries
-  return(df)
+  df %>%
+    mutate(
+      # create duplicate column
+      duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
+      # create location name column based on Sample ID
+      location.name = sapply(SAMPLE.ID, 
+                             function(x) map_values(x, location.dict)),
+      # create treatment name column based on Sample ID
+      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
+      # create method name column based on Sample ID
+      method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
+      # create event type name column based on Sample ID
+      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
+    ) %>%
+    # if event type is NA, use "Point Sample" as default
+    mutate(y = if_else(is.na(y), "Point Sample", y))
 }
 
-executeFxns <- function(directory) {
+executeFxns <- function(file_path) {
   # execute all previous functions and return final dataframe
-  df <- importData(directory) %>%
+  df <- importData(file_path) %>%
     cleanData() %>%
     processData()
   return(df)
 }
 
-# temporary code for testing
-df3 <- importData(directory)
-df2 <- cleanData(df3)
-df <- processData(df2)
-df_final <- executeFxns(directory)
-
-
 listFiles <- function(directory) {
   # import htm files and merge into single df
-  df <- list.files(path=directory) %>%
-    lapply(read_xls) %>%
+  print(list.files(path = directory, pattern = "*.xls", full.names = TRUE))
+  df <- list.files(path = directory, pattern = "*.xls", full.names = TRUE) %>%
+    lapply(executeFxns) %>%
     bind_rows
   return(df)
 }
+
+# Execute functions and view resulting dataframe:
+ # For a single file
+df_final <- executeFxns(directory) # works
+View(df_final)
+ # For multiple files in a given directory
+df_final_merged <- listFiles(directory)
+View(df_final_merged)
+
+# Export the combined data frame as a CSV file
+write.csv(df_final_merged, file = "combined_data.csv", row.names = FALSE)
+ # Print a confirmation message
+cat("Combined data exported as 'combined_data.csv'.\n")
