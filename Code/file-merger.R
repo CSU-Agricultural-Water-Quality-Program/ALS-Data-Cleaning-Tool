@@ -103,8 +103,8 @@ method.dict <- c(
   "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9")
   )
 eventType.dict <- c(
-  "Inflow" = "IN",
-  "Outflow" = c("OUT", "OT")
+  "Inflow" = c("IN", "INLC"),
+  "Outflow" = c("OUT", "OT", "OTLC")
   )
 
 # Define Functions
@@ -201,6 +201,14 @@ processData <- function(df) {
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
 }
 
+flagData <- function(df){
+  # check water data for flags such as:
+    # H = past hold time
+    # J = minimum detection limit (MDL) > value > reporting limit (RL)
+    # N = non-EPA method used
+    # more?
+}
+
 executeFxns <- function(file_path) {
   # execute all previous functions and return final dataframe
   df <- importData(file_path) %>%
@@ -226,5 +234,5 @@ View(df_final)
 df_final_merged <- listFiles(directory)
 View(df_final_merged)
 
-# Export the combined data frame as a CSV file
+# Export the combined data frame as a CSV file in directory
 write.csv(df_final_merged, file = "combined_data.csv", row.names = FALSE)
