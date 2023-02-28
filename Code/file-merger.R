@@ -196,12 +196,14 @@ processData <- function(df) {
                 "method.name",
                 "event.type"), ~ gsub("[0-9]", "", .)) %>%
      # treatment.name needs special treament because of CT/MT/ST 1/2 having #'s
+     # TODO: detect number first, then do this, else leave it alone
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     # if event.type is NA, use "Point Sample" as default
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
 }
 
 flagData <- function(df){
+  # finish this function to flag data for QA/QC
   # check water data for flags such as:
     # H = past hold time
     # J = minimum detection limit (MDL) > value > reporting limit (RL)
