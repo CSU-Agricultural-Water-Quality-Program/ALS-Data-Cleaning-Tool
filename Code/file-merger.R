@@ -7,6 +7,9 @@
 # from the ALS global portal into one master file and create categories for
 # further analysis.
 
+# TODO:
+# make this script a package for use in future analysis scripts
+
 # Script work flow:
   # 0) Import libraries
   # 1) Define global variables
@@ -187,7 +190,9 @@ processData <- function(df) {
       # create method name column based on Sample ID
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
       # create event type name column based on Sample ID
-      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
+      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
+      # create flag column, and search for J values to start
+      flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA)
       ) %>%
     # remove numbers from new columns due to dict mapping
      # caution: if there are more than 10 dict keys, this will not work
@@ -219,8 +224,10 @@ executeFxns <- function(file_path) {
   return(df)
 }
 
-listFiles <- function(directory) {
+mergeFiles <- function(directory) {
   # import htm files and merge into single df
+  print("Merging files...")
+  print("Files to be merged:")
   print(list.files(path = directory, pattern = "*.xls", full.names = TRUE))
   df <- list.files(path = directory, pattern = "*.xls", full.names = TRUE) %>%
     lapply(executeFxns) %>%
@@ -228,13 +235,22 @@ listFiles <- function(directory) {
   return(df)
 }
 
-# View resulting dataframe(s) for QA/QC
- # For a single file
-df_final <- executeFxns(file_path)
-View(df_final)
- # For all .xls (but actually .htm) files in a given directory
-df_final_merged <- listFiles(directory)
-View(df_final_merged)
+returnSingleFile <- function(path=file_path, export=FALSE) {
+  # return and optionally export a single file for QA/QC
+  df <- executeFxns(path)
+  View(df)
+  if (export == TRUE) {
+    write.csv(df, file = "single_file.csv", row.names = FALSE)
+  }
+  return(df)
+}
 
-# Export the combined data frame as a CSV file in directory
-write.csv(df_final_merged, file = "combined_data.csv", row.names = FALSE)
+returnAllFiles <- function(d=directory, export=FALSE) {
+  # return and optionally export all files for QA/QC
+  df <- mergeFiles(d)
+  View(df)
+  if (export == TRUE) {
+    write.csv(df, file = "all_files.csv", row.names = FALSE)
+  }
+  return(df)
+}
