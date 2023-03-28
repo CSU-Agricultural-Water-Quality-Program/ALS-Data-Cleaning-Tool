@@ -26,6 +26,12 @@
   # 4) View resulting dataframe(s) for QA/QC
   # 3) Export data as csv
 
+# Example code execution for users
+# df_test <- returnSingleFile(path=file_path, export=FALSE)
+# df_all <- returnAllFiles(d=directory, export=FALSE)
+# Then take df_test or df_all and do whatever you want with it (e.g., graph)
+
+
 # Import libraries
 package.list <- c("magrittr",
                   "dplyr",
@@ -281,7 +287,3 @@ returnAllFiles <- function(d=directory, export=FALSE) {
   }
   return(df)
 }
-
-# delete after testing below
-df_test <- returnSingleFile(path=file_path, export=FALSE)
-df_all <- returnAllFiles(d=directory, export=FALSE)
