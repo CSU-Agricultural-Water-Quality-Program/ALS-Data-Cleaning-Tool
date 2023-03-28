@@ -48,7 +48,7 @@ packageLoad(package.list)
 
 # Global Variables
  # Working file_path
-file_path <- "./Example Data/AVRC.xls"
+file_path <- "./Example Data/Webtrieve-10-HS22090451.xls"
 # file_path <- file.choose()
  # Set the default file directory to the directory containing the selected file
 directory <- dirname(file_path)
@@ -61,7 +61,7 @@ location.dict <- c(
   "ARDEC 2200" = "A2",
   "Molina" = "MOL",
   "Gunnison" = "GU",
-  "Kerbel" = c("K", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
+  "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
   "Yellow Jacket " = "YJ",
   "Yampa" = "UYM",
   "Legacy" = "LG",
@@ -110,7 +110,7 @@ eventType.dict <- c(
   "Outflow" = c("OUT", "OT", "OTLC")
   )
 
-# Define Functions
+# Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {
  # function to map sample ID text to dictionary values
   # Split the text by spaces
@@ -149,6 +149,14 @@ importData <- function(file_path) {
   return(df) # return dataframe
 }
 
+importDataXls <- function(file_path) {
+  # ALS exports meta data as xls. Very confusing.
+   # so we have to import it differently
+  df <- read_excel(file_path) %>% # read in html file
+    data.frame() # convert to dataframe
+  return(df) # return dataframe
+}
+
 cleanData <- function(df) {
   # Clean imported dataframe for merging, graphing, etc.
    # Drop unnecessary rows containing the word "sample:"
@@ -183,7 +191,7 @@ processData <- function(df) {
       # create duplicate column
       duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
       # create location name column based on Sample ID
-      location.name = sapply(SAMPLE.ID, 
+      location.name = sapply(SAMPLE.ID,
                              function(x) map_values(x, location.dict)),
       # create treatment name column based on Sample ID
       treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
@@ -225,16 +233,35 @@ executeFxns <- function(file_path) {
 }
 
 mergeFiles <- function(directory) {
-  # import htm files and merge into single df
+  # import all htm files in the directory, merge, and return df
   print("Merging files...")
-  print("Files to be merged:")
-  print(list.files(path = directory, pattern = "*.xls", full.names = TRUE))
-  df <- list.files(path = directory, pattern = "*.xls", full.names = TRUE) %>%
+  file_list <- list.files(path = directory,
+                          pattern = "*.xls", 
+                          full.names = TRUE)
+  print("Data files to be merged:")
+  data_files <- file_list[!grepl("-Samples", file_list)]
+  print(data_files)
+  print("Metadata files to be merged:")
+  meta_files <- file_list[grepl("-Samples", file_list)]
+  print(meta_files)
+  # merge data files
+  df_data <- data_files %>%
+    # pair and merge files here
     lapply(executeFxns) %>%
     bind_rows
+  # merge metadata files
+  df_meta <- meta_files %>%
+    # pair and merge files here
+    lapply(importDataXls) %>%
+    bind_rows
+  # merge data and metadata
+  df <- df_data %>%
+    left_join(df_meta, by = "SAMPLE.ID")
+  View(df)
   return(df)
 }
 
+# Define public functions (i.e., to be called by user)
 returnSingleFile <- function(path=file_path, export=FALSE) {
   # return and optionally export a single file for QA/QC
   df <- executeFxns(path)
@@ -254,3 +281,7 @@ returnAllFiles <- function(d=directory, export=FALSE) {
   }
   return(df)
 }
+
+# delete after testing below
+df_test <- returnSingleFile(path=file_path, export=FALSE)
+df_all <- returnAllFiles(d=directory, export=FALSE)
