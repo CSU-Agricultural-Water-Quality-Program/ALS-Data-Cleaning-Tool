@@ -112,7 +112,8 @@ method.dict <- c(
   "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9")
   )
 eventType.dict <- c(
-  "Inflow" = c("IN", "INLC"),
+  "Inflow" = c("IN", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", "IN7", 
+    "IN8", "IN9"),
   "Outflow" = c("OUT", "OT", "OTLC")
   )
 
@@ -204,9 +205,7 @@ processData <- function(df) {
       # create method name column based on Sample ID
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
       # create event type name column based on Sample ID
-      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
-      # create flag column, and search for J values to start
-      flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA)
+      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
       ) %>%
     # remove numbers from new columns due to dict mapping
      # caution: if there are more than 10 dict keys, this will not work
@@ -222,12 +221,21 @@ processData <- function(df) {
 }
 
 flagData <- function(df){
-  # finish this function to flag data for QA/QC
+  # function to flag data for QA/QC after merging both htm and xls files
   # check water data for flags such as:
     # H = past hold time
     # J = minimum detection limit (MDL) > value > reporting limit (RL)
     # N = non-EPA method used
+    # P = Ortho-P > Total P
     # more?
+  # create flag column
+  df$flag <- NA
+  df %>%
+    # search for J values
+    mutate(flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA)) %>%
+    # identify samples past hold time, based on ALS "HOLD" column
+    mutate(flag = ifelse(HOLD == 'Yes', paste0(flag, "H"), flag))
+  return(df)
 }
 
 executeFxns <- function(file_path) {
@@ -262,7 +270,8 @@ mergeFiles <- function(directory) {
     bind_rows
   # merge data and metadata
   df <- df_data %>%
-    left_join(df_meta, by = "SAMPLE.ID")
+    left_join(df_meta, by = "SAMPLE.ID") %>%
+    flagData()
   View(df)
   return(df)
 }
