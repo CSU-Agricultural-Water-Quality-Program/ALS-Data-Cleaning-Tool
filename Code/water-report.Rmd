@@ -11,27 +11,96 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Introduction
 
-This report details data collected from 1 Jan 2023 to "`r Sys.Date()`" by the Colorado State University (CSU) Agriculture Water Quality Program (AWQP). For more information, please contact AJ Brown at [Ansley.Brown\@colostate.edu](mailto:Ansley.Brown@colostate.edu){.email} or visit the CSU AWQP Website at <https://waterquality.colostate.edu>.
+This report details data collected from 2023-01-01 to `r Sys.Date()` by the Colorado State University (CSU) Agriculture Water Quality Program (AWQP). For more information, please contact AJ Brown at [Ansley.Brown\@colostate.edu](mailto:Ansley.Brown@colostate.edu){.email} or visit the CSU AWQP Website at <https://waterquality.colostate.edu>.
 
-```{r}
-summary(cars)
+```{r, warning=FALSE, message=FALSE}
+# import packages
+package.list <- c("ggplot2",
+                  "dplyr",
+                  "DT",
+                  "plotly"
+                  )
+packageLoad <- function(packages){
+  for (i in packages) {
+    if (!require(i, character.only = TRUE)) {
+      install.packages(i)
+      library(i, character.only = TRUE)
+    }
+  }
+}
+packageLoad(package.list)
+#source("file-merger")
+
+# Set directories
+ # Working file_path
+ # fix this to be relative path
+file_path <- "../ALS-Data-Cleaning-Tool/all_files.csv/"
+file_path <- "C:\\Users\\ansleybr\\Documents\\GitHub\\ALS-Data-Cleaning-Tool\\all_files.csv"
+ # Set the report directory to the directory containing the selected file
+directory <- paste(dirname(file_path),"/Example Report", sep = "")
+print(directory)
+# import data
+# TODO: utilitze source() to import data from file-merge.R instead of reading 
+# in the csv
+dat <- read.csv(file_path, header = TRUE, stringsAsFactors = FALSE)
 ```
 
 ## Table of Contents
 
 1.  [Site List](#sites)
-2.  
+2.  [Summary Plots](#plots)
 
 ## Site List <a name="sites"></a>
 
 Here is a list of sites and their sample counts:
 
 ```{r}
-cars
+# The DT package creates an interactive table for the HTML output.
+# Here we create a summary table of location and test counts
+counts <- dat %>% 
+    group_by(location.name, ANALYTE) %>% 
+    summarise(count = n())
+DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
 ```
 
+## Summary Plots <a name="plots"></a>
 ```{r}
-plot(pressure)
-```
+# Create a plot of the data using plotly
+# group the data by "location", "test.type", and "value"
+df_grouped <- dat %>%
+    group_by(location.name, ANALYTE) %>%
+    arrange(location.name)
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# generate the button list dynamically based on unique "test.type" values
+button_list <- lapply(unique(df_grouped$location.name), function(loc) {
+  list(
+    method = "update",
+    args = list(
+      list(visible = df_grouped$location.name == loc),
+      list(title = paste("Test Type:",
+        df_grouped$ANALYTE[1],
+        "<br>Location:", loc)
+        )
+    ),
+    label = loc
+  )
+}
+)
+
+# create the interactive box plots faceted by "ANALYTE"
+p <- plot_ly(df_grouped, x = ~ANALYTE, y = ~RESULT, type = "box") %>%
+  layout(title = "Water Analysis Results",
+         xaxis = list(title = "Test Type"),
+         yaxis = list(title = "Concentration (mg/L) or (ug/L; Selenium)"),
+         updatemenus = list(
+           list(
+             y = 0.7,
+             buttons = button_list
+           )
+         ),
+         grid = list(rows = unique(df_grouped$ANALYTE))
+        )
+
+# show the plot
+p
+```
