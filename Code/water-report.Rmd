@@ -1,29 +1,36 @@
 ---
-title: "Untitled"
-output: github_document
+title: "water-report"
+author: "AJ Brown"
+date: "`r Sys.Date()`"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## GitHub Documents
+## Introduction
 
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+This report details data collected from 1 Jan 2023 to "`r Sys.Date()`" by the Colorado State University (CSU) Agriculture Water Quality Program (AWQP). For more information, please contact AJ Brown at [Ansley.Brown\@colostate.edu](mailto:Ansley.Brown@colostate.edu){.email} or visit the CSU AWQP Website at <https://waterquality.colostate.edu>.
 
-## Including Code
-
-You can include R code in the document as follows:
-
-```{r cars}
+```{r}
 summary(cars)
 ```
 
-## Including Plots
+## Table of Contents
 
-You can also embed plots, for example:
+1.  [Site List](#sites)
+2.  
 
-```{r pressure, echo=FALSE}
+## Site List <a name="sites"></a>
+
+Here is a list of sites and their sample counts:
+
+```{r}
+cars
+```
+
+```{r}
 plot(pressure)
 ```
 
