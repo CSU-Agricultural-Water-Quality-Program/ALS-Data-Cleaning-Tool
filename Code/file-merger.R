@@ -277,7 +277,7 @@ mergeFiles <- function(directory) {
 }
 
 # Define public functions (i.e., to be called by user)
-returnSingleFile <- function(path=file_path, export=FALSE) {
+returnSingleFile <- function(path = file_path, export = FALSE) {
   # return and optionally export a single file for QA/QC
   df <- executeFxns(path)
   View(df)
@@ -287,7 +287,7 @@ returnSingleFile <- function(path=file_path, export=FALSE) {
   return(df)
 }
 
-returnAllFiles <- function(d=directory, export=FALSE) {
+returnAllFiles <- function(d = directory, export = FALSE) {
   # return and optionally export all files for QA/QC
   df <- mergeFiles(d)
   View(df)
