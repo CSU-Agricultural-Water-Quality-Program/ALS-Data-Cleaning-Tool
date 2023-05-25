@@ -54,7 +54,7 @@ packageLoad(package.list)
 
 # Global Variables
  # Working file_path
-file_path <- "./Example Data/Webtrieve-10-HS22090451.xls"
+file_path <- "./Data/Webtrieve-10-HS22090451.xls"
 # file_path <- file.choose()
  # Set the default file directory to the directory containing the selected file
 directory <- dirname(file_path)
@@ -79,7 +79,7 @@ location.dict <- c(
   "Stagecoach" = "SB",
   "Todds Ranch" = "TR",
   "Upper Yampa" = "UYM",
-  "Boulder Lake" = "BOL",
+  "Boulder Lake" = "BOL"
   )
 trt.dict <- c(
   "ST1" = c("ST1", "AVST1"),
@@ -272,13 +272,13 @@ mergeFiles <- function(directory) {
   # merge data and metadata
   df <- df_data %>%
     left_join(df_meta, by = "SAMPLE.ID") %>%
-    flagData()
+    flagData() 
   View(df)
   return(df)
 }
 
 # Define public functions (i.e., to be called by user)
-returnSingleFile <- function(path = file_path, export = FALSE) {
+returnSingleFile <- function(path = file_path, export = TRUE) {
   # return and optionally export a single file for QA/QC
   df <- executeFxns(path)
   View(df)
@@ -288,7 +288,7 @@ returnSingleFile <- function(path = file_path, export = FALSE) {
   return(df)
 }
 
-returnAllFiles <- function(d = directory, export = FALSE) {
+returnAllFiles <- function(d = directory, export = TRUE) {
   # return and optionally export all files for QA/QC
   df <- mergeFiles(d)
   View(df)
@@ -297,3 +297,5 @@ returnAllFiles <- function(d = directory, export = FALSE) {
   }
   return(df)
 }
+
+
