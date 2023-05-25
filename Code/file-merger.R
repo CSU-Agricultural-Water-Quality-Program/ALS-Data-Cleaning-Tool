@@ -79,7 +79,7 @@ location.dict <- c(
   "Stagecoach" = "SB",
   "Todds Ranch" = "TR",
   "Upper Yampa" = "UYM",
-  "Boulder Lake" = "BOL",
+  "Boulder Lake" = "BOL"
   )
 trt.dict <- c(
   "ST1" = c("ST1", "AVST1"),
@@ -291,7 +291,8 @@ returnSingleFile <- function(path = file_path, export = FALSE) {
 returnAllFiles <- function(d = directory, export = FALSE) {
   # return and optionally export all files for QA/QC
   df <- mergeFiles(d)
-  View(df)
+  # for debugging only; uncomment as necessary
+  #View(df)
   if (export == TRUE) {
     write.csv(df, file = "all_files.csv", row.names = FALSE)
   }
