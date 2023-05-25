@@ -33,12 +33,13 @@ packageLoad(package.list)
 source("./Code/file-merger.R", local = knitr::knit_global())
 
 # Set directories
-report_path <- paste(dirname(getwd()), "/Example Report", sep = "")
-data_path <- paste(dirname(getwd()), "/Example Data", sep = "")
+code_path <- paste(getwd(), "/Code/file_merger.R", sep = "")
+report_path <- paste(getwd(), "/Example Report", sep = "")
+data_path <- paste(getwd(), "/Example Data", sep = "")
 
 # import data
-#dat <- returnAllFiles(d = data_path, export = FALSE)
-dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
+dat <- returnAllFiles(d = data_path, export = FALSE)
+#dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
 ```
 
 ## Table of Contents
