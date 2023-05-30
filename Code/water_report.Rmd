@@ -14,7 +14,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(toc = TRUE, echo = FALSE, warning = FALSE, message = FALSE)
 
-#unsure if i need toc depth here
+
 ```
 
 # Introduction
@@ -24,12 +24,14 @@ This report details data collected from 2023-01-01 to `r Sys.Date()` by the Colo
 
 
 
+
 ```{r, include=FALSE}
 package.list <- c("ggplot2",
                   "dplyr",
                   "DT",
                   "plotly",
-                  "knitr"
+                  "knitr",
+                  'taskscheduleR'
                   )
 packageLoad <- function(packages){
   for (i in packages) {
@@ -50,7 +52,7 @@ data_path <- paste(dirname(getwd()), "/Data", sep = "")
 
 
 # import data
-dat <- returnAllFiles(d = data_path, export = TRUE)
+dat <- returnAllFiles(d = data_path, export = FALSE)
 #dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
 ```
 
@@ -64,6 +66,10 @@ df_grouped <- dat %>%
     arrange(location.name)
 ```
 
+```{r}
+colnames(df_grouped) <- tolower(names(df_grouped))
+```
+
 
 # Sites
 
@@ -75,718 +81,255 @@ counts <- dat %>%
 DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
 ```
 
+```{r}
+# Define the scatter plot function
+make_scatter_plots <- function(data) {
+  
+  # Get unique locations and analytes
+  unique_locations <- unique(data$location.name)
+  unique_analytes <- unique(data$analyte)
+  
+  # Generate scatter plots for each unique location and analyte
+  for (location in unique_locations) {
+    for (analyte in unique_analytes) {
+      # Filter the data for the current location and analyte
+      filtered_data <- data %>%
+        filter(location == location, analyte == analyte) %>%
+        ungroup()
+      
+      # Create the scatter plot
+      scatter_plot <- ggplot(filtered_data, aes(x = collected, y = result, color = event.type)) +
+        geom_point() +
+        labs(x = "Date", y = "Result (mg/L)", title = paste( analyte, "Results for", location))
+      
+      # Print the scatter plot
+      print(scatter_plot)
+      
+      # Add a new line after each plot
+      cat("\n")
+    }
+  }
+}
 
-## AVRC 
+```
 
-Data by analyte for AVRC Star Site
+
+## ARDEC 2200
+
+```{r}
+#filter to site
+ARDEC2200 <- df_grouped %>% 
+  filter(location.name == "ARDEC 2200")
+
+
+# Call the scatter plot function for the site
+make_scatter_plots(ARDEC2200)
+```
+
+
+## ARDEC South -  Conv
+
+```{r}
+
+ARDECSouth <- df_grouped %>% 
+  filter(location.name == "ARDEC South -  Conv")
+
+
+
+make_scatter_plots(ARDECSouth)
+```
+
+
+## ARDEC South - Org
+
+```{r}
+
+ARDECSouthOrg <- df_grouped %>% 
+  filter(location.name == "ARDEC South - Org")
+
+
+
+make_scatter_plots(ARDECSouthOrg)
+```
+
+
+## AVRC STAR
+
+```{r}
+
+AVRC <- df_grouped %>% 
+  filter(location.name == "AVRC STAR")
+
+
+make_scatter_plots(AVRC)
+```
+
+
+## Barley
 
 ```{r}
 #filter to only AVRC 
-AVRC <- dat %>% 
-  filter(location.name == "AVRC STAR")
+Barley <- df_grouped %>% 
+  filter(location.name == "Barley")
+
+
+# Call the scatter plot function with your dataframe
+make_scatter_plots(Barley)
 ```
-
-
-### Nitrate/Nitrite (as N)
-
-```{r}
-#Filter to single analyte
-Nitrate_AVRC <- AVRC %>%
-  filter(ANALYTE == "Nitrate/Nitrite (as N)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrate_AVRC, x = ~COLLECTED, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Collection Date"),
-    yaxis = list(title = "Result (mg/L)"),
-    title = "Nitrate/Nitrite Results for AVRC")
-
-#Different plot used here, date instead of method, would this be best for when we have more data? does it need to be seperated?
-
-
-```
-
-
-
-### Nitrogen, Nitrate (as N)
-```{r}
-Nitrogen_AVRC <- AVRC %>%
-  filter(ANALYTE == "Nitrogen, Nitrate (As N)")
-
-
-
-
-plot_ly(Nitrogen_AVRC, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L)"),
-    scattermode = "group",
-    title = "Nitrogen, Nitrate Results for AVRC")
-
-
-
-
-```
-
-
-
-### Nitrogen, Total Kjeldahl
-
-```{r}
-tkn_AVRC <- AVRC %>%
-  filter(ANALYTE == "Nitrogen, Total Kjeldahl")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(tkn_AVRC, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    scattermode = "group",
-    title = "TKN Resuts for AVRC"
-  )
-
-
-
-
-```
-
-
-
-### Phosphorus, Total (as P)
-
-```{r}
-P_AVRC <- AVRC %>%
-  filter(ANALYTE == "Phosphorus, Total (As P)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(P_AVRC, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    scattermode = "group",
-    title = "Total Phosphorus Results for AVRC"
-  )
-
-
-
-
-```
-
-
-
-### Phosphorus, Total Orthophosphate (as P)
-
-```{r}
-op_AVRC <- AVRC %>%
-  filter(ANALYTE == "Phosphorus, Total Orthophosphate (as P)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(op_AVRC, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L)"),
-    title = "Orthophosphate Results for AVRC")
-
-#Different plot used here, date instead of method, would this be best for when we have more data? does it need to be seperated?
-
-
-```
-
-
-
-
-### Selenium
-
-```{r}
-S_AVRC <- AVRC %>%
-  filter(ANALYTE == "Selenium")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(S_AVRC, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Selenium Results for AVRC")
-  
-
-
-
-
-```
-
 
 
 ## Berthoud
-
+ 
 ```{r}
-#filter to only AVRC 
-Berthoud <- dat %>% 
+Berthoud <- df_grouped %>% 
   filter(location.name == "Berthoud")
+
+
+make_scatter_plots(Berthoud)
 ```
-
-Data by analyte for Berthoud Site
-
-### Nitrate/Nitrite (as N)
-
-```{r}
-Nitrate_B <- Berthoud %>%
-  filter(ANALYTE == "Nitrate/Nitrite (as N)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrate_B, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Nitrate/Nitrite Results for Berthoud"
-  )
-
-
-
-
-```
-
-
-
-### Nitrogen, Nitrate (as N)
-
-```{r}
-Nitrogen_B <- Berthoud %>%
-  filter(ANALYTE == "Nitrogen, Nitrate (As N)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrogen_B, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Nitrogen, Nitrate Results for Bethoud"
-  )
-
-
-
-
-```
-
-
-
-### Nitrogen, Total Kjeldahl
-
-```{r}
-tkn_B <- Berthoud %>%
-  filter(ANALYTE == "Nitrogen, Total Kjeldahl")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(tkn_B, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "TKN Results for Berthoud"
-  )
-
-
-
-
-```
-
-
-
-### Phosphorus, Total (as P)
-
-```{r, echo =FALSE}
-p_B <- Berthoud %>%
-  filter(ANALYTE == "Phosphorus, Total (As P)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(p_B, x = ~treatment.name, y = ~RESULT, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Total Phosphorus Results for Berthoud"
-  )
-
-
-
-
-```
-
-
-
-### Phosphorus, Total Orthophosphate (as P)
-
-```{r}
-op_B <- Berthoud %>%
-  filter(ANALYTE == "Phosphorus, Total Orthophosphate (as P)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(op_B, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L)"),
-    title = "Orthophosphate Results for Berthoud")
-
-#Different plot used here, date instead of method, would this be best for when we have more data? does it need to be seperated?
-
-
-```
-
-
-
-### Selenium
-
-```{r, echo= FALSE}
-S_B <- Berthoud %>%
-  filter(ANALYTE == "Selenium")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(S_B, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Selenium Results for Berthoud"
-  )
-
-
-
-
-```
-
-
-
+ 
+ 
 ## Big Hollow
 
 ```{r}
-#filter to only AVRC 
-BH <- dat %>% 
+BigHollow <- df_grouped %>% 
   filter(location.name == "Big Hollow")
+
+
+make_scatter_plots(BigHollow)
 ```
 
-Data by analyte for Big Hollow Site
 
-### Nitrate/Nitrite (as N)
+## Boulder Lake
 
 ```{r}
-Nitrate_BH <- BH %>%
-  filter(ANALYTE == "Nitrate/Nitrite (as N)")
+BoulderLake <- df_grouped %>% 
+  filter(location.name == "Boulder Lake")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrate_BH, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Nitrate/Nitrite Results for Big Hollow"
-  )
-
-
-
-
+make_scatter_plots(BoulderLake)
 ```
 
 
-
-### Nitrogen, Nitrate (as N)
+## Gunnison
 
 ```{r}
-Nitrogen_BH <- BH %>%
-  filter(ANALYTE == "Nitrogen, Nitrate (As N)")
+Gunnison <- df_grouped %>% 
+  filter(location.name == "Gunnison")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrogen_BH, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Nitrogen, Nitrate Results for Big Hollow"
-  )
-
-
-
-
+make_scatter_plots(Gunnison)
 ```
-
-
-
-### Nitrogen, Total Kjeldahl
-
-```{r}
-tkn_BH <- BH %>%
-  filter(ANALYTE == "Nitrogen, Total Kjeldahl")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(tkn_BH, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "TKN Results for Big Hollow"
-  )
-
-
-
-
-```
-
-
-
-### Phosphorus, Total (as P)
-
-```{r}
-P_BH <- BH %>%
-  filter(ANALYTE == "Phosphorus, Total (As P)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(P_BH, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Total Phosphorus Results for Big Hollow"
-  )
-
-
-
-
-```
-
-
-
-### Phosphorus, Total Orthophosphate (as P)
-
-```{r}
-op_BH <- BH %>%
-  filter(ANALYTE == "Phosphorus, Total Orthophosphate (as P)")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(op_BH, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L)"),
-    title = "Orthophosphate Results for Big Hollow")
-
-#Different plot used here, date instead of method, would this be best for when we have more data? does it need to be seperated?
-
-
-```
-
-
-
-### Selenium
-
-```{r}
-S_BH <- BH %>%
-  filter(ANALYTE == "Selenium")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(S_BH, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Seelnium Results for Big Hollow"
-  )
-
-
-
-
-```
-
-
 
 ## Kerbel
 
 ```{r}
-#filter to only AVRC 
-K <- dat %>% 
+Kerbel <- df_grouped %>% 
   filter(location.name == "Kerbel")
+
+
+make_scatter_plots(Kerbel)
 ```
 
-Data by analyte for Kerbel Site
-
-### Nitrate/Nitrite (as N)
+## Legacy
 
 ```{r}
-Nitrate_K <- K %>%
-  filter(ANALYTE == "Nitrate/Nitrite (as N)")
+Legacy <- df_grouped %>% 
+  filter(location.name == "Legacy")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrate_K, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Nitrate/Nitrite Results for Kerbel"
-  )
-
-
-
-
+make_scatter_plots(Legacy)
 ```
 
-
-
-### Nitrogen, Nitrate (as N)
+## Molina
 
 ```{r}
-Nitrogen_K <- K %>%
-  filter(ANALYTE == "Nitrogen, Nitrate (As N)")
+Molina <- df_grouped %>% 
+  filter(location.name == "Molina")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrogen_K, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "nitrogen, Nitrate Results for Kerbel"
-  )
-
-
-
-
+make_scatter_plots(Molina)
 ```
 
 
-
-### Nitrogen, Total Kjeldahl
+## Morrison Creek
 
 ```{r}
-tkn_K <- K %>%
-  filter(ANALYTE == "Nitrogen, Total Kjeldahl")
+MorrisonCreek <- df_grouped %>% 
+  filter(location.name == "Morrison Creek")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(tkn_K, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "TKN Results for Kerbel"
-  )
-
-
-
-
+make_scatter_plots(MorrisonCreek)
 ```
 
-
-### Phosphorus, Total (as P)
+## Stage Coach Above
 
 ```{r}
-P_K <- K %>%
-  filter(ANALYTE == "Phosphorus, Total (As P)")
+SCA <- df_grouped %>% 
+  filter(location.name == "Stage Coach Above")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(P_K, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Total Phosphorus Results for Kerbel"
-  )
-
-
-
-
+make_scatter_plots(SCA)
 ```
 
-
-
-### Phosphorus, Total Orthophosphate (as P)
+## Stage Coach In
 
 ```{r}
-op_K <- K %>%
-  filter(ANALYTE == "Phosphorus, Total Orthophosphate (as P)")
+SCI <- df_grouped %>% 
+  filter(location.name == "Stage Coach In")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(op_K, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L)"),
-    title = "Orthophosphate Results for Kerbel")
-
-#Different plot used here, date instead of method, would this be best for when we have more data? does it need to be seperated?
-
-
+make_scatter_plots(SCI)
 ```
 
-
-
-### Selenium
+## Stagecoach
 
 ```{r}
-S_K <- K %>%
-  filter(ANALYTE == "Selenium")
+Stagecoach <- df_grouped %>% 
+  filter(location.name == "Stagecoach")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(S_K, x = ~method.name, y = ~RESULT, color = ~treatment.name, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Selenium Results for Kerbel"
-  )
-
-
-
-
+make_scatter_plots(Stagecoach)
 ```
 
+## Todds Ranch
 
+```{r}
+TR <- df_grouped %>% 
+  filter(location.name == "Todds Ranch")
+
+
+make_scatter_plots(TR)
+```
+
+## Upper Yampa
+
+```{r}
+UY <- df_grouped %>% 
+  filter(location.name == "Upper Yampa")
+
+
+make_scatter_plots(UY)
+```
 
 ## Yampa
 
 ```{r}
-#filter to only Yampa
-Y <- dat %>% 
+Yampa <- df_grouped %>% 
   filter(location.name == "Yampa")
+
+
+make_scatter_plots(Yampa)
 ```
 
-Data by analyte for Yampa Site
-
-### Nitrate (as N)
+## Yellow Jacket
 
 ```{r}
-Nitrate_Y <- Y %>%
-  filter(ANALYTE == "NITRATE AS N")
+YJ <- df_grouped %>% 
+  filter(location.name == "Yellow Jacket")
 
 
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrate_Y, x = ~method.name, y = ~RESULT, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Nitrate Results for Yampa"
-  )
-
-
-
-
-```
-
-
-
-### Nitrite (as N)
-
-```{r}
-Nitrite_Y <- Y %>%
-  filter(ANALYTE == "NITRITE AS N")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(Nitrite_Y, x = ~method.name, y = ~RESULT, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Nitrite Results for Yampa"
-  )
-
-
-
-
-```
-
-
-
-### Orthophosphate (as P)
-
-```{r}
-op_Y <- Y %>%
-  filter(ANALYTE == "ORTHOPHOSPHATE AS P")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(op_Y, x = ~method.name, y = ~RESULT, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Orthophosphate Results for Yampa"
-  )
-
-
-
-
-```
-
-
-
-### Total Phosphorus
-
-```{r}
-P_Y <- Y %>%
-  filter(ANALYTE == "TOTAL PHOSPHORUS")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(P_Y, x = ~method.name, y = ~RESULT, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Total Phosphours Results for Yampa"
-  )
-
-
-
-
-```
-
-
-
-### Selenium
-
-```{r}
-S_Y <- Y %>%
-  filter(ANALYTE == "SELENIUM")
-
-
-
-# Create the scatter plot using Plotly
-plot_ly(S_Y, x = ~method.name, y = ~RESULT, type = "scatter") %>%
-  layout(
-    xaxis = list(title = "Method"),
-    yaxis = list(title = "Result (mg/L"),
-    title = "Selenium Results for Yampa"
-  )
-
-
-
-
+make_scatter_plots(YJ)
 ```
 
 
@@ -794,9 +337,10 @@ plot_ly(S_Y, x = ~method.name, y = ~RESULT, type = "scatter") %>%
 # Raw Data
 
 
-
-
 ```{r}
 datatable(df_grouped, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
 ```
+
+
+
 

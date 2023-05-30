@@ -1,0 +1,50 @@
+---
+title: "Water Report `r Sys.Date()`"
+author: "Molly Bell"
+date: "2023-05-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+```
+
+
+
+
+
+```{r}
+library(sendmailR)
+```
+
+
+```{r}
+taskscheduler_create(
+  taskname = "Weekly_Water_Report",
+  rscript = "~/GitHub/ALS-Data-Cleaning-Tool/Code/water_report.Rmd",
+  schedule = "WEEKLY",
+  starttime = "08:00",
+  startdate = format(Sys.Date(), "%m/%d/%Y")
+)
+```
+
+
+
+
+```{r}
+from <- "mollycbell8@gmail.com"
+to <- "molly.bell@colostate.edu"
+subject <- "Test Email"
+body <- "This is a test email sent using sendmailR with Gmail."
+
+sendmail(from, to, subject, body,
+         control = list(smtpServer = "smtp.gmail.com",
+                        smtpPort = 587,
+                        smtpUser = "",
+                        smtpPassword = "",
+                        smtpAuth = TRUE,
+                        sendmail_options = "-f -i -B 8BITMIME -o tls=starttls",
+                        verbose = TRUE))
+
+```
+

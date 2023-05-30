@@ -79,7 +79,8 @@ location.dict <- c(
   "Stagecoach" = "SB",
   "Todds Ranch" = "TR",
   "Upper Yampa" = "UYM",
-  "Boulder Lake" = "BOL"
+  "Boulder Lake" = "BOL",
+  "Morrison Creek" = "MOR"
   )
 trt.dict <- c(
   "ST1" = c("ST1", "AVST1"),
