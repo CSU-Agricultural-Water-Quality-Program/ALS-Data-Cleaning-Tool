@@ -168,13 +168,23 @@ make_scatter_plots(AVRC)
 ## Barley
 
 ```{r}
-#filter to only AVRC 
+
 Barley <- df_grouped %>% 
   filter(location.name == "Barley")
 
+make_scatter_plots(Barley)
+```
+
+## Below Stagecoach Dam
+
+```{r}
+
+BelowStage <- df_grouped %>% 
+  filter(location.name == "Below Stagecoach Dam")
+
 
 # Call the scatter plot function with your dataframe
-make_scatter_plots(Barley)
+make_scatter_plots(BelowStage)
 ```
 
 
