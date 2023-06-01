@@ -293,7 +293,8 @@ returnSingleFile <- function(path = file_path, export = TRUE) {
 returnAllFiles <- function(d = directory, export = TRUE) {
   # return and optionally export all files for QA/QC
   df <- mergeFiles(d)
-  View(df)
+  # for debugging only; uncomment as necessary
+  #View(df)
   if (export == TRUE) {
     write.csv(df, file = "all_files.csv", row.names = FALSE)
   }
