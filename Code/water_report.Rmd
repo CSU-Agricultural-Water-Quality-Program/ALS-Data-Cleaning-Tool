@@ -46,8 +46,7 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 #clean data source
 source("file-merger.R", local = knitr::knit_global())
-#gitignore file source 
-source('config.R',local = knitr::knit_global())
+
 
 # Set directories
 report_path <- paste(dirname(getwd()), "/Example Report", sep = "")
@@ -58,6 +57,7 @@ data_path <- paste(dirname(getwd()), "/Data", sep = "")
 dat <- returnAllFiles(d = data_path, export = FALSE)
 #dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
 ```
+
 
 
 

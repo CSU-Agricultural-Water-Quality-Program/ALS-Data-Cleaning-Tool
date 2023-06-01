@@ -5,6 +5,7 @@ today <- function() {
 
 
 #Source the Rmd file
+
 library(knitr)
 
 rmd_file <- "water_report.Rmd"
@@ -14,6 +15,7 @@ source(r_script)
 library(rmarkdown)
 
 # Generate the output file name with today's date
+
 output_file <- sprintf('~/GitHub/ALS-Data-Cleaning-Tool/Report/water_report_%s.html',
                        format(today(), format = "%m-%d-%y"))
 
@@ -32,13 +34,18 @@ execute_script <- function(){
 
 
 
-execution_time <- as.POSIXct(paste(today(), "11:32:00"))
+today <- weekdays(Sys.Date())
+if (today == "Friday") {
+  # If today is already Friday, calculate the delay for the following week
+  delay_seconds <- 86400 * (7 - 1) + 60 * 60 * (8 - as.numeric(format(Sys.time(), "%H")))
+} else {
+  # If today is not Friday, calculate the delay until the next Friday
+  delay_seconds <- 86400 * ((5 - as.integer(format(Sys.Date(), "%w"))) %% 7) + 60 * 60 * (8 - as.numeric(format(Sys.time(), "%H")))
+}
 
-
-delay_seconds <- as.numeric(execution_time - Sys.time())
-
-
+# Schedule the execution of the R script
 later::later(execute_script, delay = delay_seconds)
+
 
 
 
