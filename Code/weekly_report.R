@@ -32,6 +32,15 @@ script_path <- "weekly_report.R"
 execute_script <- function(){
   source(script_path)}
 
+#Single timestamp working function
+
+#execution_time <- as.POSIXct(paste(today(), "11:32:00"))
+
+
+#delay_seconds <- as.numeric(execution_time - Sys.time())
+
+
+#later::later(execute_script, delay = delay_seconds)
 
 
 today <- weekdays(Sys.Date())
