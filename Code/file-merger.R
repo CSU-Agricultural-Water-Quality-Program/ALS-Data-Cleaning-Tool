@@ -310,7 +310,8 @@ returnAllFiles <- function(d = directory, export = TRUE) {
 
 
   
-  TSS <- read_excel(tss_file_path, sheet = "MasterData") %>%
+df_Tss <- function(tss_file_path) {
+  df_Tss <- read_excel(tss_file_path, sheet = "MasterData") %>%
     select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
     rename("SAMPLE.ID" = "Sample_ID",
            "COLLECTED" = "Collection_date",
@@ -329,21 +330,17 @@ returnAllFiles <- function(d = directory, export = TRUE) {
     mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
-  
+  return(df_Tss)
+}
+df_Tss <- df_Tss(tss_file_path)
 
-  # Specify the folder path
-  folder_path <- "./Data"
-  
-  # Export the data frame as a xlsx file in the specified folder
-  file_path <- file.path(tss_directory, "TSS.xlsx")
-  write.xlsx(TSS, file = file_path, rowNames = FALSE)
+
   data_path <- paste(dirname(getwd()), "/Data", sep = "")
   
   
   # import data
   dat <- returnAllFiles(d = data_path, export = FALSE)
   # AJ's test push
-  # test 3
   dat <- returnAllFiles(d = directory, export = FALSE) 
 
 
