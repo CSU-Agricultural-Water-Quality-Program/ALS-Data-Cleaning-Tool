@@ -42,8 +42,8 @@ package.list <- c("magrittr",
                   "rvest",
                   "xml2",
                   "stringr",
-                  'tidyverse',
-                  'openxlsx')
+                  'tidyverse'
+                  )
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -277,9 +277,15 @@ mergeFiles <- function(directory) {
     lapply(importDataXls) %>%
     bind_rows
   # merge data and metadata
-  df <- df_data %>%
+  df_merge <- df_data %>%
     left_join(df_meta, by = "SAMPLE.ID") %>%
     flagData()
+  # append TSS data to df w/ metadata
+  df_tss <- dfTss(tss_file_path)
+  # TODO: CAZ, HERE BELOW IS WHAT WE NEED TO FIX
+  df <- df_merge %>%
+    bind_rows(df_tss,
+              .keep = 'unused')
   return(df)
 }
 
@@ -310,7 +316,7 @@ returnAllFiles <- function(d = directory, export = TRUE) {
 
 
   
-df_Tss <- function(tss_file_path) {
+dfTss <- function(tss_file_path) {
   df_Tss <- read_excel(tss_file_path, sheet = "MasterData") %>%
     select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
     rename("SAMPLE.ID" = "Sample_ID",
@@ -335,11 +341,13 @@ df_Tss <- function(tss_file_path) {
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
   return(df_Tss)
 }
-df_Tss <- df_Tss(tss_file_path)
+df_tss <- dfTss(tss_file_path)
 
+# bind_rows() test
+  df_comb <- df_all %>%
+    bind_rows(df_tss,
+              .keep = 'unused')
 
-  data_path <- paste(dirname(getwd()), "/Data", sep = "")
-  
   
   # import data
   dat <- returnAllFiles(d = data_path, export = FALSE)
