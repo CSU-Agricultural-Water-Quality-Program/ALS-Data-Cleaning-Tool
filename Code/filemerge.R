@@ -11,20 +11,20 @@
 # make this script a package for use in future analysis scripts
 
 # Script work flow:
-  # 0) Import libraries
-  # 1) Define global variables
-  # 1a) Working file_path
-  # 1b) Set the default file directory
-  # 1c) Define dictionaries for interpreting sample ID codes
-  # 2) Define functions
-  # 2a) map_values <-- a function to map sample ID text to dictionary values
-  # 2b) import data
-  # 2c) clean data
-  # 2d) process data
-  # 2e) execute previous functions
-  # 2f) repeat for all files in a directory
-  # 4) View resulting dataframe(s) for QA/QC
-  # 3) Export data as csv
+# 0) Import libraries
+# 1) Define global variables
+# 1a) Working file_path
+# 1b) Set the default file directory
+# 1c) Define dictionaries for interpreting sample ID codes
+# 2) Define functions
+# 2a) map_values <-- a function to map sample ID text to dictionary values
+# 2b) import data
+# 2c) clean data
+# 2d) process data
+# 2e) execute previous functions
+# 2f) repeat for all files in a directory
+# 4) View resulting dataframe(s) for QA/QC
+# 3) Export data as csv
 
 # Example code execution for users
 # df_test <- returnSingleFile(path=file_path, export=FALSE)
@@ -41,9 +41,7 @@ package.list <- c("magrittr",
                   "lattice",
                   "rvest",
                   "xml2",
-                  "stringr",
-                  'tidyverse',
-                  'openxlsx')
+                  "stringr")
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -55,13 +53,13 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 
 # Global Variables
- # Working file_path
+# Working file_path
 file_path <- "./Data/Webtrieve-10-HS22090451.xls"
 # file_path <- file.choose()
- # Set the default file directory to the directory containing the selected file
+# Set the default file directory to the directory containing the selected file
 directory <- dirname(file_path)
- # Dictionaries for interpreting sample ID codes
-  # Add to these at needed for new locations, treatments, methods, etc.
+# Dictionaries for interpreting sample ID codes
+# Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- c(
   "Berthoud" = "BT",
   "ARDEC South - Org" = "ASO",
@@ -84,7 +82,7 @@ location.dict <- c(
   "Boulder Lake" = "BOL",
   "Morrison Creek" = "MOR",
   "Below Stagecoach Dam" = "SCO"
-  )
+)
 trt.dict <- c(
   "ST1" = c("ST1", "AVST1"),
   "ST2" = c("ST2", "AVST2"),
@@ -110,24 +108,24 @@ trt.dict <- c(
   "Upper willow at @ culvert (swale)" = "CUL",
   "Fish Pond" = "FP",
   "Fire 2" = "FR2"
-  )
+)
 method.dict <- c(
   "ISCO" = c("ISC", "IN", "OT"),
   "Low-Cost Sampler" = c("LC", "INLC", "OTLC"),
   "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9")
-  )
+)
 eventType.dict <- c(
   "Inflow" = c("IN", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", "IN7", 
-    "IN8", "IN9"),
+               "IN8", "IN9"),
   "Outflow" = c("OUT", "OT", "OTLC")
-  )
+)
 
 # Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {
- # function to map sample ID text to dictionary values
+  # function to map sample ID text to dictionary values
   # Split the text by spaces
   text_values <- unlist(strsplit(text, "-"))
-
+  
   # Map each value to the corresponding dictionary value
   mapped_values <- lapply(text_values, function(x) {
     for (key in names(dict)) {
@@ -137,13 +135,13 @@ map_values <- function(text, dict) {
     }
     return(NA)
   })
-
+  
   # Combine the mapped values into a single vector
   combined_values <- unlist(mapped_values)
-
+  
   # Remove any NAs
   combined_values <- combined_values[!is.na(combined_values)]
-
+  
   # Return the first combined value (or NA if there are no values)
   if (length(combined_values) > 0) {
     return(combined_values[1])
@@ -154,7 +152,7 @@ map_values <- function(text, dict) {
 
 importData <- function(file_path) {
   # ALS exports data as xls, but it is actually htm,
-   # so it requires some cleaning here.
+  # so it requires some cleaning here.
   df <- read_html(file_path) %>% # read in html file
     html_table() %>% # convert to table
     data.frame() # convert to dataframe
@@ -163,7 +161,7 @@ importData <- function(file_path) {
 
 importDataXls <- function(file_path) {
   # ALS exports meta data as xls. Very confusing.
-   # so we have to import it differently
+  # so we have to import it differently
   df <- read_excel(file_path) %>% # read in html file
     data.frame() # convert to dataframe
   return(df) # return dataframe
@@ -171,14 +169,14 @@ importDataXls <- function(file_path) {
 
 cleanData <- function(df) {
   # Clean imported dataframe for merging, graphing, etc.
-   # Drop unnecessary rows containing the word "sample:"
+  # Drop unnecessary rows containing the word "sample:"
   df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
     # convert values containing "<" to 0
     mutate(RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
-         # create column to indicate if a result value was a non-detect
-         non.detect = ifelse(RESULT == 0, TRUE, FALSE),
-         # change "N/A" to NA in any column
-         across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
+           # create column to indicate if a result value was a non-detect
+           non.detect = ifelse(RESULT == 0, TRUE, FALSE),
+           # change "N/A" to NA in any column
+           across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
     # convert select columns to numeric if needed
     mutate_at(c("RESULT",
                 "DILUTION",
@@ -186,18 +184,21 @@ cleanData <- function(df) {
                 "RL",
                 "PERCENT.MOISTURE",
                 "PERCENT.SOLID"),
-               as.numeric)
+              as.numeric) %>%
+    # trim leading and trailing whitespaces in SAMPLE.ID column
+    mutate(SAMPLE.ID = str_trim(SAMPLE.ID))
+  
   return(df)
 }
 
 processData <- function(df) {
   # Process data to create new columns for analysis based on ID codes
-    # create a list of columns for post-processing
+  # create a list of columns for post-processing
   text_cols <- c("location.name",
-                   "treatment.name",
-                   "method.name",
-                   "event.type")
-    # create new columns based on ID codes
+                 "treatment.name",
+                 "method.name",
+                 "event.type")
+  # create new columns based on ID codes
   df %>%
     mutate(
       # create duplicate column
@@ -211,15 +212,15 @@ processData <- function(df) {
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
       # create event type name column based on Sample ID
       event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
-      ) %>%
+    ) %>%
     # remove numbers from new columns due to dict mapping
-     # caution: if there are more than 10 dict keys, this will not work
-     # note: avoid naming future locations with numbers in the name
+    # caution: if there are more than 10 dict keys, this will not work
+    # note: avoid naming future locations with numbers in the name
     mutate_at(c("location.name",
                 "method.name",
                 "event.type"), ~ gsub("[0-9]", "", .)) %>%
-     # treatment.name needs special treament because of CT/MT/ST 1/2 having #'s
-     # TODO: detect number first, then do this, else leave it alone
+    # treatment.name needs special treament because of CT/MT/ST 1/2 having #'s
+    # TODO: detect number first, then do this, else leave it alone
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     # if event.type is NA, use "Point Sample" as default
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
@@ -228,11 +229,11 @@ processData <- function(df) {
 flagData <- function(df){
   # function to flag data for QA/QC after merging both htm and xls files
   # check water data for flags such as:
-    # H = past hold time
-    # J = minimum detection limit (MDL) > value > reporting limit (RL)
-    # N = non-EPA method used
-    # P = Ortho-P > Total P
-    # more?
+  # H = past hold time
+  # J = minimum detection limit (MDL) > value > reporting limit (RL)
+  # N = non-EPA method used
+  # P = Ortho-P > Total P
+  # more?
   # create flag column
   df$flag <- NA
   df %>%
@@ -290,7 +291,7 @@ returnSingleFile <- function(path = file_path, export = FALSE) {
   return(df)
 }
 
-returnAllFiles <- function(d = directory, export = TRUE) {
+returnAllFiles <- function(d = directory, export = FALSE) {
   # return and optionally export all files for QA/QC
   df <- mergeFiles(d)
   # for debugging only; uncomment as necessary
@@ -300,47 +301,3 @@ returnAllFiles <- function(d = directory, export = TRUE) {
   }
   return(df)
 }
-
-
-
-#read in the TSS Excel file
-
-
-  
-  TSS <- read_excel('./TSS/TSS_Master_2023.xlsx', sheet = "MasterData") %>%
-    select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
-    rename("SAMPLE.ID" = "Sample_ID",
-           "COLLECTED" = "Collection_date",
-           "TSS" = "TSS_mg/L",
-           "EC" = "EC_mS/cm") %>%
-    filter(!(SAMPLE.ID %in% c("Stock Solution", "DI"))) %>%
-    na.omit() %>%
-    mutate(
-      duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
-      location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
-      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
-      method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
-      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
-    ) %>%
-    gather(key = "ANALYTE", value = "RESULT", c(pH, TSS, EC )) %>%
-    mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
-    mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
-    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
-  
-
-  # Specify the folder path
-  folder_path <- "./Data"
-  
-  # Export the data frame as a xlsx file in the specified folder
-  file_path <- file.path(folder_path, "TSS.xls")
-  write.xlsx(TSS, file = file_path, rowNames = FALSE)
-  data_path <- paste(dirname(getwd()), "/Data", sep = "")
-  
-  
-  # import data
-  dat <- returnAllFiles(d = data_path, export = FALSE)   
-
-
-
-
-

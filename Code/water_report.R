@@ -1,33 +1,10 @@
----
-title: "Water Report"
-author: "Caz Bell"
-date: "`r Sys.Date()`"
-output:
-  html_document: 
-    toc: yes
-    toc_float:
-      collapsed: yes
-      smooth_scroll: no
----
-
-
-```{r setup, include=FALSE}
+## ----setup, include=FALSE-----------------------------------------------------------------------------------------------------------------
 knitr::opts_chunk$set(toc = TRUE, echo = FALSE, warning = FALSE, message = FALSE)
 
 
-```
-
-# Introduction
-
-This report details data collected from 2023-01-01 to `r Sys.Date()` by the Colorado State University (CSU) Agriculture Water Quality Program (AWQP). For more information, please contact AJ Brown at [Ansley.Brown\@colostate.edu](mailto:Ansley.Brown@colostate.edu){.email} or visit the CSU AWQP Website at <https://waterquality.colostate.edu>.
 
 
-
-
-
-
-
-```{r, include=FALSE}
+## ---- include=FALSE-----------------------------------------------------------------------------------------------------------------------
 package.list <- c("ggplot2",
                   "dplyr",
                   "DT",
@@ -53,39 +30,30 @@ data_path <- paste(dirname(getwd()), "/Data", sep = "")
 
 
 # import data
-dat <- returnAllFiles(d = data_path, export = FALSE) 
+dat <- returnAllFiles(d = data_path, export = FALSE)
 #dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
-#make everything lowercase
-colnames(dat) <- tolower(names(dat))
 
 
-
-```
-
-
-
-
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 #create grouped data frame
 df_grouped <- dat %>%
-    group_by(location.name, analyte) %>%
+    group_by(location.name, ANALYTE) %>%
     arrange(location.name)
 
-```
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+colnames(df_grouped) <- tolower(names(df_grouped))
 
 
-# Sites
- 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 #create data table based on counts
 counts <- dat %>% 
-    group_by(location.name, analyte) %>% 
+    group_by(location.name, ANALYTE) %>% 
     summarise(count = n())
 DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
-```
 
-```{r}
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
 # Define the scatter plot function
 make_scatter_plots <- function(data) {
   
@@ -115,12 +83,9 @@ make_scatter_plots <- function(data) {
   }
 }
 
-```
 
 
-## ARDEC 2200
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 #filter to site
 ARDEC2200 <- df_grouped %>% 
   filter(location.name == "ARDEC 2200")
@@ -128,12 +93,9 @@ ARDEC2200 <- df_grouped %>%
 
 # Call the scatter plot function for the site
 make_scatter_plots(ARDEC2200)
-```
 
 
-## ARDEC South -  Conv
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 
 ARDECSouth <- df_grouped %>% 
   filter(location.name == "ARDEC South -  Conv")
@@ -141,12 +103,9 @@ ARDECSouth <- df_grouped %>%
 
 
 make_scatter_plots(ARDECSouth)
-```
 
 
-## ARDEC South - Org
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 
 ARDECSouthOrg <- df_grouped %>% 
   filter(location.name == "ARDEC South - Org")
@@ -154,34 +113,26 @@ ARDECSouthOrg <- df_grouped %>%
 
 
 make_scatter_plots(ARDECSouthOrg)
-```
 
 
-## AVRC STAR
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 
 AVRC <- df_grouped %>% 
   filter(location.name == "AVRC STAR")
 
 
 make_scatter_plots(AVRC)
-```
 
 
-## Barley
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 
 Barley <- df_grouped %>% 
   filter(location.name == "Barley")
 
 make_scatter_plots(Barley)
-```
 
-## Below Stagecoach Dam
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 
 BelowStage <- df_grouped %>% 
   filter(location.name == "Below Stagecoach Dam")
@@ -189,172 +140,128 @@ BelowStage <- df_grouped %>%
 
 # Call the scatter plot function with your dataframe
 make_scatter_plots(BelowStage)
-```
 
 
-## Berthoud
- 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 Berthoud <- df_grouped %>% 
   filter(location.name == "Berthoud")
 
 
 make_scatter_plots(Berthoud)
-```
- 
- 
-## Big Hollow
 
-```{r}
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
 BigHollow <- df_grouped %>% 
   filter(location.name == "Big Hollow")
 
 
 make_scatter_plots(BigHollow)
-```
 
 
-## Boulder Lake
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 BoulderLake <- df_grouped %>% 
   filter(location.name == "Boulder Lake")
 
 
 make_scatter_plots(BoulderLake)
-```
 
 
-## Gunnison
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 Gunnison <- df_grouped %>% 
   filter(location.name == "Gunnison")
 
 
 make_scatter_plots(Gunnison)
-```
 
-## Kerbel
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 Kerbel <- df_grouped %>% 
   filter(location.name == "Kerbel")
 
 
 make_scatter_plots(Kerbel)
-```
 
-## Legacy
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 Legacy <- df_grouped %>% 
   filter(location.name == "Legacy")
 
 
 make_scatter_plots(Legacy)
-```
 
-## Molina
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 Molina <- df_grouped %>% 
   filter(location.name == "Molina")
 
 
 make_scatter_plots(Molina)
-```
 
 
-## Morrison Creek
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 MorrisonCreek <- df_grouped %>% 
   filter(location.name == "Morrison Creek")
 
 
 make_scatter_plots(MorrisonCreek)
-```
 
-## Stage Coach Above
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 SCA <- df_grouped %>% 
   filter(location.name == "Stage Coach Above")
 
 
 make_scatter_plots(SCA)
-```
 
-## Stage Coach In
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 SCI <- df_grouped %>% 
   filter(location.name == "Stage Coach In")
 
 
 make_scatter_plots(SCI)
-```
 
-## Stagecoach
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 Stagecoach <- df_grouped %>% 
   filter(location.name == "Stagecoach")
 
 
 make_scatter_plots(Stagecoach)
-```
 
-## Todds Ranch
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 TR <- df_grouped %>% 
   filter(location.name == "Todds Ranch")
 
 
 make_scatter_plots(TR)
-```
 
-## Upper Yampa
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 UY <- df_grouped %>% 
   filter(location.name == "Upper Yampa")
 
 
 make_scatter_plots(UY)
-```
 
-## Yampa
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 Yampa <- df_grouped %>% 
   filter(location.name == "Yampa")
 
 
 make_scatter_plots(Yampa)
-```
 
-## Yellow Jacket
 
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 YJ <- df_grouped %>% 
   filter(location.name == "Yellow Jacket")
 
 
 make_scatter_plots(YJ)
-```
 
 
-
-# Raw Data
-
-
-```{r}
+## -----------------------------------------------------------------------------------------------------------------------------------------
 datatable(df_grouped, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
-```
-
-
-
 

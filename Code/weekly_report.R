@@ -7,6 +7,7 @@ today <- function() {
 #Source the Rmd file
 
 library(knitr)
+library(taskscheduleR)
 
 rmd_file <- "water_report.Rmd"
 r_script <- knitr::purl(rmd_file)
@@ -19,41 +20,21 @@ library(rmarkdown)
 output_file <- sprintf('~/GitHub/ALS-Data-Cleaning-Tool/Report/water_report_%s.html',
                        format(today(), format = "%m-%d-%y"))
 
-# Render the R Markdown document
-rmarkdown::render(input = 'water_report.Rmd', output_file = output_file)
+
+rmarkdown::render(input = './Code/water_report.Rmd', output_file = output_file)
 
 
 # Set the path to the R script
 
-script_path <- "weekly_report.R"
+script_path <- "./Code/weekly_report.R"
 
 # Define the function to execute the R script
 
-execute_script <- function(){
-  source(script_path)}
-
-#Single timestamp working function
-
-#execution_time <- as.POSIXct(paste(today(), "11:32:00"))
+taskscheduler_create(taskname = "myfancyscriptsunsat", rscript = script_path, 
+                     schedule = "WEEKLY", starttime = "10:10", days = c('SUN', 'SAT'))
 
 
-#delay_seconds <- as.numeric(execution_time - Sys.time())
 
-
-#later::later(execute_script, delay = delay_seconds)
-
-
-today <- weekdays(Sys.Date())
-if (today == "Friday") {
-  # If today is already Friday, calculate the delay for the following week
-  delay_seconds <- 86400 * (7 - 1) + 60 * 60 * (8 - as.numeric(format(Sys.time(), "%H")))
-} else {
-  # If today is not Friday, calculate the delay until the next Friday
-  delay_seconds <- 86400 * ((5 - as.integer(format(Sys.Date(), "%w"))) %% 7) + 60 * 60 * (8 - as.numeric(format(Sys.time(), "%H")))
-}
-
-# Schedule the execution of the R script
-later::later(execute_script, delay = delay_seconds)
 
 
 
