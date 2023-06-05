@@ -55,11 +55,14 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 
 # Global Variables
- # Working file_path
+ # Working file paths
+  # for ALS data
 file_path <- "./Data/Webtrieve-10-HS22090451.xls"
+tss_file_path <- './TSS/TSS_Master_2023.xlsx'
 # file_path <- file.choose()
  # Set the default file directory to the directory containing the selected file
 directory <- dirname(file_path)
+tss_directory<- dirname(tss_file_path)
  # Dictionaries for interpreting sample ID codes
   # Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- c(
@@ -307,7 +310,7 @@ returnAllFiles <- function(d = directory, export = TRUE) {
 
 
   
-  TSS <- read_excel('./TSS/TSS_Master_2023.xlsx', sheet = "MasterData") %>%
+  TSS <- read_excel(tss_file_path, sheet = "MasterData") %>%
     select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
     rename("SAMPLE.ID" = "Sample_ID",
            "COLLECTED" = "Collection_date",
@@ -332,13 +335,15 @@ returnAllFiles <- function(d = directory, export = TRUE) {
   folder_path <- "./Data"
   
   # Export the data frame as a xlsx file in the specified folder
-  file_path <- file.path(folder_path, "TSS.xls")
+  file_path <- file.path(tss_directory, "TSS.xlsx")
   write.xlsx(TSS, file = file_path, rowNames = FALSE)
   data_path <- paste(dirname(getwd()), "/Data", sep = "")
   
   
   # import data
-  dat <- returnAllFiles(d = data_path, export = FALSE)   
+  dat <- returnAllFiles(d = data_path, export = FALSE)
+  # AJ's test push
+  dat <- returnAllFiles(d = directory, export = FALSE) 
 
 
 
