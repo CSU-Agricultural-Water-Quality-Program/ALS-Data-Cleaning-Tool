@@ -343,7 +343,7 @@ returnAllFiles <- function(d = directory, export = TRUE) {
   # import data
   dat <- returnAllFiles(d = data_path, export = FALSE)
   # AJ's test push
-  # test 2
+  # test 3
   dat <- returnAllFiles(d = directory, export = FALSE) 
 
 
