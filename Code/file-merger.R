@@ -253,8 +253,35 @@ executeFxns <- function(file_path) {
     processData()
   return(df)
 }
+dfTss <- function(tss_fp) {
+  df <- read_excel(tss_fp, sheet = "MasterData") %>%
+    select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
+    rename("SAMPLE.ID" = "Sample_ID",
+           "COLLECTED" = "Collection_date",
+           "TSS" = "TSS_mg/L",
+           "EC" = "EC_mS/cm") %>%
+    filter(!(SAMPLE.ID %in% c("Stock Solution", "DI"))) %>%
+    na.omit() %>%
+    mutate(
+      duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
+      location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
+      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
+      method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
+      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
+    ) %>%
+    gather(key = "ANALYTE", value = "RESULT", c(pH, TSS, EC )) %>%
+    mutate(UNITS = ifelse(ANALYTE == "TSS", "mg/L",
+                          ifelse(ANALYTE == "pH", "pH",
+                                 ifelse(ANALYTE == "EC", "mS/cm", "unknown")))) %>%
+    mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
+    mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
+    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
+    mutate(COLLECTED = as.character(COLLECTED))
+  
+  return(df)
+}
 
-mergeFiles <- function(directory) {
+mergeFiles <- function(directory, tss_fp) {
   # import all htm files in the directory, merge, and return df
   print("Merging files...")
   file_list <- list.files(path = directory,
@@ -280,13 +307,11 @@ mergeFiles <- function(directory) {
   df_merge <- df_data %>%
     left_join(df_meta, by = "SAMPLE.ID") %>%
     flagData()
-  # append TSS data to df w/ metadata
-  df_tss <- dfTss(tss_file_path)
-  # TODO: CAZ, HERE BELOW IS WHAT WE NEED TO FIX
-  #df <- df_merge %>%
-  #  bind_rows(df_tss,
-  #            .keep = 'unused')
-  return(df_merge)
+  # import TSS data to df w/ metadata
+  df_tss <- dfTss(tss_fp)
+  # merge tss data with als data
+  df <- bind_rows(df_merge, df_tss)
+  return(df)
 }
 
 # Define public functions (i.e., to be called by user)
@@ -299,9 +324,9 @@ returnSingleFile <- function(path = file_path, export = FALSE) {
   return(df)
 }
 
-returnAllFiles <- function(d = directory, export = TRUE) {
+returnAllFiles <- function(d = directory, tss_fp = tss_file_path, export = TRUE) {
   # return and optionally export all files for QA/QC
-  df <- mergeFiles(d)
+  df <- mergeFiles(d, tss_fp)
   # for debugging only; uncomment as necessary
   #View(df)
   if (export == TRUE) {
@@ -309,50 +334,6 @@ returnAllFiles <- function(d = directory, export = TRUE) {
   }
   return(df)
 }
-
-
-
-#read in the TSS Excel file
-
-
-  
-dfTss <- function(tss_file_path) {
-  df <- read_excel(tss_file_path, sheet = "MasterData") %>%
-    select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
-    rename("SAMPLE.ID" = "Sample_ID",
-           "COLLECTED" = "Collection_date",
-           "TSS" = "TSS_mg/L",
-           "EC" = "EC_mS/cm") %>%
-    filter(!(SAMPLE.ID %in% c("Stock Solution", "DI"))) %>%
-    na.omit() %>%
-    mutate(
-      duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
-      location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
-      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
-      method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
-      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
-    ) %>%
-    gather(key = "ANALYTE", value = "RESULT", c(pH, TSS, EC )) %>%
-    mutate(UNITS = ifelse(ANALYTE == "TSS", "mg/L",
-                          ifelse(ANALYTE == "pH", "pH",
-                                 ifelse(ANALYTE == "EC", "mS/cm", "unknown")))) %>%
-    mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
-    mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
-    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
-  return(df)
-}
-df_tss <- dfTss(tss_file_path)
-
-# bind_rows() test
-  df_comb <- df_all %>%
-    bind_rows(df_tss,
-              .keep = 'unused')
-
-  
-  # import data
-  dat <- returnAllFiles(d = data_path, export = FALSE)
-  # AJ's test push
-  dat <- returnAllFiles(d = directory, export = FALSE) 
 
 
 

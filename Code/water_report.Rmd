@@ -104,7 +104,7 @@ make_scatter_plots <- function(data) {
       # Create the scatter plot
       scatter_plot <- ggplot(filtered_data, aes(x = collected, y = result, color = event.type)) +
         geom_point() +
-        labs(x = "Date", y = "Result (mg/L)", title = paste( analyte, "Results for", location))
+        labs(x = "Date", y = paste("Result", units) , title = paste( analyte, "Results for", location))
       
       # Print the scatter plot
       print(scatter_plot)
