@@ -283,10 +283,10 @@ mergeFiles <- function(directory) {
   # append TSS data to df w/ metadata
   df_tss <- dfTss(tss_file_path)
   # TODO: CAZ, HERE BELOW IS WHAT WE NEED TO FIX
-  df <- df_merge %>%
-    bind_rows(df_tss,
-              .keep = 'unused')
-  return(df)
+  #df <- df_merge %>%
+  #  bind_rows(df_tss,
+  #            .keep = 'unused')
+  return(df_merge)
 }
 
 # Define public functions (i.e., to be called by user)
@@ -317,7 +317,7 @@ returnAllFiles <- function(d = directory, export = TRUE) {
 
   
 dfTss <- function(tss_file_path) {
-  df_Tss <- read_excel(tss_file_path, sheet = "MasterData") %>%
+  df <- read_excel(tss_file_path, sheet = "MasterData") %>%
     select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
     rename("SAMPLE.ID" = "Sample_ID",
            "COLLECTED" = "Collection_date",
@@ -339,7 +339,7 @@ dfTss <- function(tss_file_path) {
     mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
-  return(df_Tss)
+  return(df)
 }
 df_tss <- dfTss(tss_file_path)
 
