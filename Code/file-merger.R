@@ -29,6 +29,8 @@
 # Example code execution for users
 # df_test <- returnSingleFile(path=file_path, export=FALSE)
 # df_all <- returnAllFiles(d=directory, export=FALSE)
+ 
+
 # Then take df_test or df_all and do whatever you want with it (e.g., graph)
 
 
@@ -42,7 +44,8 @@ package.list <- c("magrittr",
                   "rvest",
                   "xml2",
                   "stringr",
-                  'tidyverse'
+                  'tidyverse',
+                  'lubridate'
                   )
 packageLoad <- function(packages){
   for (i in packages) {
@@ -74,7 +77,6 @@ location.dict <- c(
   "Gunnison" = "GU",
   "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
   "Yellow Jacket " = "YJ",
-  "Yampa" = "UYM",
   "Legacy" = "LG",
   "AVRC STAR" = c("AV", "AVST1", "AVST2", "AVCT1", "AVCT2"),
   "Barley" = "BAR",
@@ -276,7 +278,8 @@ dfTss <- function(tss_fp) {
     mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
-    mutate(COLLECTED = as.character(COLLECTED))
+    mutate(COLLECTED = as.character(COLLECTED)) %>%
+     mutate(RESULT = as.numeric(RESULT))
   
   return(df)
 }
@@ -311,7 +314,12 @@ mergeFiles <- function(directory, tss_fp) {
   df_tss <- dfTss(tss_fp)
   # merge tss data with als data
   df <- bind_rows(df_merge, df_tss)
+  #convert to date
+  df$COLLECTED <- parse_date_time(df$COLLECTED, orders = c("ymd", "dby HM"))
+  #remove time so TSS matches with ALS
+  df$COLLECTED <- as.Date(df$COLLECTED)
   return(df)
+  
 }
 
 # Define public functions (i.e., to be called by user)
@@ -334,8 +342,6 @@ returnAllFiles <- function(d = directory, tss_fp = tss_file_path, export = TRUE)
   }
   return(df)
 }
-
-
 
 
 
