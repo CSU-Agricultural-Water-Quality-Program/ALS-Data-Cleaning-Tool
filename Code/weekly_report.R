@@ -21,7 +21,7 @@ output_file <- sprintf('~/GitHub/ALS-Data-Cleaning-Tool/Report/water_report_%s.h
                        format(today(), format = "%m-%d-%y"))
 
 
-rmarkdown::render(input = './Code/water_report.Rmd', output_file = output_file)
+rmarkdown::render(input = 'water_report.Rmd', output_file = output_file)
 
 
 # Set the path to the R script
@@ -31,7 +31,7 @@ script_path <- "./Code/weekly_report.R"
 # Define the function to execute the R script
 
 taskscheduler_create(taskname = "myfancyscriptsunsat", rscript = script_path, 
-                     schedule = "WEEKLY", starttime = "10:10", days = c('SUN', 'SAT'))
+                     schedule = "WEEKLY", starttime = "8:00", days = 'FRI')
 
 
 

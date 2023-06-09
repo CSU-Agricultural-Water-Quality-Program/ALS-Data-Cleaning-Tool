@@ -81,7 +81,7 @@ df_grouped <- dat %>%
 
 make_scatter_plots <- function(dataframe) {
   # Get unique analytes
-  analytes <- unique(dataframe$analyte)
+  analytes <- sort(unique(dataframe$analyte))
   
   for (i in 1:length(analytes)) {
     # Subset data for the current analyte

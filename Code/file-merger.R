@@ -279,6 +279,11 @@ dfTss <- function(tss_fp) {
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
     mutate(COLLECTED = as.character(COLLECTED)) %>%
+    mutate(METHOD = case_when(
+      ANALYTE == "pH" ~ "EPA150.1",
+      ANALYTE == "TSS" ~ "EPA160.2",
+      ANALYTE == "EC" ~ "EPA120.1",
+      TRUE ~ NA_character_)) %>%
      mutate(RESULT = as.numeric(RESULT))
   
   return(df)
