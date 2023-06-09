@@ -77,31 +77,38 @@ df_grouped <- dat %>%
  
 
 ```{r}
-make_scatter_plots <- function(data) {
+
+
+make_scatter_plots <- function(dataframe) {
+  # Get unique analytes
+  analytes <- unique(dataframe$analyte)
   
-  # Get unique locations and analytes
-  unique_locations <- unique(data$location.name)
-  unique_analytes <- unique(data$analyte)
-  
-  # Generate scatter plots for each unique location and analyte
-  for (location in unique_locations) {
-    for (analyte in unique_analytes) {
-      # Filter the data for the current location and analyte
-      filtered_data <- data %>%
-        filter(location == location, analyte == analyte) %>%
-        ungroup()
+  for (i in 1:length(analytes)) {
+    # Subset data for the current analyte
+    subset_analyte <- subset(dataframe, analyte == analytes[i])
+    
+    # Check if there are no results for the current analyte
+    if (nrow(subset_analyte) == 0) {
+      next  # Skip creating the plot for this analyte
+    }
+    
+    # Get unique units for the current analyte
+    units <- unique(subset_analyte$units)
+    
+    # Identify highest and lowest values
+    if (nrow(subset_analyte) >= 2) {
+      highest_value <- subset_analyte %>% arrange(desc(result)) %>% slice(1)
+      lowest_value <- subset_analyte %>% arrange(result) %>% slice(1)
       
-      # Get unique units for the current analyte
-      unique_units <- unique(filtered_data$units)
-      
-      # Create the scatter plot
-      scatter_plot <- ggplot(filtered_data, aes(x = collected, y = result, color = event.type)) +
+      # Create scatter plot for the current analyte
+      plot <- ggplot(subset_analyte, aes(x = collected, y = result, color = event.type)) +
         geom_point() +
-        labs(x = "Date", y = paste("Result", unique_units[1]), 
-             title = paste(analyte, "Results for", location))
+        geom_text(data = rbind(highest_value, lowest_value),
+                  aes(label = result), hjust = 0, vjust = 0, size = 3, color = "black") +  # Add data callouts for highest and lowest values
+        labs(x = "Date", y = paste0("Result (", units, ")"), title = paste(analytes[i], "Results"))
       
-      # Print the scatter plot
-      print(scatter_plot)
+      # Print the plot
+      print(plot)
       
       # Add a new line after each plot
       cat("\n")
