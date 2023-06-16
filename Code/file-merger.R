@@ -278,13 +278,13 @@ dfTss <- function(tss_fp) {
     mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
-    mutate(COLLECTED = as.character(COLLECTED)) %>%
     mutate(METHOD = case_when(
       ANALYTE == "pH" ~ "EPA150.1",
       ANALYTE == "TSS" ~ "EPA160.2",
       ANALYTE == "EC" ~ "EPA120.1",
       TRUE ~ NA_character_)) %>%
-     mutate(RESULT = as.numeric(RESULT))
+     mutate(RESULT = as.numeric(RESULT)) %>%
+    mutate(COLLECTED = as.character(COLLECTED))
   
   return(df)
 }
@@ -312,17 +312,23 @@ mergeFiles <- function(directory, tss_fp) {
     lapply(importDataXls) %>%
     bind_rows
   # merge data and metadata
+  #df_meta$COLLECTED <- mdy_hm(df_meta$COLLECTED) %>%
+    #format("%m/%d/%Y")
+  
   df_merge <- df_data %>%
-    left_join(df_meta, by = "SAMPLE.ID") %>%
+    left_join(df_meta, by = 'SAMPLE.ID' ) %>%
     flagData()
+  # make sure everything is character
+  df_merge$COLLECTED <- as.character(df_merge$COLLECTED)
+  # remove time 
+  df_merge$COLLECTED <- format(as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M'), format = '%m/%d/%Y')
   # import TSS data to df w/ metadata
   df_tss <- dfTss(tss_fp)
+  
+  
   # merge tss data with als data
   df <- bind_rows(df_merge, df_tss)
-  #convert to date
-  df$COLLECTED <- parse_date_time(df$COLLECTED, orders = c("ymd", "dby HM"))
-  #remove time so TSS matches with ALS
-  df$COLLECTED <- as.Date(df$COLLECTED)
+
   return(df)
   
 }

@@ -1,37 +1,43 @@
+
+# TODO:
+# make relative pathway work
+# get taskscheduler to work
+
+# Import libraries
+package.list <- c('lubridate',
+                  'rmarkdown'
+)
+packageLoad <- function(packages){
+  for (i in packages) {
+    if (!require(i, character.only = TRUE)) {
+      install.packages(i)
+      library(i, character.only = TRUE)
+    }
+  }
+}
+packageLoad(package.list)
+
+# create tody function, this will be used to schedule tasks
 today <- function() {
   today <- Sys.Date()
   return(today)
 }
 
 
-#Source the Rmd file
-
-library(knitr)
-library(taskscheduleR)
-
-rmd_file <- "water_report.Rmd"
-r_script <- knitr::purl(rmd_file)
-source(r_script)
-
-library(rmarkdown)
-
-# Generate the output file name with today's date
-
-output_file <- sprintf('~/GitHub/ALS-Data-Cleaning-Tool/Report/water_report_%s.html',
-                       format(today(), format = "%m-%d-%y"))
 
 
-rmarkdown::render(input = 'water_report.Rmd', output_file = output_file)
+# Set the path to the R Markdown file
+rmd_file <- "./Code/water-report.Rmd"
 
+# Set the path to the output directory
+output_dir <- "~/GitHub/ALS-Data-Cleaning-Tool/Report"
 
-# Set the path to the R script
+# Set the output filename including the date the report was made
+output_filename <- paste0("water_report_", format(Sys.Date(), "%Y%m%d"))
 
-script_path <- "./Code/weekly_report.R"
-
-# Define the function to execute the R script
-
-taskscheduler_create(taskname = "myfancyscriptsunsat", rscript = script_path, 
-                     schedule = "WEEKLY", starttime = "8:00", days = 'FRI')
+# Render the R Markdown file
+render(rmd_file, output_format = "html_document",
+       output_file = file.path(output_dir, paste0(output_filename, ".html")))
 
 
 
