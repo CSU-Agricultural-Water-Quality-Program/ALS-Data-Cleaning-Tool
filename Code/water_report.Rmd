@@ -1,5 +1,5 @@
 ---
-title: "Water Report `r Sys.Date()`"
+title: "Water Report"
 author: "Caz Bell"
 date: "`r Sys.Date()`"
 output:
@@ -12,10 +12,7 @@ output:
 
 
 ```{r setup, include=FALSE}
-# excludes warnings, messages, and echo from all code chunks
 knitr::opts_chunk$set(toc = TRUE, echo = FALSE, warning = FALSE, message = FALSE)
-#set entire file to the main working directory
-knitr::opts_knit$set(root.dir = '~/GitHub/ALS-Data-Cleaning-Tool')
 
 
 ```
@@ -28,14 +25,10 @@ This report details data collected from 2023-01-01 to `r Sys.Date()` by the Colo
 
 # Notes
 
-A value of 0 represents a no detect
-TSS, EC, and pH are done in house while the rest of the analytes are done through ALS
-
 
 
 
 ```{r, include=FALSE}
-# load in packages
 package.list <- c("ggplot2",
                   "dplyr",
                   "DT",
@@ -51,13 +44,19 @@ packageLoad <- function(packages){
   }
 }
 packageLoad(package.list)
-# clean data source
-source("./Code/file-merger.R", local = knitr::knit_global())
+#clean data source
+source("file-merger.R", local = knitr::knit_global())
+
+
+# Set directories
+#report_path <- paste(dirname(getwd()), "/Example Report", sep = "")
+data_path <- paste(dirname(getwd()), "/Data", sep = "")
+
 
 # import data
-dat <- returnAllFiles(d = directory, export = FALSE) 
-# dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
-# make everything lowercase
+dat <- returnAllFiles(d = data_path, export = FALSE) 
+#dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
+#make everything lowercase
 colnames(dat) <- tolower(names(dat))
 
 
@@ -65,10 +64,8 @@ colnames(dat) <- tolower(names(dat))
 ```
 
 
-
-
 ```{r}
-# create grouped data frame
+#create grouped data frame
 df_grouped <- dat %>%
     group_by(location.name, analyte) %>%
     arrange(location.name)
@@ -76,52 +73,39 @@ df_grouped <- dat %>%
 ```
 
 
-
 # Sites
  
+```{r}
+#create data table based on counts
+counts <- dat %>% 
+    group_by(location.name, analyte) %>% 
+    summarise(count = n())
+DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
+```
 
 ```{r}
-
-# create scatterplot function
-make_scatter_plots <- function(dataframe) {
-  # Get unique analytes
-  analytes <- sort(unique(dataframe$analyte))
+# Define the scatter plot function
+make_scatter_plots <- function(data) {
   
-  event_colors <- c("Inflow" = "#56B4E9", "Outflow" = "#009E73", "Point Sample" = "#E69F00")
+  # Get unique locations and analytes
+  unique_locations <- unique(data$location.name)
+  unique_analytes <- unique(data$analyte)
   
-  for (i in 1:length(analytes)) {
-    # Subset data for the current analyte
-    subset_analyte <- subset(dataframe, analyte == analytes[i])
-    
-    # Check if there are no results for the current analyte
-    if (nrow(subset_analyte) == 0) {
-      next  # Skip creating the plot for this analyte
-    }
-    
-    # Get unique units for the current analyte
-    units <- unique(subset_analyte$units)
-    
-    # Identify highest and lowest values
-    if (nrow(subset_analyte) >= 2) {
-      highest_value <- subset_analyte %>% arrange(desc(result)) %>% slice(1)
-      lowest_value <- subset_analyte %>% arrange(result) %>% slice(1)
+  # Generate scatter plots for each unique location and analyte
+  for (location in unique_locations) {
+    for (analyte in unique_analytes) {
+      # Filter the data for the current location and analyte
+      filtered_data <- data %>%
+        filter(location == location, analyte == analyte) %>%
+        ungroup()
       
-      #round to 2 decimal places to make data call outs cleaner
-      highest_value$result <- round(highest_value$result, 3)
-      lowest_value$result <- round(lowest_value$result, 3)
-      
-      # Create scatter plot for the current analyte
-      plot <- ggplot(subset_analyte, aes(x = collected, y = result, color = event.type)) +
+      # Create the scatter plot
+      scatter_plot <- ggplot(filtered_data, aes(x = collected, y = result, color = event.type)) +
         geom_point() +
-        geom_text(data = rbind(highest_value, lowest_value),
-                  aes(label = result), hjust = 0, vjust = 0, size = 3, color = "black") + # Add data callouts for highest and lowest values
-        scale_color_manual(values = event_colors) +
-        labs(x = "Date", y = paste0("Result (", units, ")"), title = paste(analytes[i], "Results")) +
-        theme_bw()+
-        scale_x_datetime(labels = function(x) format(x, format = "%m/%d")) 
+        labs(x = "Date", y = paste("Result", units) , title = paste( analyte, "Results for", location))
       
-      # Print the plot
-      print(plot)
+      # Print the scatter plot
+      print(scatter_plot)
       
       # Add a new line after each plot
       cat("\n")
@@ -144,6 +128,31 @@ ARDEC2200 <- df_grouped %>%
 make_scatter_plots(ARDEC2200)
 ```
 
+
+## ARDEC South -  Conv
+
+```{r}
+
+ARDECSouth <- df_grouped %>% 
+  filter(location.name == "ARDEC South -  Conv")
+
+
+
+make_scatter_plots(ARDECSouth)
+```
+
+
+## ARDEC South - Org
+
+```{r}
+
+ARDECSouthOrg <- df_grouped %>% 
+  filter(location.name == "ARDEC South - Org")
+
+
+
+make_scatter_plots(ARDECSouthOrg)
+```
 
 
 ## AVRC STAR
@@ -326,15 +335,6 @@ YJ <- df_grouped %>%
 make_scatter_plots(YJ)
 ```
 
-# Data Counts
-
-```{r}
-#create data table based on counts
-counts <- dat %>% 
-    group_by(location.name, analyte) %>% 
-    summarise(count = n())
-DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
-```
 
 
 # Raw Data
@@ -343,7 +343,6 @@ DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
 ```{r}
 datatable(df_grouped, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
 ```
-
 
 
 

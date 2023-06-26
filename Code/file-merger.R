@@ -283,8 +283,7 @@ dfTss <- function(tss_fp) {
       ANALYTE == "TSS" ~ "EPA160.2",
       ANALYTE == "EC" ~ "EPA120.1",
       TRUE ~ NA_character_)) %>%
-     mutate(RESULT = as.numeric(RESULT)) %>%
-    mutate(COLLECTED = as.character(COLLECTED))
+     mutate(RESULT = as.numeric(RESULT)) 
   
   return(df)
 }
@@ -318,10 +317,9 @@ mergeFiles <- function(directory, tss_fp) {
   df_merge <- df_data %>%
     left_join(df_meta, by = 'SAMPLE.ID' ) %>%
     flagData()
-  # make sure everything is character
-  df_merge$COLLECTED <- as.character(df_merge$COLLECTED)
-  # remove time 
-  df_merge$COLLECTED <- format(as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M'), format = '%m/%d/%Y')
+
+  # change to posixct
+  df_merge$COLLECTED <- as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M')
   # import TSS data to df w/ metadata
   df_tss <- dfTss(tss_fp)
   

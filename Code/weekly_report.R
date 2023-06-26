@@ -44,7 +44,22 @@ render(rmd_file, output_format = "html_document",
 
 
 
+library(taskscheduleR)
 
+# Define the command to execute (path to Rscript and your script)
+command <- "./Code/weekly_report.R"
+
+# Create a weekly task
+task <- taskscheduler_create(
+  taskname = "WeeklyTask",
+  rscript = command,
+  schedule = "WEEKLY",
+  starttime = "01:30",
+  days = "FRI"
+)
+
+# Register the task
+registerTask(task)
 
 
 
