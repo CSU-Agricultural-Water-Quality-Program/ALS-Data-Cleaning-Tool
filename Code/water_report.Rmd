@@ -37,7 +37,7 @@ package.list <- c("ggplot2",
                   "DT",
                   "plotly",
                   "knitr"
-                  )
+)
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -47,42 +47,47 @@ packageLoad <- function(packages){
   }
 }
 packageLoad(package.list)
+```
+
+
+```{r, include=FALSE}
 #clean data source
 source("file-merger.R", local = knitr::knit_global())
+```
 
 
+```{r, include=FALSE}
 # Set directories
 #report_path <- paste(dirname(getwd()), "/Example Report", sep = "")
 data_path <- paste(dirname(getwd()), "/Data", sep = "")
+print(data_path)
+```
 
-
+```{r, include=FALSE}
 # import data
 dat <- returnAllFiles(d = data_path, export = FALSE) 
 #dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
 #make everything lowercase
 colnames(dat) <- tolower(names(dat))
-
-
-
 ```
 
 
 ```{r}
 #create grouped data frame
 df_grouped <- dat %>%
-    group_by(location.name, analyte) %>%
-    arrange(location.name)
+  group_by(location.name, analyte) %>%
+  arrange(location.name)
 
 ```
 
 
 # Sites
- 
+
 ```{r}
 #create data table based on counts
 counts <- dat %>% 
-    group_by(location.name, analyte) %>% 
-    summarise(count = n())
+  group_by(location.name, analyte) %>% 
+  summarise(count = n())
 DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
 ```
 
@@ -105,7 +110,7 @@ make_scatter_plots <- function(data) {
       # Create the scatter plot
       scatter_plot <- ggplot(filtered_data, aes(x = collected, y = result, color = event.type)) +
         geom_point() +
-        labs(x = "Date", y = paste("Result", units) , title = paste( analyte, "Results for", location))
+        labs(x = "Date", y = paste("Result", units), title = paste( analyte, "Results for", location))
       
       # Print the scatter plot
       print(scatter_plot)
@@ -131,40 +136,12 @@ ARDEC2200 <- df_grouped %>%
 make_scatter_plots(ARDEC2200)
 ```
 
-
-## ARDEC South -  Conv
-
-```{r}
-
-ARDECSouth <- df_grouped %>% 
-  filter(location.name == "ARDEC South -  Conv")
-
-
-
-make_scatter_plots(ARDECSouth)
-```
-
-
-## ARDEC South - Org
-
-```{r}
-
-ARDECSouthOrg <- df_grouped %>% 
-  filter(location.name == "ARDEC South - Org")
-
-
-
-make_scatter_plots(ARDECSouthOrg)
-```
-
-
 ## AVRC STAR
 
 ```{r}
 
 AVRC <- df_grouped %>% 
   filter(location.name == "AVRC STAR")
-
 
 make_scatter_plots(AVRC)
 ```
@@ -194,7 +171,7 @@ make_scatter_plots(BelowStage)
 
 
 ## Berthoud
- 
+
 ```{r}
 Berthoud <- df_grouped %>% 
   filter(location.name == "Berthoud")
@@ -202,8 +179,8 @@ Berthoud <- df_grouped %>%
 
 make_scatter_plots(Berthoud)
 ```
- 
- 
+
+
 ## Big Hollow
 
 ```{r}

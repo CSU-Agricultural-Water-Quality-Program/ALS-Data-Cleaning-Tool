@@ -61,7 +61,7 @@ packageLoad(package.list)
  # Working file paths
 # For GitHub 
 directory <- "./Data"
-tss_file_path <- './TSS/TSS_Master_2023.xlsx'
+tss_file_path <- paste(dirname(getwd()), "/TSS/TSS_Master_2023.xlsx", sep = "")
 
 # For sharepoint
 # directory <- '../Web_Portal'
