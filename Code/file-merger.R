@@ -59,13 +59,21 @@ packageLoad(package.list)
 
 # Global Variables
  # Working file paths
-  # for ALS data
-file_path <- "./Data/Webtrieve-10-HS22090451.xls"
+# For GitHub 
+directory <- "./Data"
 tss_file_path <- './TSS/TSS_Master_2023.xlsx'
+
+# For sharepoint
+# directory <- '../Web_Portal'
+# tss_file_path <- '../../../../TSS General/2023/TSS_Master_2023.xlsx'
+
+# file_path <- file.choose()
+# Set the default file directory to the directory containing the selected file
+
+tss_directory<- dirname(tss_file_path)
 # file_path <- file.choose()
  # Set the default file directory to the directory containing the selected file
-directory <- dirname(file_path)
-tss_directory<- dirname(tss_file_path)
+
  # Dictionaries for interpreting sample ID codes
   # Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- c(
