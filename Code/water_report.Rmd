@@ -8,9 +8,6 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: no
-    self_contained: false
-  keep_md: true
-  output_dir: ./Report
 ---
 
 
@@ -18,6 +15,17 @@ output:
 knitr::opts_chunk$set(toc = TRUE, echo = FALSE, warning = FALSE, message = FALSE)
 
 
+```
+
+```{r}
+```{r}
+# Define the file path with the current date
+output_file <- paste0("Report_", format(Sys.Date(), "%Y-%m-%d"), ".html")
+output_path <- "./Report"  # Replace with the desired folder path
+
+# Render the RMD file and save it in the existing folder
+render("water_report.Rmd", output_format = "html_document", output_file = file.path(output_path, output_file))
+```
 ```
 
 # Introduction
@@ -106,7 +114,7 @@ make_scatter_plots <- function(data) {
       filtered_data <- data %>%
         filter(location == location, analyte == analyte) %>%
         ungroup()
-      
+       units <- unique(filtered_data$units)
       # Create the scatter plot
       scatter_plot <- ggplot(filtered_data, aes(x = collected, y = result, color = event.type)) +
         geom_point() +
@@ -201,6 +209,7 @@ BoulderLake <- df_grouped %>%
 
 make_scatter_plots(BoulderLake)
 ```
+
 
 
 ## Gunnison
@@ -323,6 +332,7 @@ make_scatter_plots(YJ)
 ```{r}
 datatable(df_grouped, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
 ```
+
 
 
 

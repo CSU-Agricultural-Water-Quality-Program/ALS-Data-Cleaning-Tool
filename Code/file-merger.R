@@ -134,6 +134,12 @@ eventType.dict <- c(
     "IN8", "IN9"),
   "Outflow" = c("OUT", "OT", "OTLC")
   )
+tssUnits.dict <- c(
+  "TSS" = "mg/l",
+  "EC" = "mS/cm",
+  "pH" = "pH"
+   )
+
 
 # Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {
@@ -280,9 +286,6 @@ dfTss <- function(tss_fp) {
       event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
     ) %>%
     gather(key = "ANALYTE", value = "RESULT", c(pH, TSS, EC )) %>%
-    mutate(UNITS = ifelse(ANALYTE == "TSS", "mg/L",
-                          ifelse(ANALYTE == "pH", "pH",
-                                 ifelse(ANALYTE == "EC", "mS/cm", "unknown")))) %>%
     mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
@@ -291,7 +294,8 @@ dfTss <- function(tss_fp) {
       ANALYTE == "TSS" ~ "EPA160.2",
       ANALYTE == "EC" ~ "EPA120.1",
       TRUE ~ NA_character_)) %>%
-     mutate(RESULT = as.numeric(RESULT)) 
+     mutate(RESULT = as.numeric(RESULT)) %>%
+    mutate(UNITS = tssUnits.dict[ANALYTE])
   
   return(df)
 }
