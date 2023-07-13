@@ -11,22 +11,13 @@ output:
 ---
 
 
-```{r setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(toc = TRUE, echo = FALSE, warning = FALSE, message = FALSE)
 
 
 ```
 
-```{r}
-```{r}
-# Define the file path with the current date
-output_file <- paste0("Report_", format(Sys.Date(), "%Y-%m-%d"), ".html")
-output_path <- "./Report"  # Replace with the desired folder path
 
-# Render the RMD file and save it in the existing folder
-render("water_report.Rmd", output_format = "html_document", output_file = file.path(output_path, output_file))
-```
-```
 
 # Introduction
 
@@ -44,7 +35,8 @@ package.list <- c("ggplot2",
                   "dplyr",
                   "DT",
                   "plotly",
-                  "knitr"
+                  "rmarkdown",
+                  'knitr'
 )
 packageLoad <- function(packages){
   for (i in packages) {
@@ -56,6 +48,9 @@ packageLoad <- function(packages){
 }
 packageLoad(package.list)
 ```
+
+
+
 
 
 ```{r, include=FALSE}
