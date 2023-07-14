@@ -102,6 +102,8 @@ make_scatter_plots <- function(data) {
   unique_locations <- unique(data$location.name)
   unique_analytes <- unique(data$analyte)
   
+  analyte_units <- unique(data[, c("analyte", "units")])
+  
   # Generate scatter plots for each unique location and analyte
   for (location in unique_locations) {
     for (analyte in unique_analytes) {
@@ -109,11 +111,20 @@ make_scatter_plots <- function(data) {
       filtered_data <- data %>%
         filter(location == location, analyte == analyte) %>%
         ungroup()
-       units <- unique(filtered_data$units)
+      #make sure the graphs do not show just time 
+      filtered_data$collected <- format(filtered_data$collected, "%Y-%m-%d")
+      
+       
+     analyte_units_current <- analyte_units$units[analyte_units$analyte == analyte]
+     
+   if (any(is.na(analyte_units_current)) || any(analyte_units_current == "N/A")) {
+        analyte_units_current[is.na(analyte_units_current) | analyte_units_current == "N/A"] <- ""
+      }
       # Create the scatter plot
       scatter_plot <- ggplot(filtered_data, aes(x = collected, y = result, color = event.type)) +
         geom_point() +
-        labs(x = "Date", y = paste("Result", units), title = paste( analyte, "Results for", location))
+        labs(x = "Date", y = paste("Result", analyte_units_current), title = paste( analyte, "Results for", location)) +
+        theme_bw()
       
       # Print the scatter plot
       print(scatter_plot)

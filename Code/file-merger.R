@@ -135,7 +135,7 @@ eventType.dict <- c(
   "Outflow" = c("OUT", "OT", "OTLC")
   )
 tssUnits.dict <- c(
-  "TSS" = "mg/l",
+  "TSS" = "mg/L",
   "EC" = "mS/cm",
   "pH" = "pH"
    )
