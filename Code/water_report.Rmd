@@ -1,6 +1,6 @@
 ---
 title: "Water Report"
-author: "Caz Bell"
+author: "A.J. Brown, Caz Bell"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -27,6 +27,9 @@ This report details data collected from 2023-01-01 to `r Sys.Date()` by the Colo
 
 # Notes
 
+-	All “0” values reported are non-detects (ND) reported by ALS
+-	Total suspended solids (TSS), Electrical Conductivity (EC), and pH are performed by AWQP staff at CSU, whereas all other analytes are reported by ALS Laboratories
+-	Methods used to derive each analyte can be found in the Raw Data table in the “method” column
 
 
 
@@ -34,9 +37,7 @@ This report details data collected from 2023-01-01 to `r Sys.Date()` by the Colo
 package.list <- c("ggplot2",
                   "dplyr",
                   "DT",
-                  "plotly",
-                  "rmarkdown",
-                  'knitr'
+                  "plotly"
 )
 packageLoad <- function(packages){
   for (i in packages) {
@@ -75,13 +76,6 @@ colnames(dat) <- tolower(names(dat))
 ```
 
 
-```{r}
-#create grouped data frame
-df_grouped <- dat %>%
-  group_by(location.name, analyte) %>%
-  arrange(location.name)
-
-```
 
 
 # Sites
@@ -94,55 +88,56 @@ counts <- dat %>%
 DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
 ```
 
+
 ```{r}
-# Define the scatter plot function
-make_scatter_plots <- function(data) {
+make_scatter_plots <- function(dataframe) {
   
-  # Get unique locations and analytes
-  unique_locations <- unique(data$location.name)
-  unique_analytes <- unique(data$analyte)
+  dataframe <- ungroup(dataframe)
+  # Get unique analytes and sort them in alphabetical order
+  analytes <- sort(unique(dataframe$analyte))
   
-  analyte_units <- unique(data[, c("analyte", "units")])
+  # Define custom colors for event types
+  event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
   
-  # Generate scatter plots for each unique location and analyte
-  for (location in unique_locations) {
-    for (analyte in unique_analytes) {
-      # Filter the data for the current location and analyte
-      filtered_data <- data %>%
-        filter(location == location, analyte == analyte) %>%
-        ungroup()
-      #make sure the graphs do not show just time 
-      filtered_data$collected <- format(filtered_data$collected, "%Y-%m-%d")
-      
-       
-     analyte_units_current <- analyte_units$units[analyte_units$analyte == analyte]
-     
-   if (any(is.na(analyte_units_current)) || any(analyte_units_current == "N/A")) {
-        analyte_units_current[is.na(analyte_units_current) | analyte_units_current == "N/A"] <- ""
-      }
-      # Create the scatter plot
-      scatter_plot <- ggplot(filtered_data, aes(x = collected, y = result, color = event.type)) +
-        geom_point() +
-        labs(x = "Date", y = paste("Result", analyte_units_current), title = paste( analyte, "Results for", location)) +
+  for (i in 1:length(analytes)) {
+    # Subset data for the current analyte
+    subset_analyte <- subset(dataframe, analyte == analytes[i])
+    
+    # Check if there are no results for the current analyte
+     if (nrow(subset_analyte) == 0) {
+      next  # Skip creating the plot for this analyte
+    }
+    
+    # Get unique units for the current analyte
+    units <- unique(subset_analyte$units)
+  
+      # Create scatter plot for the current analyte with custom colors
+      plot <- ggplot(subset_analyte, aes(x =  format(collected, "%m/%d/%Y"), y = result, color = event.type)) +
+        geom_point() + 
+        scale_color_manual(values = event_colors) +  # Set custom colors for event types
+        labs(x = "Date", y = paste0("Result (", units, ")"), title = paste(analytes[i], "Results")) +
         theme_bw()
       
-      # Print the scatter plot
-      print(scatter_plot)
+      # Print the plot
+      print(plot)
+      
+  
       
       # Add a new line after each plot
       cat("\n")
     }
   }
-}
+
 
 ```
+
 
 
 ## ARDEC 2200
 
 ```{r}
 #filter to site
-ARDEC2200 <- df_grouped %>% 
+ARDEC2200 <- dat %>% 
   filter(location.name == "ARDEC 2200")
 
 
@@ -154,18 +149,19 @@ make_scatter_plots(ARDEC2200)
 
 ```{r}
 
-AVRC <- df_grouped %>% 
+AVRC <- dat %>% 
   filter(location.name == "AVRC STAR")
 
 make_scatter_plots(AVRC)
 ```
 
 
+
 ## Barley
 
 ```{r}
 
-Barley <- df_grouped %>% 
+Barley <- dat %>% 
   filter(location.name == "Barley")
 
 make_scatter_plots(Barley)
@@ -175,7 +171,7 @@ make_scatter_plots(Barley)
 
 ```{r}
 
-BelowStage <- df_grouped %>% 
+BelowStage <- dat %>% 
   filter(location.name == "Below Stagecoach Dam")
 
 
@@ -184,10 +180,11 @@ make_scatter_plots(BelowStage)
 ```
 
 
+
 ## Berthoud
 
 ```{r}
-Berthoud <- df_grouped %>% 
+Berthoud <- dat %>% 
   filter(location.name == "Berthoud")
 
 
@@ -198,7 +195,7 @@ make_scatter_plots(Berthoud)
 ## Big Hollow
 
 ```{r}
-BigHollow <- df_grouped %>% 
+BigHollow <- dat %>% 
   filter(location.name == "Big Hollow")
 
 
@@ -209,7 +206,7 @@ make_scatter_plots(BigHollow)
 ## Boulder Lake
 
 ```{r}
-BoulderLake <- df_grouped %>% 
+BoulderLake <- dat %>% 
   filter(location.name == "Boulder Lake")
 
 
@@ -221,7 +218,7 @@ make_scatter_plots(BoulderLake)
 ## Gunnison
 
 ```{r}
-Gunnison <- df_grouped %>% 
+Gunnison <- dat %>% 
   filter(location.name == "Gunnison")
 
 
@@ -231,7 +228,7 @@ make_scatter_plots(Gunnison)
 ## Kerbel
 
 ```{r}
-Kerbel <- df_grouped %>% 
+Kerbel <- dat %>% 
   filter(location.name == "Kerbel")
 
 
@@ -241,7 +238,7 @@ make_scatter_plots(Kerbel)
 ## Legacy
 
 ```{r}
-Legacy <- df_grouped %>% 
+Legacy <- dat %>% 
   filter(location.name == "Legacy")
 
 
@@ -251,7 +248,7 @@ make_scatter_plots(Legacy)
 ## Molina
 
 ```{r}
-Molina <- df_grouped %>% 
+Molina <- dat %>% 
   filter(location.name == "Molina")
 
 
@@ -262,7 +259,7 @@ make_scatter_plots(Molina)
 ## Morrison Creek
 
 ```{r}
-MorrisonCreek <- df_grouped %>% 
+MorrisonCreek <- dat %>% 
   filter(location.name == "Morrison Creek")
 
 
@@ -272,7 +269,7 @@ make_scatter_plots(MorrisonCreek)
 ## Stage Coach Above
 
 ```{r}
-SCA <- df_grouped %>% 
+SCA <- dat %>% 
   filter(location.name == "Stage Coach Above")
 
 
@@ -282,7 +279,7 @@ make_scatter_plots(SCA)
 ## Stage Coach In
 
 ```{r}
-SCI <- df_grouped %>% 
+SCI <- dat %>% 
   filter(location.name == "Stage Coach In")
 
 
@@ -292,7 +289,7 @@ make_scatter_plots(SCI)
 ## Stagecoach
 
 ```{r}
-Stagecoach <- df_grouped %>% 
+Stagecoach <- dat %>% 
   filter(location.name == "Stagecoach")
 
 
@@ -302,7 +299,7 @@ make_scatter_plots(Stagecoach)
 ## Todds Ranch
 
 ```{r}
-TR <- df_grouped %>% 
+TR <- dat %>% 
   filter(location.name == "Todds Ranch")
 
 
@@ -312,7 +309,7 @@ make_scatter_plots(TR)
 ## Upper Yampa
 
 ```{r}
-UY <- df_grouped %>% 
+UY <- dat %>% 
   filter(location.name == "Upper Yampa")
 
 
@@ -323,7 +320,7 @@ make_scatter_plots(UY)
 ## Yellow Jacket
 
 ```{r}
-YJ <- df_grouped %>% 
+YJ <- dat %>% 
   filter(location.name == "Yellow Jacket")
 
 
@@ -336,7 +333,7 @@ make_scatter_plots(YJ)
 
 
 ```{r}
-datatable(df_grouped, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
+datatable(dat, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
 ```
 
 

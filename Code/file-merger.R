@@ -45,7 +45,8 @@ package.list <- c("magrittr",
                   "xml2",
                   "stringr",
                   'tidyverse',
-                  'lubridate'
+                  'lubridate',
+                  'stringr'
                   )
 packageLoad <- function(packages){
   for (i in packages) {
@@ -194,6 +195,8 @@ cleanData <- function(df) {
   df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
     # convert values containing "<" to 0
     mutate(RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
+           
+           RESULT = gsub("H", "", RESULT),
          # create column to indicate if a result value was a non-detect
          non.detect = ifelse(RESULT == 0, TRUE, FALSE),
          # change "N/A" to NA in any column
@@ -337,7 +340,9 @@ mergeFiles <- function(directory, tss_fp) {
   
   
   # merge tss data with als data
-  df <- bind_rows(df_merge, df_tss)
+  df <- bind_rows(df_merge, df_tss) %>%
+    filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE)) 
+  
 
   return(df)
   
