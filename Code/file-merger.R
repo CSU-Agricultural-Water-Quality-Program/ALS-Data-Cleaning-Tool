@@ -62,7 +62,9 @@ packageLoad(package.list)
  # Working file paths
 # For GitHub 
 directory <- "./Data"
-tss_file_path <- paste(dirname(getwd()), "/TSS/TSS_Master_2023.xlsx", sep = "")
+
+tss_file_path <- './TSS/TSS_Master_2023.xlsx'
+
 
 # For sharepoint
 # directory <- '../Web_Portal'
@@ -78,27 +80,28 @@ tss_directory<- dirname(tss_file_path)
  # Dictionaries for interpreting sample ID codes
   # Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- c(
-  "Berthoud" = "BT",
-  "ARDEC South - Org" = "ASO",
-  "ARDEC South -  Conv" = "ASC",
   "ARDEC 2200" = "A2",
-  "Molina" = "MOL",
-  "Gunnison" = "GU",
-  "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
-  "Yellow Jacket " = "YJ",
-  "Legacy" = "LG",
+  "ARDEC South - Conv" = "ASC",
+  "ARDEC South - Org" = "ASO",
   "AVRC STAR" = c("AV", "AVST1", "AVST2", "AVCT1", "AVCT2"),
   "Barley" = "BAR",
+  "Berthoud" = "BT",
   "Big Hollow" = "HOL",
-  "Stage Coach In" = "SCI",
+  "Boulder Lake" = "BOL",
+  "Below Stagecoach Dam" = "SCO",
+  "Gunnison" = "GU",
+  "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
+  "Legacy" = "LG",
+  "Molina" = "MOL",
+  "Morrison Creek" = "MOR",
   "Stage Coach Above" = "SCA",
+  "Stage Coach In" = "SCI",
   "Stagecoach" = "SB",
   "Todds Ranch" = "TR",
   "Upper Yampa" = "UYM",
-  "Boulder Lake" = "BOL",
-  "Morrison Creek" = "MOR",
-  "Below Stagecoach Dam" = "SCO"
-  )
+  "Yellow Jacket " = "YJ"
+)
+
 trt.dict <- c(
   "ST1" = c("ST1", "AVST1"),
   "ST2" = c("ST2", "AVST2"),
@@ -326,9 +329,6 @@ mergeFiles <- function(directory, tss_fp) {
     lapply(importDataXls) %>%
     bind_rows
   # merge data and metadata
-  #df_meta$COLLECTED <- mdy_hm(df_meta$COLLECTED) %>%
-    #format("%m/%d/%Y")
-  
   df_merge <- df_data %>%
     left_join(df_meta, by = 'SAMPLE.ID' ) %>%
     flagData()

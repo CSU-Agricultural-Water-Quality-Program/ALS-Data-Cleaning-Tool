@@ -11,9 +11,10 @@ output:
 ---
 
 
-```{r, include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(toc = TRUE, echo = FALSE, warning = FALSE, message = FALSE)
-
+# set working dir
+knitr::opts_knit$set(root.dir = here::here())
 
 ```
 
@@ -37,7 +38,8 @@ This report details data collected from 2023-01-01 to `r Sys.Date()` by the Colo
 package.list <- c("ggplot2",
                   "dplyr",
                   "DT",
-                  "plotly"
+                  "plotly",
+                  "here"
 )
 packageLoad <- function(packages){
   for (i in packages) {
@@ -53,23 +55,20 @@ packageLoad(package.list)
 
 
 
-
 ```{r, include=FALSE}
 #clean data source
-source("file-merger.R", local = knitr::knit_global())
+source("./Code/file-merger.R", local = knitr::knit_global())
 ```
 
 
 ```{r, include=FALSE}
 # Set directories
 #report_path <- paste(dirname(getwd()), "/Example Report", sep = "")
-data_path <- paste(dirname(getwd()), "/Data", sep = "")
-print(data_path)
 ```
 
 ```{r, include=FALSE}
 # import data
-dat <- returnAllFiles(d = data_path, export = FALSE) 
+dat <- returnAllFiles(d = directory, export = FALSE) 
 #dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
 #make everything lowercase
 colnames(dat) <- tolower(names(dat))
@@ -79,6 +78,33 @@ colnames(dat) <- tolower(names(dat))
 
 
 # Sites
+
+Year to date sample count:
+
+```{r}
+total_unique_sample_ids <- dat %>% 
+  distinct(sample.id) %>% 
+  nrow()
+
+# Print the result
+print(total_unique_sample_ids)
+```
+Without duplicates
+
+```{r}
+# Filter out rows with sample.id containing "-D"
+filtered_df <- dat %>%
+  filter(!grepl("-D", sample.id, fixed = TRUE))
+
+# Count the number of unique sample.id values after filtering
+total_unique_sample_ids_excluding_D <- filtered_df %>%
+  distinct(sample.id) %>%
+  nrow()
+
+# Print the result
+print(total_unique_sample_ids_excluding_D)
+```
+
 
 ```{r}
 #create data table based on counts
@@ -138,7 +164,7 @@ make_scatter_plots <- function(dataframe) {
 ```{r}
 #filter to site
 ARDEC2200 <- dat %>% 
-  filter(location.name == "ARDEC 2200")
+  filter(location.name == "ARDEC ")
 
 
 # Call the scatter plot function for the site
