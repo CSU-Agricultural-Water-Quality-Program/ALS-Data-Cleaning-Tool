@@ -97,7 +97,7 @@ location.dict <- c(
   "Stage Coach Above" = "SCA",
   "Stage Coach In" = "SCI",
   "Stagecoach" = "SB",
-  "Todds Ranch" = "TR",
+  "The Ranch" = "TR",
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ"
 )
