@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+
+</style>
+<!--[if gte mso 9]>
+
+<![endif]-->
+</head>
+<body>
+	<div id="ctl00_CPH_CorpWideWrapper_ucWorkorder_ucWorkorderResults_ucWorkorderResultsBySample_RG_WorkorderResultsBySample_GridData" class="rgDataDiv" style="position:relative;overflow-x:auto;overflow-y:auto;width:100%;height:500px;">
+
+<table class=" rgClipCells" rules="cols" border="1" id="ctl00_CPH_CorpWideWrapper_ucWorkorder_ucWorkorderResults_ucWorkorderResultsBySample_RG_WorkorderResultsBySample_ctl00" style="width:100%;table-layout:fixed;overflow:hidden;empty-cells:show;">
+	<thead>
+		<tr>
+			<th scope="col">SAMPLE ID</th><th scope="col">LAB ID</th><th scope="col">METHOD</th><th scope="col">CAS NUMBER</th><th scope="col">ANALYTE</th><th scope="col">RESULT</th><th scope="col">UNITS</th><th scope="col">DILUTION</th><th scope="col">RESULT REPORTED TO</th><th scope="col">MDL</th><th scope="col">RL</th><th scope="col">REPORT BASIS</th><th scope="col">PERCENT MOISTURE</th><th scope="col">PERCENT SOLID</th>
+		</tr>
+	</thead><tbody>
+	<tr>
+		<td>Sample: MOR-01-GB-1 / HS23050417-01</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>MOR-01-GB-1</td><td>HS23050417-01</td><td>E300 - 300_W</td><td>14797-55-8</td><td>Nitrogen, Nitrate (As N)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.489</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>MOR-01-GB-1</td><td>HS23050417-01</td><td>E300 - 300_W</td><td>14797-65-0</td><td>Nitrogen, Nitrite  (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>MOR-01-GB-1</td><td>HS23050417-01</td><td>SM4500P E - P-Ortho M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total Orthophosphate (as P)</td><td style="mso-number-format:\@;">&lt;0.0500</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.01</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: MOR-01-GB-2 / HS23050417-02</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>MOR-01-GB-2</td><td>HS23050417-02</td><td>M4500 NH3 D - TKN_W 4500NH3 D</td><td>7727-37-9TKN</td><td>Nitrogen, Total Kjeldahl</td><td style="background-color:#74BDFB;mso-number-format:\@;">1.1</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.1</td><td>0.5</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: MOR-01-GB-3 / HS23050417-03</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>MOR-01-GB-3</td><td>HS23050417-03</td><td>SM4500P E - P_TW M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total (As P)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.108</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.02</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: MOR-01-GB-5 / HS23050417-04</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>MOR-01-GB-5</td><td>HS23050417-04</td><td>E160.1 - TDS_W_160.1</td><td>TDS</td><td>Total Dissolved Solids (Residue, Filterable)</td><td style="background-color:#74BDFB;mso-number-format:\@;">108</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>5</td><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: MOR-01-GB-6 / HS23050417-05</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>MOR-01-GB-6</td><td>HS23050417-05</td><td>NA - SUB_METALS</td><td>&nbsp;</td><td>Subcontract Analysis</td><td style="mso-number-format:\@;">See Attached</td><td>NA</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0</td><td>0</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SB-01-OT-GB-1 / HS23050417-06</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SB-01-OT-GB-1</td><td>HS23050417-06</td><td>E300 - 300_W</td><td>14797-55-8</td><td>Nitrogen, Nitrate (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SB-01-OT-GB-1</td><td>HS23050417-06</td><td>E300 - 300_W</td><td>14797-65-0</td><td>Nitrogen, Nitrite  (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SB-01-OT-GB-1</td><td>HS23050417-06</td><td>SM4500P E - P-Ortho M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total Orthophosphate (as P)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.167</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.01</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SB-01-OT-GB-2 / HS23050417-07</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SB-01-OT-GB-2</td><td>HS23050417-07</td><td>M4500 NH3 D - TKN_W 4500NH3 D</td><td>7727-37-9TKN</td><td>Nitrogen, Total Kjeldahl</td><td style="background-color:#74BDFB;mso-number-format:\@;">1.1</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.1</td><td>0.5</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SB-01-OT-GB-3 / HS23050417-08</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SB-01-OT-GB-3</td><td>HS23050417-08</td><td>SM4500P E - P_TW M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total (As P)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.178</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.02</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SB-01-OT-GB-5 / HS23050417-09</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SB-01-OT-GB-5</td><td>HS23050417-09</td><td>E160.1 - TDS_W_160.1</td><td>TDS</td><td>Total Dissolved Solids (Residue, Filterable)</td><td style="background-color:#74BDFB;mso-number-format:\@;">190</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>5</td><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SB-01-OT-GB-6 / HS23050417-10</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SB-01-OT-GB-6</td><td>HS23050417-10</td><td>NA - SUB_METALS</td><td>&nbsp;</td><td>Subcontract Analysis</td><td style="mso-number-format:\@;">See Attached</td><td>NA</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0</td><td>0</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-1 / HS23050417-11</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-1</td><td>HS23050417-11</td><td>E300 - 300_W</td><td>14797-55-8</td><td>Nitrogen, Nitrate (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SCA-01-GB-1</td><td>HS23050417-11</td><td>E300 - 300_W</td><td>14797-65-0</td><td>Nitrogen, Nitrite  (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SCA-01-GB-1</td><td>HS23050417-11</td><td>SM4500P E - P-Ortho M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total Orthophosphate (as P)</td><td style="mso-number-format:\@;">&lt;0.0500</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.01</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-2 / HS23050417-12</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-2</td><td>HS23050417-12</td><td>M4500 NH3 D - TKN_W 4500NH3 D</td><td>7727-37-9TKN</td><td>Nitrogen, Total Kjeldahl</td><td style="background-color:#74BDFB;mso-number-format:\@;">1.1</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.1</td><td>0.5</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-3 / HS23050417-13</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-3</td><td>HS23050417-13</td><td>SM4500P E - P_TW M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total (As P)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.0840</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.02</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-5 / HS23050417-14</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-5</td><td>HS23050417-14</td><td>E160.1 - TDS_W_160.1</td><td>TDS</td><td>Total Dissolved Solids (Residue, Filterable)</td><td style="background-color:#74BDFB;mso-number-format:\@;">402</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>5</td><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-6 / HS23050417-15</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-6</td><td>HS23050417-15</td><td>NA - SUB_METALS</td><td>&nbsp;</td><td>Subcontract Analysis</td><td style="mso-number-format:\@;">See Attached</td><td>NA</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0</td><td>0</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCI-01-GB-1 / HS23050417-16</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCI-01-GB-1</td><td>HS23050417-16</td><td>E300 - 300_W</td><td>14797-55-8</td><td>Nitrogen, Nitrate (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SCI-01-GB-1</td><td>HS23050417-16</td><td>E300 - 300_W</td><td>14797-65-0</td><td>Nitrogen, Nitrite  (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SCI-01-GB-1</td><td>HS23050417-16</td><td>SM4500P E - P-Ortho M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total Orthophosphate (as P)</td><td style="mso-number-format:\@;">&lt;0.0500</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.01</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCI-01-GB-2 / HS23050417-17</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCI-01-GB-2</td><td>HS23050417-17</td><td>M4500 NH3 D - TKN_W 4500NH3 D</td><td>7727-37-9TKN</td><td>Nitrogen, Total Kjeldahl</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.64</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.1</td><td>0.5</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCI-01-GB-3 / HS23050417-18</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCI-01-GB-3</td><td>HS23050417-18</td><td>SM4500P E - P_TW M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total (As P)</td><td style="mso-number-format:\@;">&lt;0.0500</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.02</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCI-01-GB-5 / HS23050417-19</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCI-01-GB-5</td><td>HS23050417-19</td><td>E160.1 - TDS_W_160.1</td><td>TDS</td><td>Total Dissolved Solids (Residue, Filterable)</td><td style="background-color:#74BDFB;mso-number-format:\@;">226</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>5</td><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCI-01-GB-6 / HS23050417-20</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCI-01-GB-6</td><td>HS23050417-20</td><td>NA - SUB_METALS</td><td>&nbsp;</td><td>Subcontract Analysis</td><td style="mso-number-format:\@;">See Attached</td><td>NA</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0</td><td>0</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCO-01-GB-1 / HS23050417-21</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCO-01-GB-1</td><td>HS23050417-21</td><td>E300 - 300_W</td><td>14797-55-8</td><td>Nitrogen, Nitrate (As N)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.356</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SCO-01-GB-1</td><td>HS23050417-21</td><td>E300 - 300_W</td><td>14797-65-0</td><td>Nitrogen, Nitrite  (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SCO-01-GB-1</td><td>HS23050417-21</td><td>SM4500P E - P-Ortho M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total Orthophosphate (as P)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.0510</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.01</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCO-01-GB-2 / HS23050417-22</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCO-01-GB-2</td><td>HS23050417-22</td><td>M4500 NH3 D - TKN_W 4500NH3 D</td><td>7727-37-9TKN</td><td>Nitrogen, Total Kjeldahl</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.64</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.1</td><td>0.5</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCO-01-GB-3 / HS23050417-23</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCO-01-GB-3</td><td>HS23050417-23</td><td>SM4500P E - P_TW M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total (As P)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.0650</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.02</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCO-01-GB-5 / HS23050417-24</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCO-01-GB-5</td><td>HS23050417-24</td><td>E160.1 - TDS_W_160.1</td><td>TDS</td><td>Total Dissolved Solids (Residue, Filterable)</td><td style="background-color:#74BDFB;mso-number-format:\@;">308</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>5</td><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCO-01-GB-6 / HS23050417-25</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCO-01-GB-6</td><td>HS23050417-25</td><td>NA - SUB_METALS</td><td>&nbsp;</td><td>Subcontract Analysis</td><td style="mso-number-format:\@;">See Attached</td><td>NA</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0</td><td>0</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: TR-01-GB-1 / HS23050417-26</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>TR-01-GB-1</td><td>HS23050417-26</td><td>E300 - 300_W</td><td>14797-55-8</td><td>Nitrogen, Nitrate (As N)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.480</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>TR-01-GB-1</td><td>HS23050417-26</td><td>E300 - 300_W</td><td>14797-65-0</td><td>Nitrogen, Nitrite  (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>TR-01-GB-1</td><td>HS23050417-26</td><td>SM4500P E - P-Ortho M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total Orthophosphate (as P)</td><td style="mso-number-format:\@;">&lt;0.0500</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.01</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: TR-01-GB-2 / HS23050417-27</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>TR-01-GB-2</td><td>HS23050417-27</td><td>M4500 NH3 D - TKN_W 4500NH3 D</td><td>7727-37-9TKN</td><td>Nitrogen, Total Kjeldahl</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.71</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.1</td><td>0.5</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: TR-01-GB-3 / HS23050417-28</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>TR-01-GB-3</td><td>HS23050417-28</td><td>SM4500P E - P_TW M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total (As P)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.114</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.02</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: TR-01-GB-5 / HS23050417-29</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>TR-01-GB-5</td><td>HS23050417-29</td><td>E160.1 - TDS_W_160.1</td><td>TDS</td><td>Total Dissolved Solids (Residue, Filterable)</td><td style="background-color:#74BDFB;mso-number-format:\@;">184</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>5</td><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: TR-01-GB-6 / HS23050417-30</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>TR-01-GB-6</td><td>HS23050417-30</td><td>NA - SUB_METALS</td><td>&nbsp;</td><td>Subcontract Analysis</td><td style="mso-number-format:\@;">See Attached</td><td>NA</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0</td><td>0</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-1-D / HS23050417-31</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-1-D</td><td>HS23050417-31</td><td>E300 - 300_W</td><td>14797-55-8</td><td>Nitrogen, Nitrate (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SCA-01-GB-1-D</td><td>HS23050417-31</td><td>E300 - 300_W</td><td>14797-65-0</td><td>Nitrogen, Nitrite  (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>SCA-01-GB-1-D</td><td>HS23050417-31</td><td>SM4500P E - P-Ortho M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total Orthophosphate (as P)</td><td style="mso-number-format:\@;">&lt;0.0500</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.01</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-2-D / HS23050417-32</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-2-D</td><td>HS23050417-32</td><td>M4500 NH3 D - TKN_W 4500NH3 D</td><td>7727-37-9TKN</td><td>Nitrogen, Total Kjeldahl</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.71</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.1</td><td>0.5</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-3-D / HS23050417-33</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-3-D</td><td>HS23050417-33</td><td>SM4500P E - P_TW M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total (As P)</td><td style="background-color:#74BDFB;mso-number-format:\@;">0.0840</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.02</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-5-D / HS23050417-34</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-5-D</td><td>HS23050417-34</td><td>E160.1 - TDS_W_160.1</td><td>TDS</td><td>Total Dissolved Solids (Residue, Filterable)</td><td style="background-color:#74BDFB;mso-number-format:\@;">372</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>5</td><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: SCA-01-GB-6-D / HS23050417-35</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>SCA-01-GB-6-D</td><td>HS23050417-35</td><td>NA - SUB_METALS</td><td>&nbsp;</td><td>Subcontract Analysis</td><td style="mso-number-format:\@;">See Attached</td><td>NA</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0</td><td>0</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BK-SB-01-1 / HS23050417-36</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BK-SB-01-1</td><td>HS23050417-36</td><td>E300 - 300_W</td><td>14797-55-8</td><td>Nitrogen, Nitrate (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BK-SB-01-1</td><td>HS23050417-36</td><td>E300 - 300_W</td><td>14797-65-0</td><td>Nitrogen, Nitrite  (As N)</td><td style="mso-number-format:\@;">&lt;0.100</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.03</td><td>0.1</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>BK-SB-01-1</td><td>HS23050417-36</td><td>SM4500P E - P-Ortho M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total Orthophosphate (as P)</td><td style="mso-number-format:\@;">&lt;0.0500</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.01</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BK-SB-01-2 / HS23050417-37</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BK-SB-01-2</td><td>HS23050417-37</td><td>M4500 NH3 D - TKN_W 4500NH3 D</td><td>7727-37-9TKN</td><td>Nitrogen, Total Kjeldahl</td><td style="background-color:#74BDFB;mso-number-format:\@;">2.5</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.1</td><td>0.5</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BK-SB-01-3 / HS23050417-38</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BK-SB-01-3</td><td>HS23050417-38</td><td>SM4500P E - P_TW M4500P E</td><td>7723-14-0</td><td>Phosphorus, Total (As P)</td><td style="mso-number-format:\@;">&lt;0.0500</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0.02</td><td>0.05</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BK-SB-01-5 / HS23050417-39</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BK-SB-01-5</td><td>HS23050417-39</td><td>E160.1 - TDS_W_160.1</td><td>TDS</td><td>Total Dissolved Solids (Residue, Filterable)</td><td style="background-color:#74BDFB;mso-number-format:\@;">108</td><td>mg/L</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>5</td><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr><tr>
+		<td>Sample: BK-SB-01-6 / HS23050417-40</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+	</tr><tr>
+		<td>BK-SB-01-6</td><td>HS23050417-40</td><td>NA - SUB_METALS</td><td>&nbsp;</td><td>Subcontract Analysis</td><td style="mso-number-format:\@;">See Attached</td><td>NA</td><td style="mso-number-format:0\.00;">1</td><td>RL</td><td>0</td><td>0</td><td>&nbsp;</td><td>&nbsp;</td><td>N/A</td>
+	</tr>
+	</tbody>
+
+</table>	</div>
+</body></html>

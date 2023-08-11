@@ -29,6 +29,8 @@
 # Example code execution for users
 # df_test <- returnSingleFile(path=file_path, export=FALSE)
 # df_all <- returnAllFiles(d=directory, export=FALSE)
+ 
+
 # Then take df_test or df_all and do whatever you want with it (e.g., graph)
 
 
@@ -41,7 +43,11 @@ package.list <- c("magrittr",
                   "lattice",
                   "rvest",
                   "xml2",
-                  "stringr")
+                  "stringr",
+                  'tidyverse',
+                  'lubridate',
+                  'stringr'
+                  )
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -53,34 +59,48 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 
 # Global Variables
- # Working file_path
-file_path <- "./Data/Webtrieve-10-HS22090451.xls"
+ # Working file paths
+  # For GitHub  Repo
+directory <- "./Data"
+tss_file_path <- './TSS/TSS_Master_2023.xlsx'
+
+  # For sharepoint
+# directory <- '../Web_Portal'
+# tss_file_path <- '../../../../TSS General/2023/TSS_Master_2023.xlsx'
+
+  # To choose file manually via popup
+# file_path <- file.choose()
+# Set the default file directory to the directory containing the selected file
+
+tss_directory<- dirname(tss_file_path)
 # file_path <- file.choose()
  # Set the default file directory to the directory containing the selected file
-directory <- dirname(file_path)
+
  # Dictionaries for interpreting sample ID codes
   # Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- c(
-  "Berthoud" = "BT",
-  "ARDEC South - Org" = "ASO",
-  "ARDEC South -  Conv" = "ASC",
   "ARDEC 2200" = "A2",
-  "Molina" = "MOL",
-  "Gunnison" = "GU",
-  "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
-  "Yellow Jacket " = "YJ",
-  "Yampa" = "UYM",
-  "Legacy" = "LG",
+  "ARDEC South - Conv" = "ASC",
+  "ARDEC South - Org" = "ASO",
   "AVRC STAR" = c("AV", "AVST1", "AVST2", "AVCT1", "AVCT2"),
   "Barley" = "BAR",
+  "Berthoud" = "BT",
   "Big Hollow" = "HOL",
-  "Stage Coach In" = "SCI",
+  "Boulder Lake" = "BOL",
+  "Below Stagecoach Dam" = "SCO",
+  "Gunnison" = "GU",
+  "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
+  "Legacy" = "LG",
+  "Molina" = "MOL",
+  "Morrison Creek" = "MOR",
   "Stage Coach Above" = "SCA",
+  "Stage Coach In" = "SCI",
   "Stagecoach" = "SB",
-  "Todds Ranch" = "TR",
+  "The Ranch" = "TR", # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
-  "Boulder Lake" = "BOL"
-  )
+  "Yellow Jacket " = "YJ"
+)
+
 trt.dict <- c(
   "ST1" = c("ST1", "AVST1"),
   "ST2" = c("ST2", "AVST2"),
@@ -117,6 +137,12 @@ eventType.dict <- c(
     "IN8", "IN9"),
   "Outflow" = c("OUT", "OT", "OTLC")
   )
+tssUnits.dict <- c(
+  "TSS" = "mg/L",
+  "EC" = "mS/cm",
+  "pH" = "pH"
+   )
+
 
 # Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {
@@ -169,12 +195,18 @@ cleanData <- function(df) {
   # Clean imported dataframe for merging, graphing, etc.
    # Drop unnecessary rows containing the word "sample:"
   df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
-    # convert values containing "<" to 0
-    mutate(RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
-         # create column to indicate if a result value was a non-detect
-         non.detect = ifelse(RESULT == 0, TRUE, FALSE),
-         # change "N/A" to NA in any column
-         across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
+    # other cleaning processes:
+    mutate(
+      # convert values containing "<" to 0
+      RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
+      # remove "H" values     
+      RESULT = gsub("H", "", RESULT),
+      # remove "See Attached" values, code 9999 set for flagging in flagData()
+      RESULT = gsub("See Attached", 9999, RESULT),
+      # create column to indicate if a result value was a non-detect
+      non.detect = ifelse(RESULT == 0, TRUE, FALSE),
+      # change "N/A" to NA in any column
+      across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
     # convert select columns to numeric if needed
     mutate_at(c("RESULT",
                 "DILUTION",
@@ -232,10 +264,15 @@ flagData <- function(df){
   # create flag column
   df$flag <- NA
   df %>%
-    # search for J values
-    mutate(flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA)) %>%
-    # identify samples past hold time, based on ALS "HOLD" column
-    mutate(flag = ifelse(HOLD == 'Yes', paste0(flag, "H"), flag))
+    
+    mutate(
+      # search for J values
+      flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA),
+      # identify samples past hold time, based on ALS "HOLD" column
+      flag = ifelse(HOLD == 'Yes', paste0(flag, "H"), flag),
+      # identify "See Attached" results as marked in cleanData()
+      flag = ifelse(RESULT == 9999, "See Attached", flag),
+      )
   return(df)
 }
 
@@ -244,10 +281,43 @@ executeFxns <- function(file_path) {
   df <- importData(file_path) %>%
     cleanData() %>%
     processData()
+  #print(file_path)
+  #print(names(df))
+  #print(length(colnames(df)))   # Print column names after importData
+  return(df)
+}
+dfTss <- function(tss_fp) {
+  df <- read_excel(tss_fp, sheet = "MasterData") %>%
+    select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
+    rename("SAMPLE.ID" = "Sample_ID",
+           "COLLECTED" = "Collection_date",
+           "TSS" = "TSS_mg/L",
+           "EC" = "EC_mS/cm") %>%
+    filter(!(SAMPLE.ID %in% c("Stock Solution", "DI"))) %>%
+    na.omit() %>%
+    mutate(
+      duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
+      location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
+      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
+      method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
+      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
+    ) %>%
+    gather(key = "ANALYTE", value = "RESULT", c(pH, TSS, EC )) %>%
+    mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
+    mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
+    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
+    mutate(METHOD = case_when(
+      ANALYTE == "pH" ~ "EPA150.1",
+      ANALYTE == "TSS" ~ "EPA160.2",
+      ANALYTE == "EC" ~ "EPA120.1",
+      TRUE ~ NA_character_)) %>%
+     mutate(RESULT = as.numeric(RESULT)) %>%
+    mutate(UNITS = tssUnits.dict[ANALYTE])
+  
   return(df)
 }
 
-mergeFiles <- function(directory) {
+mergeFiles <- function(directory, tss_fp) {
   # import all htm files in the directory, merge, and return df
   print("Merging files...")
   file_list <- list.files(path = directory,
@@ -270,27 +340,38 @@ mergeFiles <- function(directory) {
     lapply(importDataXls) %>%
     bind_rows
   # merge data and metadata
-  df <- df_data %>%
-    left_join(df_meta, by = "SAMPLE.ID") %>%
-    flagData() 
-  View(df)
+  df_merge <- df_data %>%
+    left_join(df_meta, by = 'SAMPLE.ID' ) %>%
+    flagData()
+
+  # change to posixct
+  df_merge$COLLECTED <- as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M')
+  # import TSS data to df w/ metadata
+  df_tss <- dfTss(tss_fp)
+  
+  
+  # merge tss data with als data
+  df <- bind_rows(df_merge, df_tss) %>%
+    filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE)) 
+  
+
   return(df)
+  
 }
 
 # Define public functions (i.e., to be called by user)
-returnSingleFile <- function(path = file_path, export = TRUE) {
+returnSingleFile <- function(path = file_path, export = FALSE) {
   # return and optionally export a single file for QA/QC
   df <- executeFxns(path)
-  View(df)
   if (export == TRUE) {
     write.csv(df, file = "single_file.csv", row.names = FALSE)
   }
   return(df)
 }
 
-returnAllFiles <- function(d = directory, export = TRUE) {
+returnAllFiles <- function(d = directory, tss_fp = tss_file_path, export = TRUE) {
   # return and optionally export all files for QA/QC
-  df <- mergeFiles(d)
+  df <- mergeFiles(d, tss_fp)
   # for debugging only; uncomment as necessary
   #View(df)
   if (export == TRUE) {
@@ -298,5 +379,6 @@ returnAllFiles <- function(d = directory, export = TRUE) {
   }
   return(df)
 }
+
 
 
