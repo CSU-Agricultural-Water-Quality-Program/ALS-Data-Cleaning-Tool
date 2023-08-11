@@ -60,16 +60,15 @@ packageLoad(package.list)
 
 # Global Variables
  # Working file paths
-# For GitHub 
+  # For GitHub  Repo
 directory <- "./Data"
-
 tss_file_path <- './TSS/TSS_Master_2023.xlsx'
 
-
-# For sharepoint
+  # For sharepoint
 # directory <- '../Web_Portal'
 # tss_file_path <- '../../../../TSS General/2023/TSS_Master_2023.xlsx'
 
+  # To choose file manually via popup
 # file_path <- file.choose()
 # Set the default file directory to the directory containing the selected file
 
@@ -97,7 +96,7 @@ location.dict <- c(
   "Stage Coach Above" = "SCA",
   "Stage Coach In" = "SCI",
   "Stagecoach" = "SB",
-  "The Ranch" = "TR",
+  "The Ranch" = "TR", # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ"
 )
@@ -196,14 +195,18 @@ cleanData <- function(df) {
   # Clean imported dataframe for merging, graphing, etc.
    # Drop unnecessary rows containing the word "sample:"
   df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
-    # convert values containing "<" to 0
-    mutate(RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
-           
-           RESULT = gsub("H", "", RESULT),
-         # create column to indicate if a result value was a non-detect
-         non.detect = ifelse(RESULT == 0, TRUE, FALSE),
-         # change "N/A" to NA in any column
-         across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
+    # other cleaning processes:
+    mutate(
+      # convert values containing "<" to 0
+      RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
+      # remove "H" values     
+      RESULT = gsub("H", "", RESULT),
+      # remove "See Attached" values, code 9999 set for flagging in flagData()
+      RESULT = gsub("See Attached", 9999, RESULT),
+      # create column to indicate if a result value was a non-detect
+      non.detect = ifelse(RESULT == 0, TRUE, FALSE),
+      # change "N/A" to NA in any column
+      across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
     # convert select columns to numeric if needed
     mutate_at(c("RESULT",
                 "DILUTION",
@@ -261,10 +264,15 @@ flagData <- function(df){
   # create flag column
   df$flag <- NA
   df %>%
-    # search for J values
-    mutate(flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA)) %>%
-    # identify samples past hold time, based on ALS "HOLD" column
-    mutate(flag = ifelse(HOLD == 'Yes', paste0(flag, "H"), flag))
+    
+    mutate(
+      # search for J values
+      flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA),
+      # identify samples past hold time, based on ALS "HOLD" column
+      flag = ifelse(HOLD == 'Yes', paste0(flag, "H"), flag),
+      # identify "See Attached" results as marked in cleanData()
+      flag = ifelse(RESULT == 9999, "See Attached", flag),
+      )
   return(df)
 }
 
@@ -273,6 +281,9 @@ executeFxns <- function(file_path) {
   df <- importData(file_path) %>%
     cleanData() %>%
     processData()
+  #print(file_path)
+  #print(names(df))
+  #print(length(colnames(df)))   # Print column names after importData
   return(df)
 }
 dfTss <- function(tss_fp) {
