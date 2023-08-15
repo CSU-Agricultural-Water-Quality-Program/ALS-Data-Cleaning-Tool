@@ -17,7 +17,9 @@ knitr::opts_knit$set(root.dir = here::here())
 package.list <- c('plotly',
                   'dplyr',
                   'tidyr',
-                  'ggplot2'
+                  'ggplot2',
+                  'gridExtra',
+                  'GGally'
 )
 packageLoad <- function(packages){
   for (i in packages) {
@@ -126,51 +128,45 @@ create_violin_plot(dat, loc)
 
 
 ```{r}
-create_scatterplot_matrix <- function(data, location_nameumn) {
-  library(ggplot2)
+
+
+create_scatterplot_matrix <- function(data, location_name) {
   
-  # Define event type colors
-  event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
+  filtered_data <- data %>%
+    filter(location.name == location_name) %>%
+   mutate(sample.id = sub("-[1-5]$", "", sample.id),  # Remove "-1", "-2", "-3", "-4", "-5" from sample.id
+                  sample.id = sub("-[1-5]-D$", "-D", sample.id)) %>%  # Replace "-1-D", "-2-D", "-3-D", "-4-D", "-5-D" with "-D"
+    select(sample.id, result, analyte, event.type)
   
-  # Subset data for the specified location
-  specific_location_data <- data[data[[location_nameumn]] == unique(data[[location_nameumn]]), ]
+  # Pivot the data wider
+  pivoted_data <- filtered_data %>%
+    tidyr::pivot_wider(names_from = analyte, values_from = result)
   
-  # Create a custom panel function for scatterplots with points and histograms
-  custom_panel <- function(x, y, ...) {
-    # Scatterplot with points
-    points(x, y, col = event_colors[specific_location_data$event.type])
-    
-    # Histogram on the diagonal
-    if (x == y) {
-      h <- hist(x, plot = FALSE)
-      y_density <- density(x)
-      y_scale <- max(h$counts) * 0.05
-      lines(y_density$x, y_density$y * y_scale, col = "blue")
-    }
+  if (nrow(pivoted_data) == 0) {
+    warning("No data available for the given location.")
+    return(NULL)
   }
   
-  # Create a scatterplot matrix using pairs() with the custom panel function
-  pairs(specific_location_data[c("collected", "result")],
-        lower.panel = custom_panel,
-        upper.panel = NULL, diag.panel = NULL)
+  # Remove rows with NA values in specific analyte columns before creating scatterplot matrix
+  analyte_columns <- colnames(pivoted_data)[-c(1, 2)]  # Exclude the first two columns (sample.id and event.type)
+  pivoted_data <- pivoted_data[complete.cases(pivoted_data[, analyte_columns]), ]
   
-  # Calculate correlations
-  cor_matrix <- cor(specific_location_data[c("collected", "result")])
+  # Create scatterplot matrix using pairs()
+  pairs(pivoted_data[, analyte_columns],
+        labels = analyte_columns,
+        col = as.numeric(factor(pivoted_data$event.type)),
+        pch = 19)
   
-  # Add correlations above the scatterplot matrix
-  n <- ncol(cor_matrix)
-  for (i in 1:n) {
-    for (j in 1:n) {
-      if (i < j) {
-        corr <- round(cor_matrix[i, j], 2)
-        text(i - 0.2, j + 0.2, labels = corr)
-      }
-    }
-  }
+  return(NULL)
 }
 
-# Call the function with your data and desired location column
+
+
 create_scatterplot_matrix(dat, loc)
+
+
+
+
 
 ```
 
