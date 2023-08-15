@@ -149,8 +149,7 @@ create_scatterplot_matrix <- function(data, location_name) {
   
   # Remove rows with NA values in specific analyte columns before creating scatterplot matrix
   analyte_columns <- colnames(pivoted_data)[-c(1, 2)]  # Exclude the first two columns (sample.id and event.type)
-  pivoted_data <- pivoted_data[complete.cases(pivoted_data[, analyte_columns]), ]
-  
+
   # Create scatterplot matrix using pairs()
   pairs(pivoted_data[, analyte_columns],
         labels = analyte_columns,
