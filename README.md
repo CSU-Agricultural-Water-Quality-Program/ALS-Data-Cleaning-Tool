@@ -1,22 +1,25 @@
 # ALS Data Cleaning Tool
-R script to take water analysis results exported from the [ALS WEBTRIEVE™ data portal](https://webtrieveus.alsenviro.com/Login.aspx) and then clean, merge, and export the data into a more useable format for the Colorado State University Agricultural Water Quality Program. The script can be used as a library for other scripts (e.g., for analysis and graphing), or simply used to export data for archiving.
+A coding tool developed in R to take water analysis results exported from the [ALS WEBTRIEVE™ data portal](https://webtrieveus.alsenviro.com/Login.aspx). Exported data are cleaned, merged, and exported into archiving (e.g., CSV) or visual (e.g., HTML) formats. The tool also merges data produced in-house (i.e., pH, Total Suspended Soilds, and Specific Electrical Conductivity) with the final exported data.
 
-Cheers,
-A.J. Brown
-Agricultural Data Scientist
-ansley.brown@colostate.edu
+*Created By: A.J. Brown, Agricultural Data Scientist, 
+ansley.brown@colostate.edu*
 
-Some Helpful Troubleshooting Notes: 
+## <u>Contents:</u>
+* **file-merger.R** - a script that takes the raw files from ALS, cleans the data, and exports as a dataframe and/or CSV file for other uses
+* **site_selector.Rmd** - a markdown script that produces an HTML report with interactive data visualization and optional data export for a specific research site location as chosen by the user
+* **water_report.Rmd** - a markdown script that produces a summary of all water quality data for all sites on a YTD basis
 
-**ALS exports data as ".xls" file format in name only.  The actual files are in ".htm" format.  This is just a helpful tip for users working with these data
+## <u>Some Helpful Troubleshooting Notes:</u>
 
-**If you edit the .htm file from ALS in excel and save it, it corrupts the file and cannot then be imported.  This occurred for us once when we tried to edit an erroneous date.
+* ALS exports data as ".xls" file format in name only.  The actual result files are in ".htm" format.  The sample metadata, however is actually in ".xls" format, as found on the "samples" tab.
 
-**When running file-merger.R, which occurs in all the markdown scripts, you CANNOT have the TSS excel file open, else an error will occur
+* If you edit the .htm file from ALS in excel and save it, it corrupts the file and cannot then be imported.  This occurred for us once when we tried to edit an erroneous date.
 
-Future developments:
-**Automate the emailing of the report after generation
+* When running file-merger.R, which occurs in all the markdown scripts, you CANNOT have the TSS excel file open, else an error will occur
 
-**Use config file to easily change file paths
+## <u>Future Developments:</u>
+* Automate the emailing of the report after generation
+
+* Use config file to easily change file paths
 
 
