@@ -1,9 +1,23 @@
 ---
-title: "site-selector"
-author: "Molly Bell"
-date: "2023-08-10"
-output: html_document
+title: "Site selector data visualization tool"
+author: "Molly Bell and A.J. Brown using R version 4.2.2"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    output_dir: "site_selector_temporary_results"
 ---
+The following is an interactive data report containing water quality data from 
+samples taken by the Colorado State University (CSU) Agriculture Water Quality 
+Program (AWQP) at a location selected by the user when running the script
+(reported below). For more information, please contact A.J. Brown at
+Ansley.Brown@colostate.edu or visit the CSU AWQP Website at 
+https://waterquality.colostate.edu.
+
+## Special Notes
+
+*	All “0” values reported are non-detects (ND) reported by ALS
+*	Total suspended solids (TSS), Electrical Conductivity (EC), and pH are performed by AWQP staff at CSU, whereas all other analytes are reported by ALS Laboratories
+*	Methods used to derive each analyte can be found in the Raw Data table in the “method” column
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -12,15 +26,17 @@ knitr::opts_knit$set(root.dir = here::here())
    # sets the working directory to where the project file is 
 ```
 
-```{r}
+```{r, include=FALSE}
 # load required packages
 package.list <- c('plotly',
                   'dplyr',
                   'tidyr',
-                  'ggplot2',
-                  'gridExtra',
-                  'GGally'
-)
+                  'DT'
+                  # 'ggplot2',
+                  # 'gridExtra',
+                  # 'GGally',
+                  # 'PerformanceAnalytics'
+                  )
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -32,7 +48,7 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Uploading file-merge code to create data frame
 source('./Code/file-merger.R')
 # create data frame
@@ -65,7 +81,9 @@ loc = 'AVRC STAR'
 # loc = 'Yellow Jacket'
 ```
 
-```{r}
+## Location Selected: <span style="color:#4CAF50">`r loc`.</span>
+
+```{r, include=FALSE}
 # function to save site data as csv
 csv_data <- function(dat, location_name) {
   location_data <- dat %>%
@@ -78,14 +96,27 @@ csv_data <- function(dat, location_name) {
   
   file_name <- paste0(folder_name, "/", location_name, "_data_", format(Sys.Date(), "%Y-%m-%d"), ".csv")
   write.csv(location_data, file = file_name, row.names = FALSE)
+  return(file_name)
 }
 # use the function to save
-csv_data(dat, loc)
+file = csv_data(dat, loc)
 ```
 
-```{r}
+### CSV Export of selected site data saved as: 
+`r file`
 
-# plotly plot with dropdown
+## Interactive Violin Plot
+Use the below boxplot to graph various water analytes stratified by sample type
+(i.e., Inflow, Outflow, etc.). Analytes can be selected by using the dropdown 
+menu on the top left of the graph. Hover over points with your mouse for
+additional information.
+
+*To save your plot for use elsewhere:* hover over the top right corner and click
+the camera icon.  The PNG will be saved in your downloads folder.
+
+```{r, warning=FALSE}
+
+# plotly Violin plot with dropdown
 create_violin_plot <- function(df, selected_location) {
   y_axis_var_names <- unique(df$analyte)
   
@@ -109,6 +140,11 @@ create_violin_plot <- function(df, selected_location) {
                                   meanline = list(
                                     visible = T
                                   )) %>%
+    # Adding scatter points next to violin bars
+    add_trace(x = ~event.type, y = ~result, type = 'scatter', mode = 'markers', marker = list(size = 3, opacity = 0.6), 
+              color = ~event.type, colors = event_colors, showlegend = FALSE, hoverinfo = 'y+text', 
+              text = ~paste("Result: ", result, "<br>Event Type: ", event.type)) %>%
+    
     layout(
       title = paste("Violin plots for Location:", selected_location),
       xaxis = list(title = "Collected", tickformat = "%y-%m-%d"),
@@ -126,10 +162,12 @@ create_violin_plot(dat, loc)
 
 ```
 
+## Scatterplot Matrix of All Numerical Analyte Data
+Use the below scatter matrix to look at potential relationships between
+numerical variables. Please note that all analytes are reported in mg/L EXCEPT
+selenium (Se), which is reported in ug/L.
 
-```{r}
-
-
+```{r, warning=FALSE}
 create_scatterplot_matrix <- function(data, location_name) {
   
   filtered_data <- data %>%
@@ -147,6 +185,7 @@ create_scatterplot_matrix <- function(data, location_name) {
     return(NULL)
   }
   
+ # <<<<<<< HEAD
   # Remove rows with NA values in specific analyte columns before creating scatterplot matrix
   analyte_columns <- colnames(pivoted_data)[-c(1, 2)]  # Exclude the first two columns (sample.id and event.type)
 
@@ -155,17 +194,30 @@ create_scatterplot_matrix <- function(data, location_name) {
         labels = analyte_columns,
         col = as.numeric(factor(pivoted_data$event.type)),
         pch = 19)
+ # =======
+  # drop non-numeric columns
+  pd2 <- subset(pivoted_data, select = -c(sample.id, event.type))
   
-  return(NULL)
+  # create scatter plot matrix using base r
+  pairs(pd2,
+        col = 'blue',
+        pch = 8,
+        main = 'Scatterplot Matrix of All Water Analytes'
+        )
+ # >>>>>>> 8b0fd33095f1db3fab5961a6daf3d725c13cad80
+  
+  # TODO: create scatter matrix using PerformanceAnalytics package
+  # chart.Correlation(pd2,
+  #                 histogram = T,
+  #                 method = 'pearson',
+  #                 pch = 8
+  #                 )
 }
 
-
-
 create_scatterplot_matrix(dat, loc)
-
-
-
-
-
 ```
-
+# Raw Data
+Use the table below to look at raw values.
+```{r}
+datatable(dat, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
+```
