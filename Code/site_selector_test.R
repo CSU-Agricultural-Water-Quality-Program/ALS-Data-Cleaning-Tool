@@ -19,29 +19,78 @@ dat <- returnAllFiles(d = directory, export = FALSE)
 # make columns lowercase so they are all the same case
 colnames(dat) <- tolower(names(dat))
 
-filtered_data <- dat %>%
-  dplyr::filter(location.name == loc) %>%
-  dplyr::mutate(sample.id = sub("-[1-5]$", "", sample.id),  # Remove "-1", "-2", "-3", "-4", "-5" from sample.id
-                sample.id = sub("-[1-5]-D$", "-D", sample.id)) %>%  # Replace "-1-D", "-2-D", "-3-D", "-4-D", "-5-D" with "-D"
-  dplyr::select(sample.id, result, analyte, event.type)
+# Load required libraries
+library(plotly)
 
-# Pivot the data wider
-pivoted_data <- filtered_data %>%
-  pivot_wider(names_from = analyte, values_from = result)
+# Load required libraries
+library(plotly)
 
-# drop ID column?
-pd2 <- subset(pivoted_data, select = -c(sample.id, event.type))
+# Load required libraries
+library(plotly)
 
-# Create scatter matrix
-pairs(pd2,
-      col = 'blue',
-      pch = 8,
-      main = 'Scatterplot Matrix of All Water Analytes'
+# Function to create a scatter plot with dropdown
+# Function to create a scatter plot with dropdown
+# Function to create a scatter plot with dropdown
+create_scatterplot <- function(df, selected_location) {
+  # Filter data to exclude analytes with no data
+  filtered_df <- df[df$location.name == selected_location, ]
+  analyte_counts <- table(filtered_df$analyte)
+  valid_analytes <- names(analyte_counts)[analyte_counts > 0]
+  filtered_df <- filtered_df[filtered_df$analyte %in% valid_analytes, ]
+  
+  y_axis_var_names <- sort(unique(filtered_df$analyte))
+  
+  # Specify event colors and types
+  event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
+  event_types <- c("Inflow", "Outflow", "Point Sample")
+  
+  create_buttons <- function(y_axis_var_name) {
+    analyte_data <- filtered_df[filtered_df$analyte == y_axis_var_name, ]
+    y_data <- analyte_data$result
+    
+    y_data <- y_data[!is.na(y_data)]  # Exclude NAs from y_data
+    
+    if (length(y_data) == 0) {
+      return(NULL)  # Exclude analytes with no data from the dropdown
+    }
+    
+    y_range <- range(y_data)
+    buffer_factor <- 0.1  # Set your desired buffer factor
+    y_range_with_buffer <- y_range + diff(y_range) * c(-buffer_factor, buffer_factor)
+    
+    list(
+      method = 'restyle',
+      args = list('y', list(y_data)),
+      label = y_axis_var_name,
+      args2 = list('yaxis.range', y_range_with_buffer)  # Update y-axis range
+    )
+  }
+  
+  # Create a scatter plot with the first analyte's data
+  first_analyte <- y_axis_var_names[1]
+  first_analyte_data <- filtered_df[filtered_df$analyte == first_analyte, ]
+  first_analyte_event_types <- unique(first_analyte_data$event.type)
+  
+  location_scatter_plot <- plot_ly(data = first_analyte_data, x = ~collected, y = ~result,
+                                   color = ~event.type, colors = event_colors,
+                                   type = 'scatter', mode = 'markers',
+                                   marker = list(size = 8, opacity = 0.6),
+                                   legendgroup = ~event.type,
+                                   showlegend = TRUE) %>%
+    layout(
+      title = paste("Scatter plot for Location:", selected_location),
+      xaxis = list(title = "Collected", tickformat = "%m/%d/%y"),  # Format the date as MM/DD/YY
+      yaxis = list(title = "Result", rangeslider = list()),  # Add rangeslider
+      showlegend = TRUE,
+      updatemenus = list(
+        list(
+          buttons = lapply(y_axis_var_names, create_buttons)
+        )
       )
+    )
+  
+  return(location_scatter_plot)
+}
 
-# works in console, but not in HTML when knitting
-chart.Correlation(pd2,
-                  histogram = T,
-                  method = 'pearson',
-                  pch = 8
-                  )
+create_scatterplot(dat, loc)
+
