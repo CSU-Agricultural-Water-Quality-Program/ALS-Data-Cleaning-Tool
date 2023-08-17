@@ -79,14 +79,13 @@ loc = 'AVRC STAR'
 # loc = 'The Ranch'
 # loc = 'Upper Yampa'
 # loc = 'Yellow Jacket'
-```
 
-```{r}
 #create a filtered df to use for violin plots and scatterplot
 filter_dataframe <- function(df, selected_location) {
   filtered_df <- df[df$location.name == selected_location, ]
   return(filtered_df)
 }
+filtered_df <- filter_dataframe(dat, loc)
 ```
 
 
@@ -126,10 +125,10 @@ the camera icon.  The PNG will be saved in your downloads folder.
 ```{r, warning=FALSE}
 # Create the violin plot function
 create_violinplot <- function(df, selected_location) {
-  # Call the function to filter the DataFrame
-  filtered_df <- filter_dataframe(df, selected_location)
+  # Call the function to filter the Data
   
-  y_axis_var_names <- sort(unique(filtered_df$analyte))
+  
+  y_axis_var_names <- sort(unique(df$analyte))
   
   # Specify event colors and types
   event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
@@ -137,7 +136,7 @@ create_violinplot <- function(df, selected_location) {
   
   # Create the buttons for the dropdown menu
   dropdown_buttons <- lapply(unique(y_axis_var_names), function(analyte_name) {
-    y_data <- filtered_df$result[filtered_df$analyte == analyte_name]
+    y_data <- df$result[df$analyte == analyte_name]
     y_range <- range(c(0, y_data), na.rm = TRUE)
     
     list(
@@ -148,7 +147,7 @@ create_violinplot <- function(df, selected_location) {
     )
   })
   
-  location_violin_plot <- plot_ly(data = filtered_df,
+  location_violin_plot <- plot_ly(data = df,
                                   x = ~event.type,
                                   y = ~result,
                                   color = ~event.type,
@@ -175,7 +174,7 @@ create_violinplot <- function(df, selected_location) {
 }
 
 # Call the create_violinplot function with your data and selected location
-create_violinplot(dat, loc)
+create_violinplot(filtered_df, loc)
 
 
 ```
@@ -187,17 +186,16 @@ create_violinplot(dat, loc)
 ```{r}
 # Function to create a scatter plot with dropdown
 create_scatterplot <- function(df, selected_location) {
-  # Filter data to exclude analytes with no data
-  filtered_df <- filter_dataframe(df, selected_location)
   
-  y_axis_var_names <- sort(unique(filtered_df$analyte))
+  
+  y_axis_var_names <- sort(unique(df$analyte))
   
   # Specify event colors and types
   event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
   event_types <- c("Inflow", "Outflow", "Point Sample")
   
   create_buttons <- function(y_axis_var_name) {
-    analyte_data <- filtered_df[filtered_df$analyte == y_axis_var_name, ]
+    analyte_data <- df[df$analyte == y_axis_var_name, ]
     y_data <- analyte_data$result
     
     
@@ -215,7 +213,7 @@ create_scatterplot <- function(df, selected_location) {
   
   # Create a scatter plot with the first analyte's data
   first_analyte <- y_axis_var_names[1]
-  first_analyte_data <- filtered_df[filtered_df$analyte == first_analyte, ]
+  first_analyte_data <- df[df$analyte == first_analyte, ]
   first_analyte_y_range <- create_buttons(first_analyte)
   
   initial_y_data <- first_analyte_data$result
@@ -223,7 +221,7 @@ create_scatterplot <- function(df, selected_location) {
   buffer_factor <- 0.1
   initial_y_range_with_buffer <- initial_y_range + diff(initial_y_range) * c(-buffer_factor, buffer_factor)
   
-  location_scatter_plot <- plot_ly(data = filtered_df, x = ~collected, y = ~result,
+  location_scatter_plot <- plot_ly(data = df, x = ~collected, y = ~result,
                                    color = ~event.type, colors = event_colors,
                                    type = 'scatter', mode = 'markers',
                                    marker = list(size = 8, opacity = 0.6),
@@ -244,11 +242,9 @@ create_scatterplot <- function(df, selected_location) {
   return(location_scatter_plot)
 }
 
-create_scatterplot(dat, loc)
+create_scatterplot(filtered_df, loc)
 
 ```
-
-
 
 ## Scatterplot Matrix of All Numerical Analyte Data
 Use the below scatter matrix to look at potential relationships between
@@ -258,8 +254,7 @@ selenium (Se), which is reported in ug/L.
 ```{r, warning=FALSE}
 create_scatterplot_matrix <- function(data, location_name) {
   
-  filtered_data <- data %>%
-    filter(location.name == location_name) %>%
+  filtered_data <- df %>%
    mutate(sample.id = sub("-[1-5]$", "", sample.id),  # Remove "-1", "-2", "-3", "-4", "-5" from sample.id
                   sample.id = sub("-[1-5]-D$", "-D", sample.id)) %>%  # Replace "-1-D", "-2-D", "-3-D", "-4-D", "-5-D" with "-D"
     select(sample.id, result, analyte, event.type)
@@ -300,9 +295,10 @@ create_scatterplot_matrix <- function(data, location_name) {
   #                 method = 'pearson',
   #                 pch = 8
   #                 )
+  # fix mutate error
 }
 
-create_scatterplot_matrix(dat, loc)
+create_scatterplot_matrix(filtered_df, loc)
 ```
 # Raw Data
 Use the table below to look at raw values.

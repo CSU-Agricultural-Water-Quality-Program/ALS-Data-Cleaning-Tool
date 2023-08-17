@@ -22,4 +22,17 @@ ansley.brown@colostate.edu*
 
 * Use config file to easily change file paths
 
+* Fix mutate error in scatterplot matrix
+
+* Set the plots to start at the correct y range
+
+* Fix scatter plot points for Point Sample on the violin plot
+
+* Potentially create a way to run the functions for multiple sites
+
+* Add histograms and correlations to scatterplot matrix
+
+* Put analyte labels outside of the scatterplot matrix and shorten their names with a analyte dict. 
+
+
 
