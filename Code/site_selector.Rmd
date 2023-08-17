@@ -115,30 +115,41 @@ additional information.
 the camera icon.  The PNG will be saved in your downloads folder.
 
 ```{r, warning=FALSE}
-
 # plotly Violin plot with dropdown
 create_violin_plot <- function(df, location_name) {
-  y_axis_var_names <- unique(df$analyte)
+  # Filter data to exclude analytes with no data
+  filtered_df <- df[df$location.name == location_name, ]
+  analyte_counts <- table(filtered_df$analyte)
+  valid_analytes <- names(analyte_counts)[analyte_counts > 0]
+  filtered_df <- filtered_df[filtered_df$analyte %in% valid_analytes, ]
   
-   event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
+  y_axis_var_names <- sort(unique(filtered_df$analyte))
+  
+  event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
   
   create_buttons <- function(df, y_axis_var_name, location_name) {
+    analyte_data <- df[df$analyte == y_axis_var_name & df$location.name == location_name, ]
+    
+    if (nrow(analyte_data) == 0) {
+      return(NULL)  # Exclude analytes with no data from the dropdown
+    }
+    
     list(
       method = 'restyle',
-      args = list('y', list(df[df$analyte == y_axis_var_name & df$location.name == location_name, "result"])),
-      label = sprintf('Show %s', y_axis_var_name)
+      args = list('y', list(analyte_data$result)),
+      label = y_axis_var_name
     )
   }
   
-  location_violin_plot <- plot_ly(df, x = ~event.type,
+  location_violin_plot <- plot_ly(data = filtered_df, x = ~event.type,
                                   y = ~result,
                                   color = ~event.type,
                                   colors = event_colors,
                                   type = 'violin', box = list(
-                                    visible = T
+                                    visible = TRUE
                                   ),
                                   meanline = list(
-                                    visible = T
+                                    visible = TRUE
                                   )) %>%
     # Adding scatter points next to violin bars
     add_trace(x = ~event.type, y = ~result, type = 'scatter', mode = 'markers', marker = list(size = 3, opacity = 0.6), 
@@ -152,13 +163,16 @@ create_violin_plot <- function(df, location_name) {
       showlegend = TRUE,
       updatemenus = list(
         list(
-          buttons = lapply(y_axis_var_names, create_buttons, df = df, location_name = location_name)
+          buttons = lapply(y_axis_var_names, create_buttons, df = filtered_df, location_name = location_name)
         )
       ))
   
   return(location_violin_plot)
 }
+
 create_violin_plot(dat, loc)
+
+
 
 ```
 
