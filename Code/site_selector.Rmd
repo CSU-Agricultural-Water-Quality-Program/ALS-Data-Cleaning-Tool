@@ -81,6 +81,15 @@ loc = 'AVRC STAR'
 # loc = 'Yellow Jacket'
 ```
 
+```{r}
+#create a filtered df to use for violin plots and scatterplot
+filter_dataframe <- function(df, selected_location) {
+  filtered_df <- df[df$location.name == selected_location, ]
+  return(filtered_df)
+}
+```
+
+
 ## Location Selected: <span style="color:#4CAF50">`r loc`.</span>
 
 ```{r, include=FALSE}
@@ -115,33 +124,32 @@ additional information.
 the camera icon.  The PNG will be saved in your downloads folder.
 
 ```{r, warning=FALSE}
-# plotly Violin plot with dropdown
-create_violin_plot <- function(df, location_name) {
-  # Filter data to exclude analytes with no data
-  filtered_df <- df[df$location.name == location_name, ]
-  analyte_counts <- table(filtered_df$analyte)
-  valid_analytes <- names(analyte_counts)[analyte_counts > 0]
-  filtered_df <- filtered_df[filtered_df$analyte %in% valid_analytes, ]
+# Create the violin plot function
+create_violinplot <- function(df, selected_location) {
+  # Call the function to filter the DataFrame
+  filtered_df <- filter_dataframe(df, selected_location)
   
   y_axis_var_names <- sort(unique(filtered_df$analyte))
   
+  # Specify event colors and types
   event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
+  event_types <- c("Inflow", "Outflow", "Point Sample")
   
-  create_buttons <- function(df, y_axis_var_name, location_name) {
-    analyte_data <- df[df$analyte == y_axis_var_name & df$location.name == location_name, ]
-    
-    if (nrow(analyte_data) == 0) {
-      return(NULL)  # Exclude analytes with no data from the dropdown
-    }
+  # Create the buttons for the dropdown menu
+  dropdown_buttons <- lapply(unique(y_axis_var_names), function(analyte_name) {
+    y_data <- filtered_df$result[filtered_df$analyte == analyte_name]
+    y_range <- range(c(0, y_data), na.rm = TRUE)
     
     list(
       method = 'restyle',
-      args = list('y', list(analyte_data$result)),
-      label = y_axis_var_name
+      args = list('y', list(y_data)),
+      label = analyte_name,
+      args2 = list('yaxis.range', y_range)  # Update y-axis range
     )
-  }
+  })
   
-  location_violin_plot <- plot_ly(data = filtered_df, x = ~event.type,
+  location_violin_plot <- plot_ly(data = filtered_df,
+                                  x = ~event.type,
                                   y = ~result,
                                   color = ~event.type,
                                   colors = event_colors,
@@ -151,30 +159,27 @@ create_violin_plot <- function(df, location_name) {
                                   meanline = list(
                                     visible = TRUE
                                   )) %>%
-    # Adding scatter points next to violin bars
-    add_trace(x = ~event.type, y = ~result, type = 'scatter', mode = 'markers', marker = list(size = 3, opacity = 0.6), 
-              color = ~event.type, colors = event_colors, showlegend = FALSE, hoverinfo = 'y+text', 
-              text = ~paste("Result: ", result, "<br>Event Type: ", event.type)) %>%
-    
     layout(
-      title = paste("Violin plots for Location:", location_name),
-      xaxis = list(title = "Collected", tickformat = "%y-%m-%d"),
+      title = paste("Violin plots for Location:", selected_location),
+      xaxis = list(title = "Event Type"),  # Update x-axis title
       yaxis = list(title = "Result"),
       showlegend = TRUE,
       updatemenus = list(
         list(
-          buttons = lapply(y_axis_var_names, create_buttons, df = filtered_df, location_name = location_name)
+          buttons = dropdown_buttons
         )
-      ))
+      )
+    )
   
   return(location_violin_plot)
 }
 
-create_violin_plot(dat, loc)
-
+# Call the create_violinplot function with your data and selected location
+create_violinplot(dat, loc)
 
 
 ```
+
 
 
 ## Scatterplot Time Series
@@ -183,10 +188,7 @@ create_violin_plot(dat, loc)
 # Function to create a scatter plot with dropdown
 create_scatterplot <- function(df, selected_location) {
   # Filter data to exclude analytes with no data
-  filtered_df <- df[df$location.name == selected_location, ]
-  analyte_counts <- table(filtered_df$analyte)
-  valid_analytes <- names(analyte_counts)[analyte_counts > 0]
-  filtered_df <- filtered_df[filtered_df$analyte %in% valid_analytes, ]
+  filtered_df <- filter_dataframe(df, selected_location)
   
   y_axis_var_names <- sort(unique(filtered_df$analyte))
   
@@ -198,11 +200,6 @@ create_scatterplot <- function(df, selected_location) {
     analyte_data <- filtered_df[filtered_df$analyte == y_axis_var_name, ]
     y_data <- analyte_data$result
     
-    y_data <- y_data[!is.na(y_data)]  # Exclude NAs from y_data
-    
-    if (length(y_data) == 0) {
-      return(NULL)  # Exclude analytes with no data from the dropdown
-    }
     
     y_range <- range(y_data)
     buffer_factor <- 0.1  # Set your desired buffer factor
@@ -251,10 +248,6 @@ create_scatterplot(dat, loc)
 
 ```
 
-```{r}
-AVRC <- dat %>%
-  filter(location.name == 'AVRC STAR')
-```
 
 
 ## Scatterplot Matrix of All Numerical Analyte Data

@@ -19,17 +19,7 @@ dat <- returnAllFiles(d = directory, export = FALSE)
 # make columns lowercase so they are all the same case
 colnames(dat) <- tolower(names(dat))
 
-# Load required libraries
-library(plotly)
 
-# Load required libraries
-library(plotly)
-
-# Load required libraries
-library(plotly)
-
-# Function to create a scatter plot with dropdown
-# Function to create a scatter plot with dropdown
 # Function to create a scatter plot with dropdown
 create_scatterplot <- function(df, selected_location) {
   # Filter data to exclude analytes with no data
@@ -93,4 +83,85 @@ create_scatterplot <- function(df, selected_location) {
 }
 
 create_scatterplot(dat, loc)
+# plotly Violin plot with dropdown
+create_violin_plot <- function(df, location_name) {
+  # Filter data to exclude analytes with no data
+  filtered_df <- df[df$location.name == location_name, ]
+  analyte_counts <- table(filtered_df$analyte)
+  valid_analytes <- names(analyte_counts)[analyte_counts > 0]
+  filtered_df <- filtered_df[filtered_df$analyte %in% valid_analytes, ]
+  
+  y_axis_var_names <- sort(unique(filtered_df$analyte))
+  
+  event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
+  
+  create_buttons <- function(df, y_axis_var_name, location_name) {
+    analyte_data <- df[df$analyte == y_axis_var_name & df$location.name == location_name, ]
+    
+    if (nrow(analyte_data) == 0) {
+      return(NULL)  # Exclude analytes with no data from the dropdown
+    }
+    
+    list(
+      method = 'restyle',
+      args = list('y', list(analyte_data$result)),
+      label = y_axis_var_name
+    )
+  }
+  
+  scatterpoints <- lapply(event_colors, function(event_type) {
+    scatter_data <- filtered_df[filtered_df$event.type == event_type, ]
+    plotly::scatter(
+      x = ~as.numeric(factor(event.type)) + jitter(0.2),
+      y = ~result,
+      data = scatter_data,
+      mode = 'markers',
+      marker = list(size = 8, opacity = 0.6, color = event_colors[event_type]),
+      showlegend = FALSE,
+      hoverinfo = 'y+text',
+      text = ~paste("Result: ", result, "<br>Event Type: ", event.type)
+    )
+  })
+  
+  location_violin_plot <- plot_ly(data = filtered_df, x = ~event.type,
+                                  y = ~result,
+                                  color = ~event.type,
+                                  colors = event_colors,
+                                  type = 'violin', box = list(
+                                    visible = TRUE
+                                  ),
+                                  meanline = list(
+                                    visible = TRUE
+                                  )) %>%
+    layout(
+      title = paste("Violin plots for Location:", location_name),
+      xaxis = list(title = "Collected", tickformat = "%y-%m-%d"),
+      yaxis = list(title = "Result"),
+      showlegend = TRUE,
+      updatemenus = list(
+        list(
+          buttons = lapply(y_axis_var_names, create_buttons, df = filtered_df, location_name = location_name)
+        )
+      )
+    )
+  
+  for (scatterplot in scatterpoints) {
+    location_violin_plot <- location_violin_plot %>% add_trace(scatterplot)
+  }
+  
+  return(location_violin_plot)
+}
+
+create_violin_plot(dat, loc)
+
+
+
+
+
+
+
+
+
+
+
 
