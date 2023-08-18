@@ -1,9 +1,27 @@
 ---
-title: "site-selector"
-author: "Molly Bell"
-date: "2023-08-10"
-output: html_document
+title: "Site selector data visualization tool"
+author: "Molly Bell and A.J. Brown using R version 4.2.2"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    output_dir: "site_selector_temporary_results"
 ---
+The following is an interactive data report containing water quality data from 
+samples taken by the Colorado State University (CSU) Agriculture Water Quality 
+Program (AWQP) at a location selected by the user when running the script
+(reported below). For more information, please contact A.J. Brown at
+Ansley.Brown@colostate.edu or visit the CSU AWQP Website at 
+https://waterquality.colostate.edu.
+
+**Please Note:** All analytes are reported in mg/L *EXCEPT*
+selenium (reported in ug/L), specific electrical conductivity (EC; mS/cm), and
+pH (log H).
+
+## Special Notes
+
+*	All “0” values reported are non-detects (ND) reported by ALS
+*	Total suspended solids (TSS), Electrical Conductivity (EC), and pH are performed by AWQP staff at CSU, whereas all other analytes are reported by ALS Laboratories
+*	Methods used to derive each analyte can be found in the Raw Data table in the “method” column
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -12,13 +30,17 @@ knitr::opts_knit$set(root.dir = here::here())
    # sets the working directory to where the project file is 
 ```
 
-```{r}
+```{r, include=FALSE}
 # load required packages
 package.list <- c('plotly',
                   'dplyr',
                   'tidyr',
-                  'ggplot2'
-)
+                  'DT'
+                  # 'ggplot2',
+                  # 'gridExtra',
+                  # 'GGally',
+                  # 'PerformanceAnalytics'
+                  )
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -30,7 +52,7 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Uploading file-merge code to create data frame
 source('./Code/file-merger.R')
 # create data frame
@@ -61,9 +83,19 @@ loc = 'AVRC STAR'
 # loc = 'The Ranch'
 # loc = 'Upper Yampa'
 # loc = 'Yellow Jacket'
+
+#create a filtered df to use for violin plots and scatterplot
+filter_dataframe <- function(df, selected_location) {
+  filtered_df <- df[df$location.name == selected_location, ]
+  return(filtered_df)
+}
+filtered_df <- filter_dataframe(dat, loc)
 ```
 
-```{r}
+
+## Location Selected: <span style="color:#4CAF50">`r loc`.</span>
+
+```{r, include=FALSE}
 # function to save site data as csv
 csv_data <- function(dat, location_name) {
   location_data <- dat %>%
@@ -76,101 +108,203 @@ csv_data <- function(dat, location_name) {
   
   file_name <- paste0(folder_name, "/", location_name, "_data_", format(Sys.Date(), "%Y-%m-%d"), ".csv")
   write.csv(location_data, file = file_name, row.names = FALSE)
+  return(file_name)
 }
 # use the function to save
-csv_data(dat, loc)
+file = csv_data(dat, loc)
 ```
 
-```{r}
+### CSV Export of selected site data saved as: 
+`r file`
 
-# plotly plot with dropdown
-create_violin_plot <- function(df, selected_location) {
-  y_axis_var_names <- unique(df$analyte)
+## Interactive Violin Plot
+Use the below boxplot to graph various water analytes stratified by sample type
+(i.e., Inflow, Outflow, etc.). Analytes can be selected by using the dropdown 
+menu on the top left of the graph. Hover over points with your mouse for
+additional information.
+
+**PLEASE NOTE**: This initial graph will be incorrect (ongoing bug), use the
+dropdown menu to select a different analyte first, then go back to the initial
+analyte to see it displayed correctly.
+
+```{r, warning=FALSE}
+# Create the violin plot function
+create_violinplot <- function(df, selected_location) {
+  # Call the function to filter the Data
   
-   event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
   
-  create_buttons <- function(df, y_axis_var_name, selected_location) {
+  y_axis_var_names <- sort(unique(df$analyte))
+  
+  # Specify event colors and types
+  event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
+  event_types <- c("Inflow", "Outflow", "Point Sample")
+  
+  # Create the buttons for the dropdown menu
+  dropdown_buttons <- lapply(unique(y_axis_var_names), function(analyte_name) {
+    y_data <- df$result[df$analyte == analyte_name]
+    y_range <- range(c(0, y_data), na.rm = TRUE)
+    
     list(
       method = 'restyle',
-      args = list('y', list(df[df$analyte == y_axis_var_name & df$location.name == selected_location, "result"])),
-      label = sprintf('Show %s', y_axis_var_name)
+      args = list('y', list(y_data)),
+      label = analyte_name,
+      args2 = list('yaxis.range', y_range)  # Update y-axis range
     )
-  }
+  })
   
-  location_violin_plot <- plot_ly(df, x = ~event.type,
+  location_violin_plot <- plot_ly(data = df,
+                                  x = ~event.type,
                                   y = ~result,
                                   color = ~event.type,
                                   colors = event_colors,
                                   type = 'violin', box = list(
-                                    visible = T
+                                    visible = TRUE
                                   ),
                                   meanline = list(
-                                    visible = T
+                                    visible = TRUE
                                   )) %>%
     layout(
       title = paste("Violin plots for Location:", selected_location),
-      xaxis = list(title = "Collected", tickformat = "%y-%m-%d"),
+      xaxis = list(title = "Event Type"),  # Update x-axis title
       yaxis = list(title = "Result"),
       showlegend = TRUE,
       updatemenus = list(
         list(
-          buttons = lapply(y_axis_var_names, create_buttons, df = df, selected_location = selected_location)
+          buttons = dropdown_buttons
         )
-      ))
+      )
+    )
   
   return(location_violin_plot)
 }
-create_violin_plot(dat, loc)
 
+# Call the create_violinplot function with your data and selected location
+create_violinplot(filtered_df, loc)
 ```
+**To save your plot as a PNG:** hover over the top right corner and click
+the camera icon.  The PNG will be saved in your downloads folder.
 
+
+## Interactive Scatterplot Time Series
+Use the below boxplot to graph various water analytes stratified by sample type
+(i.e., Inflow, Outflow, etc.) as a time series. Analytes can be selected by 
+using the dropdown menu on the top left of the graph. Hover over points with 
+your mouse for additional information.
+
+**PLEASE NOTE**: This initial graph will be incorrect (ongoing bug), use the
+dropdown menu to select a different analyte first, then go back to the initial
+analyte to see it displayed correctly.
 
 ```{r}
-create_scatterplot_matrix <- function(data, location_nameumn) {
-  library(ggplot2)
+# Function to create a scatter plot with dropdown
+create_scatterplot <- function(df, selected_location) {
   
-  # Define event type colors
+  
+  y_axis_var_names <- sort(unique(df$analyte))
+  
+  # Specify event colors and types
   event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
+  event_types <- c("Inflow", "Outflow", "Point Sample")
   
-  # Subset data for the specified location
-  specific_location_data <- data[data[[location_nameumn]] == unique(data[[location_nameumn]]), ]
-  
-  # Create a custom panel function for scatterplots with points and histograms
-  custom_panel <- function(x, y, ...) {
-    # Scatterplot with points
-    points(x, y, col = event_colors[specific_location_data$event.type])
+  create_buttons <- function(y_axis_var_name) {
+    analyte_data <- df[df$analyte == y_axis_var_name, ]
+    y_data <- analyte_data$result
     
-    # Histogram on the diagonal
-    if (x == y) {
-      h <- hist(x, plot = FALSE)
-      y_density <- density(x)
-      y_scale <- max(h$counts) * 0.05
-      lines(y_density$x, y_density$y * y_scale, col = "blue")
-    }
+    
+    y_range <- range(y_data)
+    buffer_factor <- 0.1  # Set your desired buffer factor
+    y_range_with_buffer <- y_range + diff(y_range) * c(-buffer_factor, buffer_factor)
+    
+    list(
+      method = 'restyle',
+      args = list('y', list(y_data)),
+      label = y_axis_var_name,
+      args2 = list('yaxis.range', y_range_with_buffer)  # Update y-axis range
+    )
   }
   
-  # Create a scatterplot matrix using pairs() with the custom panel function
-  pairs(specific_location_data[c("collected", "result")],
-        lower.panel = custom_panel,
-        upper.panel = NULL, diag.panel = NULL)
+  # Create a scatter plot with the first analyte's data
+  first_analyte <- y_axis_var_names[1]
+  first_analyte_data <- df[df$analyte == first_analyte, ]
+  first_analyte_y_range <- create_buttons(first_analyte)
   
-  # Calculate correlations
-  cor_matrix <- cor(specific_location_data[c("collected", "result")])
+  initial_y_data <- first_analyte_data$result
+  initial_y_range <- range(initial_y_data)
+  buffer_factor <- 0.1
+  initial_y_range_with_buffer <- initial_y_range + diff(initial_y_range) * c(-buffer_factor, buffer_factor)
   
-  # Add correlations above the scatterplot matrix
-  n <- ncol(cor_matrix)
-  for (i in 1:n) {
-    for (j in 1:n) {
-      if (i < j) {
-        corr <- round(cor_matrix[i, j], 2)
-        text(i - 0.2, j + 0.2, labels = corr)
-      }
-    }
-  }
+  location_scatter_plot <- plot_ly(data = df, x = ~collected, y = ~result,
+                                   color = ~event.type, colors = event_colors,
+                                   type = 'scatter', mode = 'markers',
+                                   marker = list(size = 8, opacity = 0.6),
+                                   legendgroup = ~event.type,
+                                   showlegend = TRUE) %>%
+    layout(
+      title = paste("Scatter plot for Location:", selected_location),
+      xaxis = list(title = "Collected", tickformat = "%m/%d/%y"),  # Format the date as MM/DD/YY
+      yaxis = list(title = "Result", rangeslider = list()),  # Add rangeslider
+      showlegend = TRUE,
+      updatemenus = list(
+        list(
+          buttons = lapply(y_axis_var_names, create_buttons)
+        )
+      )
+    )
+  
+  return(location_scatter_plot)
 }
 
-# Call the function with your data and desired location column
-create_scatterplot_matrix(dat, loc)
+create_scatterplot(filtered_df, loc)
 
 ```
+**To save your plot as a PNG:** hover over the top right corner and click
+the camera icon.  The PNG will be saved in your downloads folder.
 
+
+## Scatterplot Matrix of All Numerical Analyte Data
+Use the below scatter matrix to look at potential relationships between
+numerical variables.
+
+```{r, warning=FALSE}
+create_scatterplot_matrix <- function(df, location_name) {
+  
+  #special filtering for scatterplot matrix, different from above
+  filtered_data <- df %>%
+   mutate(sample.id = sub("-[1-5]$", "", sample.id),  # Remove "-1", "-2", "-3", "-4", "-5" from sample.id
+                  sample.id = sub("-[1-5]-D$", "-D", sample.id)) %>%  # Replace "-1-D", "-2-D", "-3-D", "-4-D", "-5-D" with "-D"
+    select(sample.id, result, analyte, event.type)
+  
+  # Pivot the data wider
+  pivoted_data <- filtered_data %>%
+    tidyr::pivot_wider(names_from = analyte, values_from = result)
+  
+  # raise error if no data provided
+  if (nrow(pivoted_data) == 0) {
+    warning("No data available for the given location.")
+    return(NULL)
+  }
+  
+  # Exclude the first two columns (sample.id and event.type)
+  analyte_columns <- colnames(pivoted_data)[-c(1, 2)]  
+
+  # Create scatterplot matrix using pairs()
+  pairs(pivoted_data[, analyte_columns],
+        labels = analyte_columns,
+        col = as.numeric(factor(pivoted_data$event.type)),
+        pch = 19)
+  
+  # TODO: create scatter matrix using PerformanceAnalytics package
+  # chart.Correlation(pd2,
+  #                 histogram = T,
+  #                 method = 'pearson',
+  #                 pch = 8
+  #                 )
+}
+
+create_scatterplot_matrix(filtered_df, loc)
+```
+# Raw Data
+Use the table below to look at raw values.
+```{r}
+datatable(dat, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
+```

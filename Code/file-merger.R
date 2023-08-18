@@ -31,6 +31,9 @@
 # df_all <- returnAllFiles(d=directory, export=FALSE)
  
 
+
+
+
 # Then take df_test or df_all and do whatever you want with it (e.g., graph)
 
 
@@ -192,7 +195,7 @@ importDataXls <- function(file_path) {
 }
 
 cleanData <- function(df) {
-  # Clean imported dataframe for merging, graphing, etc.
+
    # Drop unnecessary rows containing the word "sample:"
   df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
     # other cleaning processes:
@@ -203,6 +206,10 @@ cleanData <- function(df) {
       RESULT = gsub("H", "", RESULT),
       # remove "See Attached" values, code 9999 set for flagging in flagData()
       RESULT = gsub("See Attached", 9999, RESULT),
+      # make results numeric
+      RESULT = as.numeric(ifelse(RESULT == "N/A", NA, RESULT)),
+      # remove the scentific notation from results
+      RESULT = ifelse(!is.na(RESULT), format(RESULT, scientific = FALSE), NA),
       # create column to indicate if a result value was a non-detect
       non.detect = ifelse(RESULT == 0, TRUE, FALSE),
       # change "N/A" to NA in any column
@@ -215,6 +222,11 @@ cleanData <- function(df) {
                 "PERCENT.MOISTURE",
                 "PERCENT.SOLID"),
                as.numeric)
+  
+
+  
+  
+  
   return(df)
 }
 

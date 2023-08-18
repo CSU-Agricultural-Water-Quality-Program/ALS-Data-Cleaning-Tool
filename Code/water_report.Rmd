@@ -52,14 +52,10 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 ```
 
-
-
-
 ```{r, include=FALSE}
 #clean data source
 source("./Code/file-merger.R", local = knitr::knit_global())
 ```
-
 
 ```{r, include=FALSE}
 # Set directories
@@ -74,9 +70,6 @@ dat <- returnAllFiles(d = directory, export = FALSE)
 colnames(dat) <- tolower(names(dat))
 ```
 
-
-
-
 # Sites
 
 Year to date sample count:
@@ -89,7 +82,8 @@ total_unique_sample_ids <- dat %>%
 # Print the result
 print(total_unique_sample_ids)
 ```
-Without duplicates
+
+Without duplicates:
 
 ```{r}
 # Filter out rows with sample.id containing "-D"
