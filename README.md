@@ -11,6 +11,8 @@ ansley.brown@colostate.edu*
 
 ## <u>Some Helpful Troubleshooting Notes:</u>
 
+* Currently, the output HTML reports get generated in the /Code folder and need to be moved manually to other locations (in this case "Reports" or "site_selector_temporary_results").
+
 * ALS exports data as ".xls" file format in name only.  The actual result files are in ".htm" format.  The sample metadata, however is actually in ".xls" format, as found on the "samples" tab.
 
 * If you edit the .htm file from ALS in excel and save it, it corrupts the file and cannot then be imported.  This occurred for us once when we tried to edit an erroneous date.
@@ -19,6 +21,10 @@ ansley.brown@colostate.edu*
 
 ## <u>Future Developments:</u>
 * Automate the emailing of the report after generation
+
+* Create table of methods used in introduction
+
+* fix the issue with HTML reports being saved in /Code folder
 
 * Use config file to easily change file paths
 

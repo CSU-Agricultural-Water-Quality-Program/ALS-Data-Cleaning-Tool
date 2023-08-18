@@ -13,6 +13,10 @@ Program (AWQP) at a location selected by the user when running the script
 Ansley.Brown@colostate.edu or visit the CSU AWQP Website at 
 https://waterquality.colostate.edu.
 
+**Please Note:** All analytes are reported in mg/L *EXCEPT*
+selenium (reported in ug/L), specific electrical conductivity (EC; mS/cm), and
+pH (log H).
+
 ## Special Notes
 
 *	All “0” values reported are non-detects (ND) reported by ALS
@@ -119,8 +123,9 @@ Use the below boxplot to graph various water analytes stratified by sample type
 menu on the top left of the graph. Hover over points with your mouse for
 additional information.
 
-*To save your plot for use elsewhere:* hover over the top right corner and click
-the camera icon.  The PNG will be saved in your downloads folder.
+**PLEASE NOTE**: This initial graph will be incorrect (ongoing bug), use the
+dropdown menu to select a different analyte first, then go back to the initial
+analyte to see it displayed correctly.
 
 ```{r, warning=FALSE}
 # Create the violin plot function
@@ -175,13 +180,20 @@ create_violinplot <- function(df, selected_location) {
 
 # Call the create_violinplot function with your data and selected location
 create_violinplot(filtered_df, loc)
-
-
 ```
+**To save your plot as a PNG:** hover over the top right corner and click
+the camera icon.  The PNG will be saved in your downloads folder.
 
 
+## Interactive Scatterplot Time Series
+Use the below boxplot to graph various water analytes stratified by sample type
+(i.e., Inflow, Outflow, etc.) as a time series. Analytes can be selected by 
+using the dropdown menu on the top left of the graph. Hover over points with 
+your mouse for additional information.
 
-## Scatterplot Time Series
+**PLEASE NOTE**: This initial graph will be incorrect (ongoing bug), use the
+dropdown menu to select a different analyte first, then go back to the initial
+analyte to see it displayed correctly.
 
 ```{r}
 # Function to create a scatter plot with dropdown
@@ -245,15 +257,18 @@ create_scatterplot <- function(df, selected_location) {
 create_scatterplot(filtered_df, loc)
 
 ```
+**To save your plot as a PNG:** hover over the top right corner and click
+the camera icon.  The PNG will be saved in your downloads folder.
+
 
 ## Scatterplot Matrix of All Numerical Analyte Data
 Use the below scatter matrix to look at potential relationships between
-numerical variables. Please note that all analytes are reported in mg/L EXCEPT
-selenium (Se), which is reported in ug/L.
+numerical variables.
 
 ```{r, warning=FALSE}
-create_scatterplot_matrix <- function(data, location_name) {
+create_scatterplot_matrix <- function(df, location_name) {
   
+  #special filtering for scatterplot matrix, different from above
   filtered_data <- df %>%
    mutate(sample.id = sub("-[1-5]$", "", sample.id),  # Remove "-1", "-2", "-3", "-4", "-5" from sample.id
                   sample.id = sub("-[1-5]-D$", "-D", sample.id)) %>%  # Replace "-1-D", "-2-D", "-3-D", "-4-D", "-5-D" with "-D"
@@ -263,31 +278,20 @@ create_scatterplot_matrix <- function(data, location_name) {
   pivoted_data <- filtered_data %>%
     tidyr::pivot_wider(names_from = analyte, values_from = result)
   
+  # raise error if no data provided
   if (nrow(pivoted_data) == 0) {
     warning("No data available for the given location.")
     return(NULL)
   }
   
- # <<<<<<< HEAD
-  # Remove rows with NA values in specific analyte columns before creating scatterplot matrix
-  analyte_columns <- colnames(pivoted_data)[-c(1, 2)]  # Exclude the first two columns (sample.id and event.type)
+  # Exclude the first two columns (sample.id and event.type)
+  analyte_columns <- colnames(pivoted_data)[-c(1, 2)]  
 
   # Create scatterplot matrix using pairs()
   pairs(pivoted_data[, analyte_columns],
         labels = analyte_columns,
         col = as.numeric(factor(pivoted_data$event.type)),
         pch = 19)
- # =======
-  # drop non-numeric columns
-  pd2 <- subset(pivoted_data, select = -c(sample.id, event.type))
-  
-  # create scatter plot matrix using base r
-  pairs(pd2,
-        col = 'blue',
-        pch = 8,
-        main = 'Scatterplot Matrix of All Water Analytes'
-        )
- # >>>>>>> 8b0fd33095f1db3fab5961a6daf3d725c13cad80
   
   # TODO: create scatter matrix using PerformanceAnalytics package
   # chart.Correlation(pd2,
@@ -295,7 +299,6 @@ create_scatterplot_matrix <- function(data, location_name) {
   #                 method = 'pearson',
   #                 pch = 8
   #                 )
-  # fix mutate error
 }
 
 create_scatterplot_matrix(filtered_df, loc)
