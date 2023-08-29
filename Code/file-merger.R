@@ -133,7 +133,8 @@ trt.dict <- c(
 method.dict <- c(
   "ISCO" = c("ISC", "IN", "OT"),
   "Low-Cost Sampler" = c("LC", "INLC", "OTLC"),
-  "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9")
+  "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"),
+  "Hourly Grab" = c("GBH")
   )
 eventType.dict <- c(
   "Inflow" = c("IN", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", "IN7", 
@@ -202,7 +203,8 @@ cleanData <- function(df) {
     mutate(
       # convert values containing "<" to 0
       RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
-      # remove "H" values     
+      # remove "H" values
+      # TODO: flag values with H as past hold time
       RESULT = gsub("H", "", RESULT),
       # remove "See Attached" values, code 9999 set for flagging in flagData()
       RESULT = gsub("See Attached", 9999, RESULT),
@@ -222,11 +224,6 @@ cleanData <- function(df) {
                 "PERCENT.MOISTURE",
                 "PERCENT.SOLID"),
                as.numeric)
-  
-
-  
-  
-  
   return(df)
 }
 
