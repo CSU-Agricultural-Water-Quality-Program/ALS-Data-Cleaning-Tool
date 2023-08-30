@@ -36,7 +36,10 @@ and
     * *Please note* that this is not where the HTML report is generated, but rather where it was moved after generation. It is currently generated in the Code folder, which is an ongoing bug to be addressed at a later time. **The CSV**, however, *is* generated in this folder upon execution.
 * **TSS**
     * a separate folder where an excel file exists containing example total suspended solids, electrical conductivity, and pH data is stored in the format congruent with what AWQP staff use in-house.  It is in a separate folder because this mimics the true deployment of this code outside of the github repo.
-
+* **ALS_Data_Cleaning_Tool.Rproj**
+    * the R project file used to open the codebase into the correct directory for Rstudio.  Double click this file to begin using the coding tool in Rstudio.
+* **AWQP Water Processing ID Key 2023**
+    * a separate excel file that details the ID protocols used to label each water sample, that is the basis for this codebase to dissect information back into a more useable format.
 ## <u>Some Helpful Troubleshooting Notes</u>
 
 * Currently, the output HTML reports get generated in the /Code folder and need to be moved manually to other locations (in this case "Reports" or "site_selector_temporary_results").
@@ -116,5 +119,5 @@ For any questions or clarifications regarding this statement or the data provide
 
 **A.J. Brown**  
 *Agricultural Data Scientist*  
-CSU Agricultural Water Quality Program  
+Colorado State University Agricultural Water Quality Program  
 [Ansley.Brown@colostate.edu](mailto:Ansley.Brown@colostate.edu)
