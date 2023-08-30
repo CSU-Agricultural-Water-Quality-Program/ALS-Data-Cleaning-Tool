@@ -62,14 +62,12 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 
 # Global Variables
- # Working file paths
-  # For GitHub  Repo
-directory <- "./Data"
+  # Working file paths
+    # For GitHub  Repo
+#directory <- "./Data"
+  # for real data
+directory <- "./Confidential Data"
 tss_file_path <- './TSS/TSS_Master_2023.xlsx'
-
-  # For sharepoint
-# directory <- '../Web_Portal'
-# tss_file_path <- '../../../../TSS General/2023/TSS_Master_2023.xlsx'
 
   # To choose file manually via popup
 # file_path <- file.choose()
@@ -141,6 +139,22 @@ eventType.dict <- c(
     "IN8", "IN9"),
   "Outflow" = c("OUT", "OT", "OTLC")
   )
+eventCount.dict <- c(
+  "Irrigation 1" = c("01"),
+  "Irrigation 2" = c("02"),
+  "Irrigation 3" = c("03"),
+  "Irrigation 4" = c("04"),
+  "Irrigation 5" = c("05"),
+  "Irrigation 6" = c("06"),
+  "Irrigation 7" = c("07"),
+  "Irrigation 8" = c("08"),
+  "Storm 1" = c("S1"),
+  "Storm 2" = c("S2"),
+  "Storm 3" = c("S3"),
+  "Storm 4" = c("S4"),
+  "Storm 5" = c("S5")
+  )
+
 tssUnits.dict <- c(
   "TSS" = "mg/L",
   "EC" = "mS/cm",
@@ -247,7 +261,9 @@ processData <- function(df) {
       # create method name column based on Sample ID
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
       # create event type name column based on Sample ID
-      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
+      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
+      # create event count column based on Sample ID
+      event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict))
       ) %>%
     # remove numbers from new columns due to dict mapping
      # caution: if there are more than 10 dict keys, this will not work
@@ -306,7 +322,8 @@ dfTss <- function(tss_fp) {
       location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
       treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
-      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict))
+      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
+      event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict))
     ) %>%
     gather(key = "ANALYTE", value = "RESULT", c(pH, TSS, EC )) %>%
     mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
