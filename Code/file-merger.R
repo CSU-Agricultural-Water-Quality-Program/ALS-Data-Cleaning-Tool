@@ -137,7 +137,7 @@ method.dict <- c(
   "Hourly Grab" = c("GBH")
   )
 eventType.dict <- c(
-  "Inflow" = c("IN", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", "IN7", 
+  "Inflow" = c("IN", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", "IN7",
     "IN8", "IN9"),
   "Outflow" = c("OUT", "OT", "OTLC")
   )
@@ -273,7 +273,6 @@ flagData <- function(df){
   # create flag column
   df$flag <- NA
   df %>%
-    
     mutate(
       # search for J values
       flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA),
@@ -290,11 +289,9 @@ executeFxns <- function(file_path) {
   df <- importData(file_path) %>%
     cleanData() %>%
     processData()
-  #print(file_path)
-  #print(names(df))
-  #print(length(colnames(df)))   # Print column names after importData
   return(df)
 }
+
 dfTss <- function(tss_fp) {
   df <- read_excel(tss_fp, sheet = "MasterData") %>%
     select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
@@ -388,6 +385,3 @@ returnAllFiles <- function(d = directory, tss_fp = tss_file_path, export = TRUE)
   }
   return(df)
 }
-
-
-
