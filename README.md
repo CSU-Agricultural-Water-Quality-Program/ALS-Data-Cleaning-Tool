@@ -1,7 +1,7 @@
 # ALS Data Cleaning Tool
 A coding tool developed in R to take water analysis results exported from the [ALS WEBTRIEVE™ data portal](https://webtrieveus.alsenviro.com/Login.aspx). Exported data are cleaned, merged, and exported into archiving (e.g., CSV) or visual (e.g., HTML) formats. The tool also merges data produced in-house (i.e., pH, Total Suspended Soilds, and Specific Electrical Conductivity) with the final exported data. **Before using, please see the [data disclosure statement](#data-disclosure-statement-for-als-data-cleaning-tool) below.**
 
-**Created By:**
+__Created By:__
 
 **A.J. Brown**  
 *Agricultural Data Scientist*  
