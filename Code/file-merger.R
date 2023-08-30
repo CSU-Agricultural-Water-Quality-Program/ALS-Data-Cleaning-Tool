@@ -64,9 +64,9 @@ packageLoad(package.list)
 # Global Variables
   # Working file paths
     # For GitHub  Repo
-#directory <- "./Data"
-  # for real data
-directory <- "./Confidential Data"
+directory <- "./Data"
+  # for real data in file that won't be uploaded to github repo:
+#directory <- "./Confidential Data"
 tss_file_path <- './TSS/TSS_Master_2023.xlsx'
 
   # To choose file manually via popup
@@ -128,17 +128,22 @@ trt.dict <- c(
   "Fish Pond" = "FP",
   "Fire 2" = "FR2"
   )
+
 method.dict <- c(
   "ISCO" = c("ISC", "IN", "OT"),
   "Low-Cost Sampler" = c("LC", "INLC", "OTLC"),
   "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"),
-  "Hourly Grab" = c("GBH")
+  "Hourly Grab" = c("GBH"),
+  "Lab Blank" = c("BK")
   )
+
 eventType.dict <- c(
   "Inflow" = c("IN", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", "IN7",
     "IN8", "IN9"),
-  "Outflow" = c("OUT", "OT", "OTLC")
+  "Outflow" = c("OUT", "OT", "OTLC"),
+  "Lab Blank" = c("BK")
   )
+
 eventCount.dict <- c(
   "Irrigation 1" = c("01"),
   "Irrigation 2" = c("02"),
@@ -160,7 +165,6 @@ tssUnits.dict <- c(
   "EC" = "mS/cm",
   "pH" = "pH"
    )
-
 
 # Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {

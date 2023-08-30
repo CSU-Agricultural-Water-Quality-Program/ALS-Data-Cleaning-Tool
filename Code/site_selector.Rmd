@@ -318,8 +318,9 @@ create_scatterplot_matrix <- function(df, location_name) {
   })
 }
 
-create_scatterplot_matrix(filtered_df, loc)
+create_scatterplot_matrix(dat, loc)
 ```
+
 # Raw Data
 Use the table below to look at raw values.
 ```{r}
