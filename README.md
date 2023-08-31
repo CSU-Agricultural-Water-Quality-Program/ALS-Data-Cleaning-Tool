@@ -50,16 +50,22 @@ and
 
 * When running file-merger.R, which occurs in all the markdown scripts, you CANNOT have the TSS excel file open, else an error will occur
 
+* It is helpful to create a "Confidential Data" forlder in the repo you fork, to run the code locally with real data.  This avoids copy/pasting the entire repo elsewhere to operate it.
+
 ## <u>Future Developments</u>
 * Automate the emailing of the report after generation
 
 * Create table of methods used in introduction
 
+* Fix sample hold time flag "H" in flagData funciton in file_merger.R
+
+* ~~Create confidential data folder to run using real ALS data~~
+
+* ~~create confidential TSS folder to run using real data~~
+
 * fix the issue with HTML reports being saved in /Code folder
 
-* Use config file to easily change file paths
-
-* Fix mutate error in scatterplot matrix
+* ~~Fix mutate error in scatterplot matrix~~
 
 * Set the plots to start at the correct y range
 
