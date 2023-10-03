@@ -1,3 +1,4 @@
+[![AWQP Logo](./figures/AWQP_horizontal_rounded.png)](https://waterquality.colostate.edu)
 # ALS Data Cleaning Tool
 A coding tool developed in R to take water analysis results exported from the [ALS WEBTRIEVE™ data portal](https://webtrieveus.alsenviro.com/Login.aspx). Exported data are cleaned, merged, and exported into archiving (e.g., CSV) or visual (e.g., HTML) formats. The tool also merges data produced in-house (i.e., pH, Total Suspended Soilds, and Specific Electrical Conductivity) with the final exported data. **Before using, please see the [data disclosure statement](#data-disclosure-statement-for-als-data-cleaning-tool) below.**
 
@@ -28,6 +29,8 @@ and
     * **water_report.Rmd** - a markdown script that produces a summary of all water quality data for all sites on a YTD basis
 * **Data**
     * a folder containing example data to use in script execution ([please see data disclosure statement](#data-disclosure-statement-for-als-data-cleaning-tool)).
+* **figures**
+    * a folder containing the AWQP logo for use in this README.
 * **Report**
     * a folder containing the resulting HMTL report that result from execution of the "water_report.Rmd" script.
     * *Please note* that this is not where the HTML report is generated, but rather where it was moved after generation. It is currently generated in the Code folder, which is an ongoing bug to be addressed at a later time.
