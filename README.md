@@ -67,6 +67,8 @@ and
     * Add GPS coordinates dictionary to assign coordinates to each location and treatment (as necessary)
 * water_report
     * Create table of methods used in introduction
+    * See if we can parse Kerbel results by treatment
+    * fix Kerbel inflow/outflow not being colorized properly
 * site_selector
     * Create table of methods used in introduction
     * Set the plotly plots to start at the correct y range
