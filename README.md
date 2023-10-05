@@ -56,29 +56,39 @@ and
 * It is helpful to create a "Confidential Data" forlder in the repo you fork, to run the code locally with real data.  This avoids copy/pasting the entire repo elsewhere to operate it.
 
 ## <u>Future Developments</u>
-* Automate the emailing of the report after generation
+* Overall
+    * Automate the emailing of the report(s) after generation
+    * fix the issue with HTML reports being saved in /Code folder
+    * ~~Create confidential data folder to run using real ALS data~~
+    * ~~create confidential TSS folder to run using real data~~
+* file-merger
+    * Add integration of separate excel file results when ALS Houston exports work to other ALS labs (e.g., when Selenium analysis is requested.)
+    * Fix sample hold time flag "H" in flagData funciton in file_merger.R
+    * Add GPS coordinates dictionary to assign coordinates to each location and treatment (as necessary)
+* water_report
+    * Create table of methods used in introduction
+* site_selector
+    * Create table of methods used in introduction
+    * Set the plotly plots to start at the correct y range
+    * Fix scatter plotly plot points for Point Sample on the violin plot
+    * Potentially create a way to run the functions for multiple sites
+    * Add histograms and correlations to scatterplot matrix
+    * Put analyte labels outside of the scatterplot matrix and shorten their names with a analyte dict. 
+    * ~~Fix mutate error in scatterplot matrix~~
 
-* Create table of methods used in introduction
 
-* Fix sample hold time flag "H" in flagData funciton in file_merger.R
 
-* ~~Create confidential data folder to run using real ALS data~~
 
-* ~~create confidential TSS folder to run using real data~~
 
-* fix the issue with HTML reports being saved in /Code folder
 
-* ~~Fix mutate error in scatterplot matrix~~
 
-* Set the plots to start at the correct y range
 
-* Fix scatter plot points for Point Sample on the violin plot
 
-* Potentially create a way to run the functions for multiple sites
 
-* Add histograms and correlations to scatterplot matrix
 
-* Put analyte labels outside of the scatterplot matrix and shorten their names with a analyte dict. 
+
+
+
 
 ---
 
