@@ -306,6 +306,11 @@ flagData <- function(df){
   return(df)
 }
 
+#TODO: add geospatial function here
+#addCoord <- function(df) {
+  #do stuff here
+#}
+
 executeFxns <- function(file_path) {
   # execute all previous functions and return final dataframe
   df <- importData(file_path) %>%
