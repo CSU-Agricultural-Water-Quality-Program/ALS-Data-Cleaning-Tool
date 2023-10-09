@@ -393,7 +393,7 @@ returnSingleFile <- function(path = file_path, export = FALSE) {
   # return and optionally export a single file for QA/QC
   df <- executeFxns(path)
   if (export == TRUE) {
-    write.csv(df, file = "single_file.csv", row.names = FALSE)
+    write.csv(df, file = "./Report/single_file.csv", row.names = FALSE)
   }
   return(df)
 }
@@ -404,7 +404,7 @@ returnAllFiles <- function(d = directory, tss_fp = tss_file_path, export = TRUE)
   # for debugging only; uncomment as necessary
   #View(df)
   if (export == TRUE) {
-    write.csv(df, file = "all_files.csv", row.names = FALSE)
+    write.csv(df, file = "./Report/all_files.csv", row.names = FALSE)
   }
   return(df)
 }
