@@ -64,11 +64,11 @@ packageLoad(package.list)
 # Global Variables
   # Working file paths
     # For GitHub  Repo
-#directory <- "./Data"
-#tss_file_path <- './TSS/TSS_Master_2023.xlsx'
+directory <- "./Data"
+tss_file_path <- './TSS/TSS_Master_2023.xlsx'
   # for real data in file that won't be uploaded to github repo:
-directory <- "./Confidential Data"
-tss_file_path <- './Confidential TSS/TSS_Master_2023.xlsx'
+#directory <- "./Confidential Data"
+#tss_file_path <- './Confidential TSS/TSS_Master_2023.xlsx'
 
 
   # To choose file manually via popup
