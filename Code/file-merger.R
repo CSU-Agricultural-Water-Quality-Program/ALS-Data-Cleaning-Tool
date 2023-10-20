@@ -101,7 +101,8 @@ location.dict <- c(
   "Stagecoach" = "SB",
   "The Ranch" = "TR", # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
-  "Yellow Jacket " = "YJ"
+  "Yellow Jacket " = "YJ",
+  "Lab Blank" = "BK"
 )
 
 trt.dict <- c(
@@ -311,14 +312,6 @@ flagData <- function(df){
   #do stuff here
 #}
 
-executeFxns <- function(file_path) {
-  # execute all previous functions and return final dataframe
-  df <- importData(file_path) %>%
-    cleanData() %>%
-    processData()
-  return(df)
-}
-
 dfTss <- function(tss_fp) {
   df <- read_excel(tss_fp, sheet = "MasterData") %>%
     select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
@@ -334,7 +327,8 @@ dfTss <- function(tss_fp) {
       treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
       event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
-      event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict))
+      event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict)),
+      non.detect = FALSE
     ) %>%
     gather(key = "ANALYTE", value = "RESULT", c(pH, TSS, EC )) %>%
     mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
@@ -348,6 +342,14 @@ dfTss <- function(tss_fp) {
      mutate(RESULT = as.numeric(RESULT)) %>%
     mutate(UNITS = tssUnits.dict[ANALYTE])
   
+  return(df)
+}
+
+executeFxns <- function(file_path) {
+  # execute all previous functions and return final dataframe
+  df <- importData(file_path) %>%
+    cleanData() %>%
+    processData()
   return(df)
 }
 

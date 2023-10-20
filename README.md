@@ -65,6 +65,10 @@ and
     * Add integration of separate excel file results when ALS Houston exports work to other ALS labs (e.g., when Selenium analysis is requested.)
     * Fix sample hold time flag "H" in flagData funciton in file_merger.R
     * Add GPS coordinates dictionary to assign coordinates to each location and treatment (as necessary)
+    * Fix NA values in columns for TSS data (DILUTION, RESULT.REPORTED.TO, MDL, RL)
+        * Make LAB.ID.x column read "CSU AWQP Lab"
+    * Drop unnecesary columns (REPORT.BASIS, PERCENT.MOISTURE, PERCENT.SOLID, LAB.ID.y, MATRIX, HOLD)
+    * Add funcitonality to merge lab results from Colorado Dept. of Ag AWQP
 * water_report
     * Create table of methods used in introduction
     * See if we can parse Kerbel results by treatment
