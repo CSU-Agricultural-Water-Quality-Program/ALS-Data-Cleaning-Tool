@@ -141,9 +141,9 @@ method.dict <- c(
   )
 
 eventType.dict <- c(
-  "Inflow" = c("IN", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", "IN7",
-    "IN8", "IN9"),
-  "Outflow" = c("OUT", "OT", "OTLC"),
+  "Inflow" = c("IN", "INF", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", 
+               "IN7", "IN8", "IN9"),
+  "Outflow" = c("OUT", "OT", "OTLC", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2"),
   "Lab Blank" = c("BK")
   )
 

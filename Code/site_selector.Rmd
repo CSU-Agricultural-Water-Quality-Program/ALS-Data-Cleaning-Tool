@@ -35,8 +35,8 @@ knitr::opts_knit$set(root.dir = here::here())
 package.list <- c('plotly',
                   'dplyr',
                   'tidyr',
-                  'DT'
-                  # 'ggplot2',
+                  'DT',
+                  'ggplot2'
                   # 'gridExtra',
                   # 'GGally',
                   # 'PerformanceAnalytics'
@@ -87,11 +87,17 @@ loc = 'Kerbel'
 # loc = 'Yellow Jacket'
 
 #create a filtered df to use for violin plots and scatterplot
-filter_dataframe <- function(df, selected_location) {
-  filtered_df <- df[df$location.name == selected_location, ]
+filter_dataframe <- function(df, selected_location, include_blanks = FALSE) {
+  if (include_blanks) {
+    filtered_df <- df %>% filter(location.name == selected_location)
+  } else {
+    filtered_df <- df %>% filter(location.name == selected_location & event.type != "Lab Blank")
+  }
   return(filtered_df)
 }
-filtered_df <- filter_dataframe(dat, loc)
+
+# Example usage:
+filtered_df <- filter_dataframe(dat, loc, include_blanks = FALSE)
 ```
 
 
@@ -320,6 +326,53 @@ create_scatterplot_matrix <- function(df, location_name) {
 
 create_scatterplot_matrix(dat, loc)
 ```
+
+# Static Bar Plot
+```{r, fig.height=20, fig.width=12}
+create_and_save_boxwhisker_plot <- function(df, output_dir = "./site_selector_temporary_results", file_name = "bw_plot.png") {
+  tryCatch({
+    # Ensure the output directory exists
+    if (!dir.exists(output_dir)) {
+      dir.create(output_dir, recursive = TRUE)
+    }
+    
+    # Create the file path
+    file_path <- file.path(output_dir, file_name)
+    
+    # Generate the box and whisker plot
+    bw_plot <- ggplot(df, aes(x = factor(event.type), y = result, fill = factor(event.type))) +
+      geom_boxplot(outlier.shape = NA, position = position_dodge(0)) + # Hide outliers for clarity
+      geom_jitter(width = 0.2, size = 1.5, alpha = 0.6) + # Add jitter to show individual data points
+      facet_grid(analyte ~ event.count, scales = "free_y", space = "free_x") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1),
+            strip.background = element_rect(colour = "black", fill = "white")) +
+      labs(x = "Event Type", y = "Result", fill = "Event Type") +
+      scale_fill_brewer(palette = "Set3") # Colorblind-friendly palette
+    
+    # Save the plot as a PNG file
+    ggsave(file_path, bw_plot, width = 12, height = 8, units = "in")
+    
+    # Return the plot object for rendering in the HTML document
+    return(bw_plot)
+  }, error = function(e) {
+    message("An error occurred in create_and_save_boxwhisker_plot: ", e$message)
+    return(NULL) # Return NULL if there was an error
+  })
+}
+
+# Example usage:
+# Assuming 'filtered_df' is your data frame after filtering
+bw_plot <- create_and_save_boxwhisker_plot(filtered_df)
+if (!is.null(bw_plot)) {
+  print(bw_plot)
+} else {
+  print("The plot could not be generated due to an error.")
+}
+
+```
+
+
 
 # Raw Data
 Use the table below to look at raw values.
