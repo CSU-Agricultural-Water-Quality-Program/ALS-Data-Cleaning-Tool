@@ -24,6 +24,7 @@ and
 
 ## <u>Repo Contents</u>
 * **Code**
+    * **config.R** - an R script where data file paths are declared for use in the other scripts.  This is the only script that needs to be edited by the user to run the code locally.
     * **file-merger.R** - a script that takes the raw files from ALS, cleans the data, and exports as a dataframe and/or CSV file for other uses
     * **site_selector.Rmd** - a markdown script that produces an HTML report with interactive data visualization and optional data export for a specific research site location as chosen by the user
     * **water_report.Rmd** - a markdown script that produces a summary of all water quality data for all sites on a YTD basis
@@ -65,22 +66,22 @@ and
     * Add integration of separate excel file results when ALS Houston exports work to other ALS labs (e.g., when Selenium analysis is requested.)
     * Fix sample hold time flag "H" in flagData funciton in file_merger.R
     * Add GPS coordinates dictionary to assign coordinates to each location and treatment (as necessary)
-    * Fix NA values in columns for TSS data by adding AWQP lab reported values (DILUTION, RESULT.REPORTED.TO, MDL, RL)
-        * Make LAB.ID.x column read "CSU AWQP Lab"
-    * Drop unnecesary columns (REPORT.BASIS, PERCENT.MOISTURE, PERCENT.SOLID, LAB.ID.y, MATRIX, HOLD)
+    * ~~Fix NA values in columns for TSS data by adding AWQP lab reported values (DILUTION, RESULT.REPORTED.TO, MDL, RL)~~
+    * ~~Drop unnecesary columns (REPORT.BASIS, PERCENT.MOISTURE, PERCENT.SOLID, LAB.ID.y, MATRIX, HOLD)~~
     * Add funcitonality to merge lab results from Colorado Dept. of Ag AWQP
     * ~~Add static box and whisker plot to show distribution of results for each analyte over all irrigation/storm events~~
+    * ~~Add static box and whisker plot to show distribution of results for each analyte over all irrigation/storm events~~
+    * ~~Add method to include/exclude lab blanks from the data~~
 * water_report
-    * Create table of methods used in introduction
+    * ~~Create table of methods used in introduction~~
     * See if we can parse Kerbel results by treatment
     * ~~fix Kerbel inflow/outflow not being colorized properly~~
 * site_selector
-    * Create table of methods used in introduction
     * Set the plotly plots to start at the correct y range
     * Fix scatter plotly plot points for Point Sample on the violin plot
     * Potentially create a way to run the functions for multiple sites
     * Add histograms and correlations to scatterplot matrix
-    * Put analyte labels outside of the scatterplot matrix and shorten their names with a analyte dict. 
+    * ~~Put analyte labels outside of the scatterplot matrix and shorten their names with a analyte dict.~~
     * ~~Fix mutate error in scatterplot matrix~~
 
 ---

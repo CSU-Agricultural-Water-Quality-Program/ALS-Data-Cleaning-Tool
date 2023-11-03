@@ -4,6 +4,7 @@ author: "Caz Bell and A.J. Brown"
 date: "`r Sys.Date()`"
 output:
   html_document:
+    output_dir: "Report"
     toc: yes
     toc_float:
       collapsed: yes
@@ -58,17 +59,26 @@ source("./Code/file-merger.R", local = knitr::knit_global())
 ```
 
 ```{r, include=FALSE}
-# Set directories
-#report_path <- paste(dirname(getwd()), "/Example Report", sep = "")
-```
-
-```{r, include=FALSE}
 # import data
 dat <- returnAllFiles(d = directory, export = FALSE) 
 #dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
 #make everything lowercase
 colnames(dat) <- tolower(names(dat))
 ```
+
+# Water Analytes Present and Methods Used for Determination:
+```{r}
+unique_analyte_method <- dat %>%
+  select(analyte, method) %>%
+  distinct(analyte, method) %>%
+  arrange(analyte)
+
+# Print the table
+datatable(unique_analyte_method, 
+          caption = "Unique Analytes and Corresponding Methods")
+
+```
+
 
 # Sites
 

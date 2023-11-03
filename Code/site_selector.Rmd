@@ -5,6 +5,10 @@ date: "`r Sys.Date()`"
 output: 
   html_document:
     output_dir: "site_selector_temporary_results"
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
 ---
 The following is an interactive data report containing water quality data from 
 samples taken by the Colorado State University (CSU) Agriculture Water Quality 
@@ -59,6 +63,7 @@ source('./Code/file-merger.R')
   # note that directory is defined in file_merger.R file
   # change data file path in that script to modify the data source
 dat <- returnAllFiles(d = directory, export = FALSE)
+dat2 <- dat
 # make columns lowercase so they are all the same case
 colnames(dat) <- tolower(names(dat))
 ```
@@ -68,14 +73,14 @@ colnames(dat) <- tolower(names(dat))
   # To select site, un-comment your location of interest (alphabetical order)
   # This list may need to be updated as more sites are added/removed
 # loc = 'ARDEC 2200'
-# loc = 'AVRC STAR'
+loc = 'AVRC STAR'
 # loc = 'Barley'
 # loc = 'Berthoud'
 # loc = 'Big Hollow'
 # loc = 'Boulder Lake'
 # loc = 'Below Stagecoach Dam'
 # loc = 'Gunnison'
-loc = 'Kerbel'
+# loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Morrison Creek'
@@ -96,7 +101,7 @@ filter_dataframe <- function(df, selected_location, include_blanks = FALSE) {
   return(filtered_df)
 }
 
-# Example usage:
+# Create df and exclude blanks by default:
 filtered_df <- filter_dataframe(dat, loc, include_blanks = FALSE)
 ```
 
@@ -125,7 +130,21 @@ file = csv_data(filtered_df, loc)
 ### CSV Export of selected site data saved as: 
 `r file`
 
-## Interactive Violin Plot
+# Water Analytes Present and Methods Used for Determination:
+```{r}
+unique_analyte_method <- filtered_df %>%
+  select(analyte, method) %>%
+  distinct(analyte, method) %>%
+  arrange(analyte)
+
+# Print the table
+datatable(unique_analyte_method, 
+              caption = "Unique Analytes and Corresponding Methods")
+
+```
+
+
+# Interactive Violin Plot
 Use the below boxplot to graph various water analytes stratified by sample type
 (i.e., Inflow, Outflow, etc.). Analytes can be selected by using the dropdown 
 menu on the top left of the graph. Hover over points with your mouse for
@@ -280,7 +299,7 @@ create_scatterplot(filtered_df, loc)
 the camera icon.  The PNG will be saved in your downloads folder.
 
 
-## Scatterplot Matrix of All Numerical Analyte Data
+# Scatterplot Matrix of All Numerical Analyte Data
 Use the below scatter matrix to look at potential relationships between
 numerical variables.
 
@@ -290,13 +309,18 @@ create_scatterplot_matrix <- function(df, location_name) {
   tryCatch({
     #special filtering for scatterplot matrix, different from above
     filtered_data <- df %>%
-      mutate(sample.id = sub("-[1-5]$", "", sample.id),
-             sample.id = sub("-[1-5]-D$", "-D", sample.id)) %>%
+      mutate(sample.id = gsub("-[1-5]$", "", sample.id), # remove -1 to -5 at the end of strings 
+             sample.id = gsub("-[1-5]-D$", "-D", sample.id),  # do the same for duplicates
+             sample.id = gsub("-2,3,5", "", sample.id)) %>%  # remove special case of "-2,3,5"
       select(sample.id, result, analyte, event.type)
 
-    # Pivot the data wider
+    # Pivot the data wider with aggregation of duplicates by mean
     pivoted_data <- filtered_data %>%
-      tidyr::pivot_wider(names_from = analyte, values_from = result)
+      tidyr::pivot_wider(
+        names_from = analyte,
+        values_from = result,
+        values_fn = list(result = mean)  # Specify how to aggregate duplicates
+      )
 
     # raise error if no data provided
     if (nrow(pivoted_data) == 0) {
@@ -329,7 +353,7 @@ create_scatterplot_matrix(dat, loc)
 
 # Static Bar Plot
 ```{r, fig.height=20, fig.width=12}
-create_and_save_boxwhisker_plot <- function(df, output_dir = "./site_selector_temporary_results", file_name = "bw_plot.png") {
+create_and_save_boxwhisker_plot <- function(df, output_dir, file_name) {
   tryCatch({
     # Ensure the output directory exists
     if (!dir.exists(output_dir)) {
@@ -341,12 +365,26 @@ create_and_save_boxwhisker_plot <- function(df, output_dir = "./site_selector_te
     
     # Generate the box and whisker plot
     bw_plot <- ggplot(df, aes(x = factor(event.type), y = result, fill = factor(event.type))) +
-      geom_boxplot(outlier.shape = NA, position = position_dodge(0)) + # Hide outliers for clarity
+      geom_boxplot(#outlier.shape = NA, # Hide outliers for clarity
+                   position = position_dodge(0)
+                   ) + 
       geom_jitter(width = 0.2, size = 1.5, alpha = 0.6) + # Add jitter to show individual data points
       facet_grid(analyte ~ event.count, scales = "free_y", space = "free_x") +
       theme_minimal() +
-      theme(axis.text.x = element_text(angle = 90, hjust = 1),
-            strip.background = element_rect(colour = "black", fill = "white")) +
+      theme(
+        axis.text.x = element_text(angle = 90, hjust = 1, size = 14), # Increase x axis text size
+        axis.text.y = element_text(size = 14), # Increase y axis text size
+        axis.title = element_text(size = 16), # Increase axis title text size
+        strip.text = element_text(size = 16), # Increase facet strip text size
+        legend.text = element_text(size = 14), # Increase legend text size
+        legend.title = element_text(size = 16), # Increase legend title size
+        plot.title = element_text(size = 20, hjust = 0.5), # Increase plot title size
+        plot.subtitle = element_text(size = 18), # Increase plot subtitle size
+        plot.caption = element_text(size = 12), # Increase plot caption size
+        strip.background = element_rect(colour = "black", fill = "white"),
+        panel.grid.major = element_line(size = 1), # Increase major grid line size
+        panel.grid.minor = element_line(size = 0.5) # Increase minor grid line size
+        )+
       labs(x = "Event Type", y = "Result", fill = "Event Type") +
       scale_fill_brewer(palette = "Set3") # Colorblind-friendly palette
     
@@ -363,12 +401,34 @@ create_and_save_boxwhisker_plot <- function(df, output_dir = "./site_selector_te
 
 # Example usage:
 # Assuming 'filtered_df' is your data frame after filtering
-bw_plot <- create_and_save_boxwhisker_plot(filtered_df)
-if (!is.null(bw_plot)) {
-  print(bw_plot)
-} else {
-  print("The plot could not be generated due to an error.")
-}
+# bw_plot <- create_and_save_boxwhisker_plot(filtered_df,
+#                                            output_dir = "./site_selector_temporary_results",
+#                                            file_name = "bw_plot1.png")
+# bw_plot
+analytes_plot1 <- c("Nitrogen, Nitrate (As N)", 
+                    "Nitrogen, Nitrite  (As N)", # note the extra space before "("
+                    "Nitrogen, Total Kjeldahl")
+analytes_plot2 <- c("Phosphorus, Total (As P)", 
+                    "Phosphorus, Total Orthophosphate (as P)",
+                    "Suspended Solids (Residue, Non-Filterable)")
+analytes_plot3 <- setdiff(unique(filtered_df$analyte), c(analytes_plot1, analytes_plot2))
+plot1_df <- filtered_df %>% filter(analyte %in% analytes_plot1)
+plot2_df <- filtered_df %>% filter(analyte %in% analytes_plot2)
+plot3_df <- filtered_df %>% filter(analyte %in% analytes_plot3)
+
+bw_plot1 <- create_and_save_boxwhisker_plot(plot1_df,
+                                            output_dir = "./site_selector_temporary_results",
+                                            file_name = "bw_plot1.png")
+bw_plot2 <- create_and_save_boxwhisker_plot(plot2_df,
+                                            output_dir = "./site_selector_temporary_results",
+                                            file_name = "bw_plot2.png")
+bw_plot3 <- create_and_save_boxwhisker_plot(plot3_df,
+                                            output_dir = "./site_selector_temporary_results",
+                                            file_name = "bw_plot3.png")
+
+bw_plot1
+bw_plot2
+bw_plot3
 
 ```
 

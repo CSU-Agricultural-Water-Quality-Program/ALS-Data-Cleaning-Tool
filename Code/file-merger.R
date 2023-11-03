@@ -62,24 +62,11 @@ packageLoad <- function(packages){
 packageLoad(package.list)
 
 # Global Variables
-  # Working file paths
-    # For GitHub  Repo
-directory <- "./Data"
-tss_file_path <- './TSS/TSS_Master_2023.xlsx'
-  # for real data in file that won't be uploaded to github repo:
-#directory <- "./Confidential Data"
-#tss_file_path <- './Confidential TSS/TSS_Master_2023.xlsx'
+# source file paths from config.r
+source('./Code/config.R')
 
 
-  # To choose file manually via popup
-# file_path <- file.choose()
-# Set the default file directory to the directory containing the selected file
-
-tss_directory<- dirname(tss_file_path)
-# file_path <- file.choose()
- # Set the default file directory to the directory containing the selected file
-
- # Dictionaries for interpreting sample ID codes
+# Dictionaries for interpreting sample ID codes
   # Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- c(
   "ARDEC 2200" = "A2",
@@ -237,14 +224,14 @@ cleanData <- function(df) {
       non.detect = ifelse(RESULT == 0, TRUE, FALSE),
       # change "N/A" to NA in any column
       across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
-    # convert select columns to numeric if needed
-    mutate_at(c("RESULT",
-                "DILUTION",
-                "MDL",
-                "RL",
-                "PERCENT.MOISTURE",
-                "PERCENT.SOLID"),
-               as.numeric)
+      # convert select columns to numeric if needed
+      mutate_at(c("RESULT",
+                  "DILUTION",
+                  "MDL",
+                  "RL",
+                  "PERCENT.MOISTURE",
+                  "PERCENT.SOLID"),
+                 as.numeric) %>%
   return(df)
 }
 
@@ -282,7 +269,8 @@ processData <- function(df) {
      # TODO: detect number first, then do this, else leave it alone
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     # if event.type is NA, use "Point Sample" as default
-    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type))
+    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
+  return(df)
 }
 
 flagData <- function(df){
@@ -300,7 +288,7 @@ flagData <- function(df){
       # search for J values
       flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA),
       # identify samples past hold time, based on ALS "HOLD" column
-      flag = ifelse(HOLD == 'Yes', paste0(flag, "H"), flag),
+      # flag = ifelse(HOLD == 'Yes', paste0(flag, "H"), flag),
       # identify "See Attached" results as marked in cleanData()
       flag = ifelse(RESULT == 9999, "See Attached", flag),
       )
@@ -314,42 +302,76 @@ flagData <- function(df){
 
 dfTss <- function(tss_fp) {
   df <- read_excel(tss_fp, sheet = "MasterData") %>%
-    select(c('Sample_ID', 'Collection_date', 'TSS_mg/L', 'pH', 'EC_mS/cm')) %>%
-    rename("SAMPLE.ID" = "Sample_ID",
-           "COLLECTED" = "Collection_date",
-           "TSS" = "TSS_mg/L",
-           "EC" = "EC_mS/cm") %>%
+    select(Sample_ID, Collection_date, `TSS_mg/L`, pH, `EC_mS/cm`) %>%
+    rename(SAMPLE.ID = Sample_ID,
+           COLLECTED = Collection_date,
+           `Suspended Solids (Residue, Non-Filterable)` = `TSS_mg/L`,
+           `Specific Conductance` = `EC_mS/cm`) %>%
     filter(!(SAMPLE.ID %in% c("Stock Solution", "DI"))) %>%
     na.omit() %>%
     mutate(
-      duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
+      duplicate = grepl("-D", SAMPLE.ID),
       location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
       treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
       event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
       event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict)),
-      non.detect = FALSE
+      non.detect = FALSE,
+      `Suspended Solids (Residue, Non-Filterable)` = as.numeric(`Suspended Solids (Residue, Non-Filterable)`),
+      `Specific Conductance` = as.numeric(`Specific Conductance`)
     ) %>%
-    gather(key = "ANALYTE", value = "RESULT", c(pH, TSS, EC )) %>%
-    mutate_at(c("location.name", "method.name", "event.type"), ~ gsub("[0-9]", "", .)) %>%
-    mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
-    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
-    mutate(METHOD = case_when(
-      ANALYTE == "pH" ~ "EPA150.1",
-      ANALYTE == "TSS" ~ "EPA160.2",
-      ANALYTE == "EC" ~ "EPA120.1",
-      TRUE ~ NA_character_)) %>%
-     mutate(RESULT = as.numeric(RESULT)) %>%
-    mutate(UNITS = tssUnits.dict[ANALYTE])
+    pivot_longer(cols = c('pH', 'Suspended Solids (Residue, Non-Filterable)', 'Specific Conductance'),
+                 names_to = "ANALYTE", values_to = "RESULT") %>%
+    mutate(
+      DILUTION = 1,
+      `RESULT.REPORTED.TO` = "RL",
+      MDL = case_when(
+        ANALYTE == "pH" ~ 0.1,
+        ANALYTE == "Suspended Solids (Residue, Non-Filterable)" ~ 2.5,
+        ANALYTE == "Specific Conductance" ~ 5.0,
+        TRUE ~ NA_real_
+      ),
+      RL = case_when(
+        ANALYTE == "pH" ~ 0.1,
+        ANALYTE == "Suspended Solids (Residue, Non-Filterable)" ~ 2.5,
+        ANALYTE == "Specific Conductance" ~ 5.0,
+        TRUE ~ NA_real_
+      ),
+      METHOD = case_when(
+        ANALYTE == "pH" ~ "EPA150.1",
+        ANALYTE == "Suspended Solids (Residue, Non-Filterable)" ~ "E160.2 - TSS_W_160.2",
+        ANALYTE == "Specific Conductance" ~ "E120.1 - COND_W",
+        TRUE ~ NA_character_
+      ),
+      RESULT = as.numeric(RESULT),
+      UNITS = tssUnits.dict[ANALYTE]
+    ) %>%
+    mutate(
+      across(c(location.name, method.name, event.type), ~ gsub("[0-9]", "", .)),
+      across(c(treatment.name), ~ substr(., 1, nchar(.) - 1)),
+      event.type = if_else(is.na(event.type), "Point Sample", event.type)
+    )
   
   return(df)
 }
+
 
 executeFxns <- function(file_path) {
   # execute all previous functions and return final dataframe
   df <- importData(file_path) %>%
     cleanData() %>%
     processData()
+  # Drop unnecessary columns
+  # List of columns to drop
+  cols_to_drop <- c("REPORT.BASIS", 
+                    "PERCENT.MOISTURE", 
+                    "PERCENT.SOLID", 
+                    "LAB.ID.y", 
+                    "MATRIX", 
+                    "HOLD")
+  # Drop only if the column exists
+  cols_to_drop <- cols_to_drop[cols_to_drop %in% names(df)]
+  df <- select(df, -all_of(cols_to_drop))
   return(df)
 }
 
@@ -384,12 +406,18 @@ mergeFiles <- function(directory, tss_fp) {
   df_merge$COLLECTED <- as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M')
   # import TSS data to df w/ metadata
   df_tss <- dfTss(tss_fp)
-  
-  
   # merge tss data with als data
   df <- bind_rows(df_merge, df_tss) %>%
     filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE)) 
   
+  # Drop unnecessary columns that get re-created during merge
+  # List of columns to drop
+  cols_to_drop <- c("LAB.ID.y", 
+                    "MATRIX", 
+                    "HOLD")
+  # Drop only if the column exists
+  cols_to_drop <- cols_to_drop[cols_to_drop %in% names(df)]
+  df <- select(df, -all_of(cols_to_drop))
 
   return(df)
   
