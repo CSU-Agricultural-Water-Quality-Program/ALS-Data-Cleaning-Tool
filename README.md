@@ -66,15 +66,17 @@ and
     * Add integration of separate excel file results when ALS Houston exports work to other ALS labs (e.g., when Selenium analysis is requested.)
     * Fix sample hold time flag "H" in flagData funciton in file_merger.R
     * Add GPS coordinates dictionary to assign coordinates to each location and treatment (as necessary)
+    * Develop a method to incorporate flow volume and calculate mass loads
+        * Develop a standard format corresponding to ID?
+    * Add functionality to merge lab results from Colorado Dept. of Ag AWQP
     * ~~Fix NA values in columns for TSS data by adding AWQP lab reported values (DILUTION, RESULT.REPORTED.TO, MDL, RL)~~
     * ~~Drop unnecesary columns (REPORT.BASIS, PERCENT.MOISTURE, PERCENT.SOLID, LAB.ID.y, MATRIX, HOLD)~~
-    * Add funcitonality to merge lab results from Colorado Dept. of Ag AWQP
     * ~~Add static box and whisker plot to show distribution of results for each analyte over all irrigation/storm events~~
     * ~~Add static box and whisker plot to show distribution of results for each analyte over all irrigation/storm events~~
     * ~~Add method to include/exclude lab blanks from the data~~
 * water_report
-    * ~~Create table of methods used in introduction~~
     * See if we can parse Kerbel results by treatment
+    * ~~Create table of methods used in introduction~~
     * ~~fix Kerbel inflow/outflow not being colorized properly~~
 * site_selector
     * Set the plotly plots to start at the correct y range
