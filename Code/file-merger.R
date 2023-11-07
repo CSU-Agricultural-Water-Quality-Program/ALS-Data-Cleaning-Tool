@@ -69,7 +69,7 @@ source('./Code/config.R')
 # Dictionaries for interpreting sample ID codes
   # Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- c(
-  "ARDEC 2200" = "A2",
+  "ARDEC" = "A2", #TODO: fix 2200 labeling in process data fxn; 2200 is removed
   "ARDEC South - Conv" = "ASC",
   "ARDEC South - Org" = "ASO",
   "AVRC STAR" = c("AV", "AVST1", "AVST2", "AVCT1", "AVCT2"),
@@ -203,6 +203,11 @@ importDataXls <- function(file_path) {
   return(df) # return dataframe
 }
 
+# Se and other results from the Kelso, WA ALS lab are in CSV currently.
+# So, we may put an importDataCSV() function here for merging Kelso results.
+# However, if i get a login for the Kelso, WA lab, and that export format is
+# .xls (.htm) like the Houston lab, then it may not be needed.
+
 cleanData <- function(df) {
 
    # Drop unnecessary rows containing the word "sample:"
@@ -257,7 +262,9 @@ processData <- function(df) {
       # create event type name column based on Sample ID
       event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
       # create event count column based on Sample ID
-      event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict))
+      event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict)),
+      # create flow volume column (in Liters), and fill it with NAs for now
+      flow.vol.liter = NA
       ) %>%
     # remove numbers from new columns due to dict mapping
      # caution: if there are more than 10 dict keys, this will not work
@@ -265,7 +272,7 @@ processData <- function(df) {
     mutate_at(c("location.name",
                 "method.name",
                 "event.type"), ~ gsub("[0-9]", "", .)) %>%
-     # treatment.name needs special treament because of CT/MT/ST 1/2 having #'s
+     # treatment.name needs special treatment because of CT/MT/ST 1/2 having #'s
      # TODO: detect number first, then do this, else leave it alone
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
     # if event.type is NA, use "Point Sample" as default
