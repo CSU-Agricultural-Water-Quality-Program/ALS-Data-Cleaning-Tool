@@ -73,7 +73,7 @@ unique(dat$location.name)
 # Site list
   # To select site, un-comment your location of interest (alphabetical order)
   # This list may need to be updated as more sites are added/removed
-loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
+# loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
 # loc = 'AVRC STAR'
 # loc = 'Barley'
 # loc = 'Berthoud'
@@ -81,7 +81,7 @@ loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
 # loc = 'Boulder Lake'
 # loc = 'Below Stagecoach Dam'
 # loc = 'Gunnison'
-# loc = 'Kerbel'
+ loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Morrison Creek'
