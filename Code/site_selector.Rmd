@@ -31,7 +31,7 @@ pH (log H).
 knitr::opts_chunk$set(echo = FALSE)
 # set working dir
 knitr::opts_knit$set(root.dir = here::here())
-   # sets the working directory to where the project file is 
+   # sets the working directory to where the project file is
 ```
 
 ```{r, include=FALSE}
@@ -73,7 +73,7 @@ unique(dat$location.name)
 # Site list
   # To select site, un-comment your location of interest (alphabetical order)
   # This list may need to be updated as more sites are added/removed
-# loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
+ loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
 # loc = 'AVRC STAR'
 # loc = 'Barley'
 # loc = 'Berthoud'
@@ -81,7 +81,7 @@ unique(dat$location.name)
 # loc = 'Boulder Lake'
 # loc = 'Below Stagecoach Dam'
 # loc = 'Gunnison'
- loc = 'Kerbel'
+# loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Morrison Creek'
@@ -351,10 +351,23 @@ create_scatterplot_matrix <- function(df, location_name) {
 
 create_scatterplot_matrix(dat, loc)
 ```
+```{r}
+# Creating some subset data for static graphing below
+analytes_plot1 <- c("Nitrogen, Nitrate (As N)", 
+                    "Nitrogen, Nitrite  (As N)", # note the extra space before "(" due to ALS formatting
+                    "Nitrogen, Total Kjeldahl")
+analytes_plot2 <- c("Phosphorus, Total (As P)", 
+                    "Phosphorus, Total Orthophosphate (as P)",
+                    "Suspended Solids (Residue, Non-Filterable)")
+analytes_plot3 <- setdiff(unique(filtered_df$analyte), c(analytes_plot1, analytes_plot2))
+N_df <- filtered_df %>% filter(analyte %in% analytes_plot1)
+P_df <- filtered_df %>% filter(analyte %in% analytes_plot2)
+Misc_df <- filtered_df %>% filter(analyte %in% analytes_plot3)
+```
 
-# Static Bar Plot
+# Static Box and Whisker Plots
 ```{r, fig.height=20, fig.width=12}
-create_and_save_boxwhisker_plot <- function(df, output_dir, file_name) {
+create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.title) {
   tryCatch({
     # Ensure the output directory exists
     if (!dir.exists(output_dir)) {
@@ -386,57 +399,113 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name) {
         panel.grid.major = element_line(size = 1), # Increase major grid line size
         panel.grid.minor = element_line(size = 0.5) # Increase minor grid line size
         )+
-      labs(x = "Event Type", y = "Result", fill = "Event Type") +
+      labs(title = plot.title, x = "Event Type", y = "Result", fill = "Event Type") +
       scale_fill_brewer(palette = "Set3") # Colorblind-friendly palette
     
     # Save the plot as a PNG file
-    ggsave(file_path, bw_plot, width = 12, height = 8, units = "in")
+    ggsave(file_path, bw_plot, width = 8, height = 12, units = "in")
     
     # Return the plot object for rendering in the HTML document
     return(bw_plot)
   }, error = function(e) {
     message("An error occurred in create_and_save_boxwhisker_plot: ", e$message)
-    return(NULL) # Return NULL if there was an error
+    return(e$message) # Return error message
   })
 }
 
-# Example usage:
-# Assuming 'filtered_df' is your data frame after filtering
-# bw_plot <- create_and_save_boxwhisker_plot(filtered_df,
-#                                            output_dir = "./site_selector_temporary_results",
-#                                            file_name = "bw_plot1.png")
-# bw_plot
-analytes_plot1 <- c("Nitrogen, Nitrate (As N)", 
-                    "Nitrogen, Nitrite  (As N)", # note the extra space before "("
-                    "Nitrogen, Total Kjeldahl")
-analytes_plot2 <- c("Phosphorus, Total (As P)", 
-                    "Phosphorus, Total Orthophosphate (as P)",
-                    "Suspended Solids (Residue, Non-Filterable)")
-analytes_plot3 <- setdiff(unique(filtered_df$analyte), c(analytes_plot1, analytes_plot2))
-plot1_df <- filtered_df %>% filter(analyte %in% analytes_plot1)
-plot2_df <- filtered_df %>% filter(analyte %in% analytes_plot2)
-plot3_df <- filtered_df %>% filter(analyte %in% analytes_plot3)
+bw_N <- create_and_save_boxwhisker_plot(N_df,
+                                        output_dir = "./site_selector_temporary_results",
+                                        file_name = "bw_N.jpg",
+                                        plot.title = 'Forms of Nitrogen')
+bw_P <- create_and_save_boxwhisker_plot(P_df,
+                                        output_dir = "./site_selector_temporary_results",
+                                        file_name = "bw_P.jpg",
+                                        plot.title = 'Forms of Phosphorous')
+bw_Misc <- create_and_save_boxwhisker_plot(Misc_df,
+                                            output_dir = "./site_selector_temporary_results",
+                                            file_name = "bw_Misc.jpg",
+                                        plot.title = 'Water Quality Analytes')
 
-bw_plot1 <- create_and_save_boxwhisker_plot(plot1_df,
-                                            output_dir = "./site_selector_temporary_results",
-                                            file_name = "bw_plot1.png")
-bw_plot2 <- create_and_save_boxwhisker_plot(plot2_df,
-                                            output_dir = "./site_selector_temporary_results",
-                                            file_name = "bw_plot2.png")
-bw_plot3 <- create_and_save_boxwhisker_plot(plot3_df,
-                                            output_dir = "./site_selector_temporary_results",
-                                            file_name = "bw_plot3.png")
-
-bw_plot1
-bw_plot2
-bw_plot3
+bw_N
+bw_P
+bw_Misc
 
 ```
 
+# Static Bar Plots
+```{r, fig.height=20, fig.width=12}
+create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
+  tryCatch({
+    # Ensure the output directory exists
+    if (!dir.exists(output_dir)) {
+      dir.create(output_dir, recursive = TRUE)
+    }
+    
+    # Summarize the data
+    summary_df <- df %>%
+      group_by(event.type, analyte, event.count) %>%
+      summarize(mean = mean(result, na.rm = TRUE),
+                sd = sd(result, na.rm = TRUE),
+                .groups = 'drop')
+
+    # Create the file path
+    file_path <- file.path(output_dir, file_name)
+    
+    # Generate the bar plot with error bars
+    bar_plot <- ggplot(summary_df, aes(x = factor(event.type), y = mean, fill = factor(event.type))) +
+      geom_bar(stat = "identity", position = position_dodge(0)) +
+      geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2, position = position_dodge(0)) +
+      facet_grid(analyte ~ event.count, scales = "free_y", space = "free_x") +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 90, hjust = 1, size = 14), # Increase x axis text size
+        axis.text.y = element_text(size = 14), # Increase y axis text size
+        axis.title = element_text(size = 16), # Increase axis title text size
+        strip.text = element_text(size = 16), # Increase facet strip text size
+        legend.text = element_text(size = 14), # Increase legend text size
+        legend.title = element_text(size = 16), # Increase legend title size
+        plot.title = element_text(size = 20, hjust = 0.5), # Increase plot title size
+        plot.subtitle = element_text(size = 18), # Increase plot subtitle size
+        plot.caption = element_text(size = 12), # Increase plot caption size
+        strip.background = element_rect(colour = "black", fill = "white"),
+        panel.grid.major = element_line(size = 1), # Increase major grid line size
+        panel.grid.minor = element_line(size = 0.5) # Increase minor grid line size
+        )+
+      labs(title = plot.title, x = "Event Type", y = "Result", fill = "Event Type") +
+      scale_fill_brewer(palette = "Set3") # Colorblind-friendly palette
+
+    # Save the plot as a PNG file
+    ggsave(file_path, bar_plot, width = 8, height = 12, units = "in")
+    
+    # Return the plot object for rendering in the HTML document
+    return(bar_plot)
+  }, error = function(e) {
+    message("An error occurred in create_and_save_bar_plot: ", e$message)
+    return(e$message) # Return error message
+  })
+}
+
+bar_N <- create_and_save_bar_plot(N_df,
+                                  output_dir = "./site_selector_temporary_results",
+                                  file_name = "bar_N.jpg",
+                                  plot.title = 'Forms of Nitrogen')
+bar_P <- create_and_save_bar_plot(P_df,
+                                  output_dir = "./site_selector_temporary_results",
+                                  file_name = "bar_P.jpg",
+                                  plot.title = 'Forms of Phosphorus')
+bar_Misc <- create_and_save_bar_plot(Misc_df,
+                                     output_dir = "./site_selector_temporary_results",
+                                     file_name = "bar_Misc.jpg",
+                                    plot.title = 'Water Quality Analytes')
+
+bar_N
+bar_P
+bar_Misc
+```
 
 
 # Raw Data
 Use the table below to look at raw values.
 ```{r}
-datatable(filtered_df, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
+datatable(filtered_df)
 ```
