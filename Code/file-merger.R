@@ -156,6 +156,23 @@ tssUnits.dict <- c(
   "pH" = "pH"
    )
 
+#TODO: update this geodata when Mel finishes key
+# copy/paste csv data below to create geodata dataframe
+geo_key <- read.csv(text = "
+location.name,treatment.name,long,lat
+Legacy outflow,, -106.8205175, 40.43192773
+SCA,, -106.8812387, 40.2691647
+SCI,, -106.8495245, 40.28580534
+SCO,, -106.8290859, 40.28655773
+MOR,, -106.8158776, 40.28942095
+The Ranch,, -106.8150173, 40.29174667
+Barley,, -105.0167433, 40.35369119
+AVRC STAR,CT1,-103.689906,38.03957397
+AVRC STAR,ST1,-103.6898805,38.03982154
+AVRC STAR,ST2,-103.68987,38.04005803
+AVRC STAR,CT2,-103.6898893,38.04030463
+", header = TRUE, stringsAsFactors = FALSE)
+
 # Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {
  # function to map sample ID text to dictionary values
@@ -243,10 +260,11 @@ cleanData <- function(df) {
 processData <- function(df) {
   # Process data to create new columns for analysis based on ID codes
     # create a list of columns for post-processing
-  text_cols <- c("location.name",
-                   "treatment.name",
-                   "method.name",
-                   "event.type")
+  text_cols <- c(
+    "location.name",
+    "treatment.name",
+    "method.name",
+    "event.type")
     # create new columns based on ID codes
   df %>%
     mutate(
@@ -302,10 +320,11 @@ flagData <- function(df){
   return(df)
 }
 
-#TODO: add geospatial function here
-#addCoord <- function(df) {
-  #do stuff here
-#}
+addCoord <- function(df, geo_key) {
+  # Merge the main dataframe with the geospatial key
+  df <- merge(df, geo_key, by = c("location.name", "treatment.name"), all.x = TRUE)
+  return(df)
+}
 
 dfTss <- function(tss_fp) {
   df <- read_excel(tss_fp, sheet = "MasterData") %>%
@@ -366,19 +385,23 @@ dfTss <- function(tss_fp) {
 executeFxns <- function(file_path) {
   # execute all previous functions and return final dataframe
   df <- importData(file_path) %>%
-    cleanData() %>%
-    processData()
-  # Drop unnecessary columns
-  # List of columns to drop
-  cols_to_drop <- c("REPORT.BASIS", 
-                    "PERCENT.MOISTURE", 
-                    "PERCENT.SOLID", 
-                    "LAB.ID.y", 
-                    "MATRIX", 
-                    "HOLD")
-  # Drop only if the column exists
-  cols_to_drop <- cols_to_drop[cols_to_drop %in% names(df)]
-  df <- select(df, -all_of(cols_to_drop))
+    cleanData() %>% # clean ALS format
+    processData() %>% # create new columns using IDs
+    addCoord(geo_key) %>% # add spatial data
+    { select(., -all_of( # remove unnecessary columns
+      c("REPORT.BASIS", 
+        "PERCENT.MOISTURE", 
+        "PERCENT.SOLID", 
+        "LAB.ID.y", 
+        "MATRIX", 
+        "HOLD")
+      [c("REPORT.BASIS", 
+         "PERCENT.MOISTURE", 
+         "PERCENT.SOLID", 
+         "LAB.ID.y", 
+         "MATRIX", 
+         "HOLD") %in% 
+          names(.)])) }
   return(df)
 }
 
