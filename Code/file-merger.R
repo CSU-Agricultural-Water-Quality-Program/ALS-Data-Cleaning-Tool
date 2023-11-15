@@ -7,9 +7,6 @@
 # from the ALS global portal into one master file and create categories for
 # further analysis.
 
-# TODO:
-# make this script a package for use in future analysis scripts
-
 # Script work flow:
   # 0) Import libraries
   # 1) Define global variables
@@ -29,11 +26,6 @@
 # Example code execution for users
 # df_test <- returnSingleFile(path=file_path, export=FALSE)
 # df_all <- returnAllFiles(d=directory, export=FALSE)
- 
-
-
-
-
 # Then take df_test or df_all and do whatever you want with it (e.g., graph)
 
 
@@ -158,22 +150,55 @@ tssUnits.dict <- c(
   "pH" = "pH"
    )
 
-#TODO: update this geodata when Mel finishes key
-# copy/paste csv data below to create geodata dataframe
+
+# copy/paste excel data below to create geodata dataframe (i.e., separated by tabs, \t)
 geo_key <- read.csv(text = "
-location.name,treatment.name,long,lat
-Legacy outflow,, -106.8205175, 40.43192773
-SCA,, -106.8812387, 40.2691647
-SCI,, -106.8495245, 40.28580534
-SCO,, -106.8290859, 40.28655773
-MOR,, -106.8158776, 40.28942095
-The Ranch,, -106.8150173, 40.29174667
-Barley,, -105.0167433, 40.35369119
-AVRC STAR,CT1,-103.689906,38.03957397
-AVRC STAR,ST1,-103.6898805,38.03982154
-AVRC STAR,ST2,-103.68987,38.04005803
-AVRC STAR,CT2,-103.6898893,38.04030463
-", header = TRUE, stringsAsFactors = FALSE)
+location.name	treatment.name	event.type	long	lat
+ARDEC 2200		Outflow	-104.9869329	40.65356941
+ARDEC 2200		Inflow	-104.9888983	40.65361825
+AVRC STAR	CT1	Point Sample	-103.689906	38.03957397
+AVRC STAR	ST1	Point Sample	-103.6898805	38.03982154
+AVRC STAR	ST2	Point Sample	-103.68987	38.04005803
+AVRC STAR	CT2	Point Sample	-103.6898893	38.04030463
+Barley		Outflow	-105.0167433	40.35369119
+Below Stagecoach Dam		Point Sample	-106.8290859	40.28655773
+Berthoud		Outflow	-105.0826595	40.57341346
+Berthoud		Inflow	-105.0855686	40.28104111
+Berthoud	River A	Point Sample	-105.09267	40.27863
+Berthoud	River Middle	Point Sample	-105.08875	40.27962
+Berthoud	River B	Point Sample	-105.08402	40.28317
+Berthoud	Tile Drainage Lake	Point Sample	-105.089151	40.27926715
+Berthoud	Tile Drainage River	Point Sample	-105.089	40.27928
+Berthoud	Piezometer East	Point Sample	-105.0847844	40.28175382
+Berthoud 	Piezometer West	Point Sample	-105.0849372	40.28170676
+Big Hollow	Confluence	Point Sample	-105.018	40.29267
+Big Hollow	Downstream of Bridge	Point Sample	-105.02235	40.28622
+Big Hollow	Middle at Bridge	Point Sample	-105.02345	40.28388
+Big Hollow	Upstream of Bridge	Point Sample	-105.03335	40.27663
+Fire 1		Point Sample	-105.995761	40.152369
+Fire 2		Point Sample	-105.987369	40.157551
+Fire 3		Point Sample	-105.990499	40.154385
+Gunnison		Outflow	-106.8269323	38.52626188
+Gunnison		Inflow	-106.8160882	38.52338862
+Kerbel	CT1	Outflow	-104.99828	40.67641
+Kerbel	CT2	Outflow	-104.99666	40.67637
+Kerbel	ST1	Outflow	-104.99764	40.67641
+Kerbel	ST2	Outflow	-104.99701	40.67636
+Kerbel	MT1	Outflow	-104.99798	40.67641
+Kerbel	MT2	Outflow	-104.99735	40.67638
+Legacy		Outflow	-106.8205175	40.43192773
+Molina		Inflow	-107.3244775	39.53382894
+Molina		Outflow	-108.04204	39.17067
+Morrison Creek		Point Sample	-106.8158776	40.28942095
+Stage Coach Above		Point Sample	-106.8812387	40.2691647
+Stage Coach In		Point Sample	-106.8495245	40.28580534
+Stagecoach		Outflow	-106.825602	40.29226711
+The Ranch		Point Sample	-106.8150173	40.29174667
+Upper Yampa		Outflow	-106.922182	40.20191997
+Upper Yampa		Inflow	-106.91579	40.19042
+Upper Yampa	Piezometer North	Point Sample	-106.92215	40.20168
+Upper Yampa	Piezometer South 	Point Sample	-106.92193	40.20131
+", sep = '\t', header = TRUE, stringsAsFactors = FALSE)
 
 # Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {
@@ -286,6 +311,7 @@ processData <- function(df) {
       # create flow volume column (in Liters), and fill it with NAs for now
       flow.vol.liter = NA
       ) %>%
+    # unique(df_all$treatment.name)
     # remove numbers from new columns due to dict mapping
      # caution: if there are more than 10 dict keys, this will not work
      # note: avoid naming future locations with numbers in the name
@@ -293,9 +319,11 @@ processData <- function(df) {
                 "method.name",
                 "event.type"), ~ gsub("[0-9]", "", .)) %>%
      # treatment.name needs special treatment because of CT/MT/ST 1/2 having #'s
-     # TODO: detect number first, then do this, else leave it alone
+    # TODO: fix this so that we don't drop the ends of treatment letters and numbers
     mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
-    # if event.type is NA, use "Point Sample" as default
+    # Modify treatment.name based on whether the last two characters are numbers
+    #mutate(treatment.name = if_else(grepl("[0-9][0-9]$", treatment.name), substr(treatment.name, 1, nchar(treatment.name) - 1), treatment.name)) %>%    
+    # If event.type is NA, use "Point Sample" as default
     mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
   return(df)
 }
@@ -324,7 +352,10 @@ flagData <- function(df){
 
 addCoord <- function(df, geo_key) {
   # Merge the main dataframe with the geospatial key
-  df <- merge(df, geo_key, by = c("location.name", "treatment.name"), all.x = TRUE)
+  df <- merge(df, geo_key, by = c(
+    "location.name", 
+    "treatment.name",
+    "event.type"), all.x = TRUE)
   return(df)
 }
 
