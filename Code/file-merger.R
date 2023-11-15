@@ -105,6 +105,8 @@ trt.dict <- c(
   "River Middle" = "RVMID",
   "Piezometer East" = "PZE",
   "Piezometer West" = "PZW",
+  "Piezometer North" = "PZN",
+  "Piezometer South" = "PZS",
   "Tile Drainage River" = "TDR",
   "Tile Drainage Lake" = "TDL",
   "Confluence" = "CON",
