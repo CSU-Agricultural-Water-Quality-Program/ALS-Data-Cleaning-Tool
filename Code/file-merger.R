@@ -69,16 +69,16 @@ location.dict <- c(
   "Berthoud" = "BT",
   "Big Hollow" = "HOL",
   "Boulder Lake" = "BOL",
-  "Below Stagecoach Dam" = "SCO",
   "Gunnison" = "GU",
   "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
   "Legacy" = "LG",
   "Molina" = "MOL",
-  "Morrison Creek" = "MOR",
-  "Stage Coach Above" = "SCA",
-  "Stage Coach In" = "SCI",
   "Stagecoach" = "SB",
-  "The Ranch" = "TR", # Formerly, "Todd's Ranch"
+  "Morrison Creek" = c("MOR","SB-MOR"),
+  "Stage Coach Above" = c("SCA","SB-SCA"),
+  "Stage Coach In" = C("SCI", "SB-SCI"),
+  "Stage Coach Dam Outflow" = c("SCO","SB-SCO"),
+  "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ",
   "Lab Blank" = "BK"
@@ -114,7 +114,7 @@ trt.dict <- c(
   )
 
 method.dict <- c(
-  "ISCO" = c("ISC", "IN", "OT"),
+  "ISCO" = c("ISC", "IN", "OT", "0T"),
   "Low-Cost Sampler" = c("LC", "INLC", "OTLC"),
   "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"),
   "Hourly Grab" = c("GBH"),
@@ -124,7 +124,8 @@ method.dict <- c(
 eventType.dict <- c(
   "Inflow" = c("IN", "INF", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", 
                "IN7", "IN8", "IN9"),
-  "Outflow" = c("OUT", "OT", "OTLC", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2"),
+  "Outflow" = c("OUT", "OT", "OTLC", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2",
+                "0T"),
   "Lab Blank" = c("BK")
   )
 
