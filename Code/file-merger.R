@@ -76,7 +76,7 @@ location.dict <- c(
   "Stagecoach" = "SB",
   "Morrison Creek" = c("MOR","SB-MOR"),
   "Stage Coach Above" = c("SCA","SB-SCA"),
-  "Stage Coach In" = C("SCI", "SB-SCI"),
+  "Stage Coach In" = c("SCI", "SB-SCI"),
   "Stage Coach Dam Outflow" = c("SCO","SB-SCO"),
   "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
@@ -163,7 +163,7 @@ AVRC STAR	ST2	Point Sample	-103.68987	38.04005803
 AVRC STAR	CT2	Point Sample	-103.6898893	38.04030463
 Barley		Outflow	-105.0167433	40.35369119
 Below Stagecoach Dam		Point Sample	-106.8290859	40.28655773
-Berthoud		Outflow	-105.0826595	40.57341346
+Berthoud		Outflow	-105.08495	40.2818
 Berthoud		Inflow	-105.0855686	40.28104111
 Berthoud	River A	Point Sample	-105.09267	40.27863
 Berthoud	River Middle	Point Sample	-105.08875	40.27962
@@ -188,7 +188,7 @@ Kerbel	ST2	Outflow	-104.99701	40.67636
 Kerbel	MT1	Outflow	-104.99798	40.67641
 Kerbel	MT2	Outflow	-104.99735	40.67638
 Legacy		Outflow	-106.8205175	40.43192773
-Molina		Inflow	-107.3244775	39.53382894
+Molina		Inflow	-108.04037	39.163825
 Molina		Outflow	-108.04204	39.17067
 Morrison Creek		Point Sample	-106.8158776	40.28942095
 Stage Coach Above		Point Sample	-106.8812387	40.2691647
@@ -254,15 +254,17 @@ importDataXls <- function(file_path) {
 # .xls (.htm) like the Houston lab, then it may not be needed.
 
 cleanData <- function(df) {
-
+# takes imported data and cleans it for processing
    # Drop unnecessary rows containing the word "sample:"
   df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
     # other cleaning processes:
     mutate(
+      # create flag column for later
+      flag = NA,
       # convert values containing "<" to 0
       RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
-      # remove "H" values
-      # TODO: flag values with H as past hold time
+      #  Flag values with H as past hold time and remove "H"
+      flag = ifelse(str_detect(RESULT, "H"), "H", flag),
       RESULT = gsub("H", "", RESULT),
       # remove "See Attached" values, code 9999 set for flagging in flagData()
       RESULT = gsub("See Attached", 9999, RESULT),
@@ -334,24 +336,48 @@ processData <- function(df) {
 }
 
 flagData <- function(df){
-  # function to flag data for QA/QC after merging both htm and xls files
+# function to flag data and perform QA/QC after merging both htm and xls files
   # check water data for flags such as:
-    # H = past hold time
+    # H = past hold time (declared in cleanData function)
     # J = minimum detection limit (MDL) > value > reporting limit (RL)
     # N = non-EPA method used
     # P = Ortho-P > Total P
     # more?
-  # create flag column
-  df$flag <- NA
-  df %>%
+  
+  # Compare Orthophosphate and Total Phosphorus within groups
+    # Preparing a separate dataframe for comparison
+  comparison_df <- df %>%
+    group_by(duplicate, method.name, event.count, location.name, treatment.name, event.type) %>%
+    summarize(
+      ortho_P = max(RESULT[ANALYTE == "Phosphorus, Total Orthophosphate (as P)"], na.rm = TRUE),
+      total_P = max(RESULT[ANALYTE == "Phosphorus, Total (As P)"], na.rm = TRUE),
+      .groups = 'drop'
+    )
+  
+    # Joining the comparison dataframe back to the original dataframe
+  df <- df %>%
+    left_join(comparison_df, by = c("duplicate", "method.name", "event.count", "location.name", "treatment.name", "event.type")) %>%
     mutate(
-      # search for J values
-      flag = ifelse(RESULT > MDL & RESULT < RL, "J", NA),
-      # identify samples past hold time, based on ALS "HOLD" column
-      # flag = ifelse(HOLD == 'Yes', paste0(flag, "H"), flag),
-      # identify "See Attached" results as marked in cleanData()
-      flag = ifelse(RESULT == 9999, "See Attached", flag),
+      # Updating the flag column based on the comparison
+      flag = ifelse(ortho_P > total_P, ifelse(is.na(flag), "P", paste0(flag, ", P")), flag),
+      # Other flagging conditions...
+    ) %>%
+    select(-ortho_P, -total_P) # Removing the extra columns
+  
+  # Other, more simple flag conditions...
+  df <- df %>%
+    mutate(
+      # Check for J values and append to existing flag
+      flag = ifelse(RESULT > MDL & RESULT < RL, ifelse(is.na(flag), "J", paste0(flag, ", J")), flag),
+      # Identify "See Attached" results and append
+      flag = ifelse(RESULT == 9999, ifelse(is.na(flag), "See Attached", paste0(flag, ", See Attached")), flag),
+      # convert ALS specific conductivity to mS/cm like we use at AWQP
+      RESULT = ifelse(
+        "Suspended Solids (Residue, Non-Filterable)" %in% names(.) && ANALYTE == "Suspended Solids (Residue, Non-Filterable)", 
+        RESULT / 1000, # they report uS/cm
+        RESULT
       )
+    )
   return(df)
 }
 
@@ -428,6 +454,7 @@ executeFxns <- function(file_path) {
     cleanData() %>% # clean ALS format
     processData() %>% # create new columns using IDs
     addCoord(geo_key) %>% # add spatial data
+    flagData() %>% # flag and QA/QC data
     { select(., -all_of( # remove unnecessary columns
       c("REPORT.BASIS", 
         "PERCENT.MOISTURE", 
@@ -468,10 +495,9 @@ mergeFiles <- function(directory, tss_fp) {
     lapply(importDataXls) %>%
     bind_rows
   # merge data and metadata
-  # print(df_data[734,]) # this row causes multiple row match warning
+  # print(df_data[721,]) # this row causes multiple row match warning
   df_merge <- df_data %>%
-    left_join(df_meta, by = 'SAMPLE.ID') %>%
-    flagData()
+    left_join(df_meta, by = 'SAMPLE.ID')
   # change to posixct
   df_merge$COLLECTED <- as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M')
   # import TSS data to df w/ metadata

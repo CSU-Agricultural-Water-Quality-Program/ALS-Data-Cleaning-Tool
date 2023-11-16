@@ -128,6 +128,20 @@ csv_data <- function(df, location_name) {
 file = csv_data(filtered_df, loc)
 ```
 
+```{r}
+# Creating some subset data for static graphing later
+analytes_plot1 <- c("Nitrogen, Nitrate (As N)", 
+                    "Nitrogen, Nitrite  (As N)", # note the extra space before "(" due to ALS formatting
+                    "Nitrogen, Total Kjeldahl")
+analytes_plot2 <- c("Phosphorus, Total (As P)", 
+                    "Phosphorus, Total Orthophosphate (as P)",
+                    "Suspended Solids (Residue, Non-Filterable)")
+analytes_plot3 <- setdiff(unique(filtered_df$analyte), c(analytes_plot1, analytes_plot2))
+N_df <- filtered_df %>% filter(analyte %in% analytes_plot1)
+P_df <- filtered_df %>% filter(analyte %in% analytes_plot2)
+Misc_df <- filtered_df %>% filter(analyte %in% analytes_plot3)
+```
+
 ### CSV Export of selected site data saved as: 
 `r file`
 
@@ -349,20 +363,7 @@ create_scatterplot_matrix <- function(df, location_name) {
   })
 }
 
-create_scatterplot_matrix(dat, loc)
-```
-```{r}
-# Creating some subset data for static graphing below
-analytes_plot1 <- c("Nitrogen, Nitrate (As N)", 
-                    "Nitrogen, Nitrite  (As N)", # note the extra space before "(" due to ALS formatting
-                    "Nitrogen, Total Kjeldahl")
-analytes_plot2 <- c("Phosphorus, Total (As P)", 
-                    "Phosphorus, Total Orthophosphate (as P)",
-                    "Suspended Solids (Residue, Non-Filterable)")
-analytes_plot3 <- setdiff(unique(filtered_df$analyte), c(analytes_plot1, analytes_plot2))
-N_df <- filtered_df %>% filter(analyte %in% analytes_plot1)
-P_df <- filtered_df %>% filter(analyte %in% analytes_plot2)
-Misc_df <- filtered_df %>% filter(analyte %in% analytes_plot3)
+create_scatterplot_matrix(N_df, loc)
 ```
 
 # Static Box and Whisker Plots
@@ -386,7 +387,7 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
       facet_grid(analyte ~ event.count, scales = "free_y", space = "free_x") +
       theme_minimal() +
       theme(
-        axis.text.x = element_text(angle = 90, hjust = 1, size = 14), # Increase x axis text size
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 14), # Increase x axis text size
         axis.text.y = element_text(size = 14), # Increase y axis text size
         axis.title = element_text(size = 16), # Increase axis title text size
         strip.text = element_text(size = 16), # Increase facet strip text size
@@ -400,7 +401,7 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
         panel.grid.minor = element_line(size = 0.5) # Increase minor grid line size
         )+
       labs(title = plot.title, x = "Event Type", y = "Result", fill = "Event Type") +
-      scale_fill_brewer(palette = "Set3") # Colorblind-friendly palette
+      scale_fill_brewer(palette = "Pastel1") # Colorblind-friendly palette
     
     # Save the plot as a PNG file
     ggsave(file_path, bw_plot, width = 8, height = 12, units = "in")
@@ -453,12 +454,12 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
     
     # Generate the bar plot with error bars
     bar_plot <- ggplot(summary_df, aes(x = factor(event.type), y = mean, fill = factor(event.type))) +
-      geom_bar(stat = "identity", position = position_dodge(0)) +
+      geom_bar(stat = "identity", position = position_dodge(0), color = 'black') +
       geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2, position = position_dodge(0)) +
       facet_grid(analyte ~ event.count, scales = "free_y", space = "free_x") +
       theme_minimal() +
       theme(
-        axis.text.x = element_text(angle = 90, hjust = 1, size = 14), # Increase x axis text size
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 14), # Increase x axis text size
         axis.text.y = element_text(size = 14), # Increase y axis text size
         axis.title = element_text(size = 16), # Increase axis title text size
         strip.text = element_text(size = 16), # Increase facet strip text size
@@ -472,7 +473,7 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
         panel.grid.minor = element_line(size = 0.5) # Increase minor grid line size
         )+
       labs(title = plot.title, x = "Event Type", y = "Result", fill = "Event Type") +
-      scale_fill_brewer(palette = "Set3") # Colorblind-friendly palette
+      scale_fill_brewer(palette = "Pastel1") # Colorblind-friendly palette
 
     # Save the plot as a PNG file
     ggsave(file_path, bar_plot, width = 8, height = 12, units = "in")
