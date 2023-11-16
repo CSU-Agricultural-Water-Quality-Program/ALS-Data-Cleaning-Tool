@@ -286,14 +286,8 @@ cleanData <- function(df) {
 
 processData <- function(df) {
   # Process data to create new columns for analysis based on ID codes
-    # create a list of columns for post-processing
-  text_cols <- c(
-    "location.name",
-    "treatment.name",
-    "method.name",
-    "event.type")
     # create new columns based on ID codes
-  df %>%
+  df <- df %>%
     mutate(
       # create duplicate column
       duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
@@ -311,20 +305,30 @@ processData <- function(df) {
       # create flow volume column (in Liters), and fill it with NAs for now
       flow.vol.liter = NA
       ) %>%
-    # unique(df_all$treatment.name)
-    # remove numbers from new columns due to dict mapping
-     # caution: if there are more than 10 dict keys, this will not work
-     # note: avoid naming future locations with numbers in the name
-    mutate_at(c("location.name",
-                "method.name",
-                "event.type"), ~ gsub("[0-9]", "", .)) %>%
-     # treatment.name needs special treatment because of CT/MT/ST 1/2 having #'s
-    # TODO: fix this so that we don't drop the ends of treatment letters and numbers
-    mutate_at("treatment.name", ~ substr(., 1, nchar(.) - 1)) %>%
-    # Modify treatment.name based on whether the last two characters are numbers
-    #mutate(treatment.name = if_else(grepl("[0-9][0-9]$", treatment.name), substr(treatment.name, 1, nchar(treatment.name) - 1), treatment.name)) %>%    
     # If event.type is NA, use "Point Sample" as default
-    mutate(event.type = if_else(is.na(event.type), "Point Sample", event.type)) %>%
+    mutate(
+      event.type = if_else(is.na(event.type), "Point Sample", event.type)
+    ) %>%
+    mutate(
+      # remove numbers from new columns due to dict mapping
+      # caution: if there are more than 10 dict keys, this will not work
+      # note: avoid naming future locations with numbers in the name
+      across(c(
+          "location.name", 
+          "method.name", 
+          "event.type"
+        ), 
+        ~gsub("[0-9]", "", .)
+      ),
+      # treatment.name needs special treatment because of CT/MT/ST 1/2 having #'s
+      # so we modify treatment.name based on whether the last TWO characters are
+      # numbers. If yes, then drop one digit, else leave it alone to preserve.
+      treatment.name = if_else(
+        grepl("[0-9][0-9]$", treatment.name), 
+        substr(treatment.name, 1, nchar(treatment.name) - 1), 
+        treatment.name
+      )
+    )
   return(df)
 }
 
@@ -355,32 +359,41 @@ addCoord <- function(df, geo_key) {
   df <- merge(df, geo_key, by = c(
     "location.name", 
     "treatment.name",
-    "event.type"), all.x = TRUE)
+    "event.type"
+    ), 
+    all.x = TRUE
+    )
   return(df)
 }
 
 dfTss <- function(tss_fp) {
   df <- read_excel(tss_fp, sheet = "MasterData") %>%
+    # collect relevant columns
     select(Sample_ID, Collection_date, `TSS_mg/L`, pH, `EC_mS/cm`) %>%
+    # rename to be congruent with ALS data
     rename(SAMPLE.ID = Sample_ID,
            COLLECTED = Collection_date,
            `Suspended Solids (Residue, Non-Filterable)` = `TSS_mg/L`,
            `Specific Conductance` = `EC_mS/cm`) %>%
+    # get rid of stock solution and D.I. TSS values
     filter(!(SAMPLE.ID %in% c("Stock Solution", "DI"))) %>%
+    # omit NA values
     na.omit() %>%
+    # processData here to get other columns correctly designated
+    processData() %>%
+    # TSS-specific column filling/data cleaning
     mutate(
-      duplicate = grepl("-D", SAMPLE.ID),
-      location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
-      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
-      method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
-      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
-      event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict)),
       non.detect = FALSE,
-      `Suspended Solids (Residue, Non-Filterable)` = as.numeric(`Suspended Solids (Residue, Non-Filterable)`),
-      `Specific Conductance` = as.numeric(`Specific Conductance`)
+      `Suspended Solids (Residue, Non-Filterable)` = as.numeric(
+        `Suspended Solids (Residue, Non-Filterable)`),
+      `Specific Conductance` = as.numeric(`Specific Conductance`),
+      `pH` = as.numeric(`pH`)
     ) %>%
-    pivot_longer(cols = c('pH', 'Suspended Solids (Residue, Non-Filterable)', 'Specific Conductance'),
-                 names_to = "ANALYTE", values_to = "RESULT") %>%
+    pivot_longer(cols = c(
+                          'pH', 'Suspended Solids (Residue, Non-Filterable)', 
+                          'Specific Conductance'),
+                 names_to = "ANALYTE", 
+                 values_to = "RESULT") %>%
     mutate(
       DILUTION = 1,
       `RESULT.REPORTED.TO` = "RL",
@@ -404,13 +417,7 @@ dfTss <- function(tss_fp) {
       ),
       RESULT = as.numeric(RESULT),
       UNITS = tssUnits.dict[ANALYTE]
-    ) %>%
-    mutate(
-      across(c(location.name, method.name, event.type), ~ gsub("[0-9]", "", .)),
-      across(c(treatment.name), ~ substr(., 1, nchar(.) - 1)),
-      event.type = if_else(is.na(event.type), "Point Sample", event.type)
-    )
-  
+    ) 
   return(df)
 }
 
@@ -461,10 +468,10 @@ mergeFiles <- function(directory, tss_fp) {
     lapply(importDataXls) %>%
     bind_rows
   # merge data and metadata
+  # print(df_data[734,]) # this row causes multiple row match warning
   df_merge <- df_data %>%
-    left_join(df_meta, by = 'SAMPLE.ID' ) %>%
+    left_join(df_meta, by = 'SAMPLE.ID') %>%
     flagData()
-
   # change to posixct
   df_merge$COLLECTED <- as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M')
   # import TSS data to df w/ metadata
