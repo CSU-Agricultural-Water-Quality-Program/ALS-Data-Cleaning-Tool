@@ -46,7 +46,7 @@ package.list <- c("magrittr",
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
-      install.packages(i)
+      install.packages(i, repos = "http://cran.us.r-project.org")
       library(i, character.only = TRUE)
     }
   }
@@ -155,8 +155,8 @@ tssUnits.dict <- c(
 # copy/paste excel data below to create geodata dataframe (i.e., separated by tabs, \t)
 geo_key <- read.csv(text = "
 location.name	treatment.name	event.type	long	lat
-ARDEC 2200		Outflow	-104.9869329	40.65356941
-ARDEC 2200		Inflow	-104.9888983	40.65361825
+ARDEC		Outflow	-104.9869329	40.65356941
+ARDEC		Inflow	-104.9888983	40.65361825
 AVRC STAR	CT1	Point Sample	-103.689906	38.03957397
 AVRC STAR	ST1	Point Sample	-103.6898805	38.03982154
 AVRC STAR	ST2	Point Sample	-103.68987	38.04005803
@@ -336,6 +336,7 @@ processData <- function(df) {
 }
 
 flagData <- function(df){
+  # TODO: this function is messing things up. Fix it. then put it back in executeFxns()
 # function to flag data and perform QA/QC after merging both htm and xls files
   # check water data for flags such as:
     # H = past hold time (declared in cleanData function)
@@ -353,7 +354,7 @@ flagData <- function(df){
       total_P = max(RESULT[ANALYTE == "Phosphorus, Total (As P)"], na.rm = TRUE),
       .groups = 'drop'
     )
-  
+
     # Joining the comparison dataframe back to the original dataframe
   df <- df %>%
     left_join(comparison_df, by = c("duplicate", "method.name", "event.count", "location.name", "treatment.name", "event.type")) %>%
@@ -454,7 +455,7 @@ executeFxns <- function(file_path) {
     cleanData() %>% # clean ALS format
     processData() %>% # create new columns using IDs
     addCoord(geo_key) %>% # add spatial data
-    flagData() %>% # flag and QA/QC data
+    # flagData() %>% # flag and QA/QC data
     { select(., -all_of( # remove unnecessary columns
       c("REPORT.BASIS", 
         "PERCENT.MOISTURE", 

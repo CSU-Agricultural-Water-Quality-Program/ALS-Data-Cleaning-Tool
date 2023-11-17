@@ -48,7 +48,7 @@ package.list <- c('plotly',
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
-      install.packages(i)
+      install.packages(i, repos = "http://cran.us.r-project.org")
       library(i, character.only = TRUE)
     }
   }
@@ -107,7 +107,7 @@ filtered_df <- filter_dataframe(dat, loc, include_blanks = FALSE)
 ```
 
 
-## Location Selected: <span style="color:#4CAF50">`r loc`.</span>
+## Location Selected: <span style="color:#4CAF50">`r loc`</span>
 
 ```{r, include=FALSE}
 # function to save site data as csv
@@ -363,7 +363,7 @@ create_scatterplot_matrix <- function(df, location_name) {
   })
 }
 
-create_scatterplot_matrix(N_df, loc)
+create_scatterplot_matrix(filtered_df, loc)
 ```
 
 # Static Box and Whisker Plots
