@@ -525,7 +525,12 @@ returnSingleFile <- function(path = file_path, export = FALSE) {
   # return and optionally export a single file for QA/QC
   df <- executeFxns(path)
   if (export == TRUE) {
-    write.csv(df, file = "./Report/single_file.csv", row.names = FALSE)
+    # Get the current date in YYYY-MM-DD format
+    currentDate <- format(Sys.Date(), "%Y-%m-%d")
+    # Create a file name with the current date
+    fileName <- paste0("./Report/single_file_", currentDate, ".csv")
+    # Export the file with the new file name
+    write.csv(df, file = fileName, row.names = FALSE)
   }
   return(df)
 }
@@ -536,7 +541,12 @@ returnAllFiles <- function(d = directory, tss_fp = tss_file_path, export = TRUE)
   # for debugging only; uncomment as necessary
   #View(df)
   if (export == TRUE) {
-    write.csv(df, file = "./Report/all_files.csv", row.names = FALSE)
+    # Get the current date in YYYY-MM-DD format
+    currentDate <- format(Sys.Date(), "%Y-%m-%d")
+    # Create a file name with the current date
+    fileName <- paste0("./Report/all_files_", currentDate, ".csv")
+    # Export the file with the new file name
+    write.csv(df, file = fileName, row.names = FALSE)
   }
   return(df)
 }

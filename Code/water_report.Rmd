@@ -1,6 +1,6 @@
 ---
 title: "Water Report"
-author: "Caz Bell and A.J. Brown"
+author: "Molly 'Caz' Bell and A.J. Brown using R version 4.2.2"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -60,8 +60,7 @@ source("./Code/file-merger.R", local = knitr::knit_global())
 
 ```{r, include=FALSE}
 # import data
-dat <- returnAllFiles(d = directory, export = FALSE) 
-#dat <- read.csv('all_files.csv', header = TRUE, stringsAsFactors = FALSE)
+dat <- returnAllFiles(d = directory, export = TRUE) 
 #make everything lowercase
 colnames(dat) <- tolower(names(dat))
 ```
@@ -363,7 +362,7 @@ make_scatter_plots(YJ)
 
 
 ```{r}
-datatable(dat, colnames = c('Sample ID', 'Lab ID', 'Method', 'CAS Number', 'Analyte', 'Result', 'Units', 'Dilution', "Results Reported To", 'MDL', 'RL', 'Report Basis', 'Moisture (%)', 'Solid (%)', 'Non detect', 'Duplicate', 'Location', 'Treatment', 'Method Name', 'Event Type', 'Lab ID', 'Matrix', 'Collection Date', 'Recieved Date', 'Hold Time', 'Flag'))
+datatable(dat)
 ```
 
 
