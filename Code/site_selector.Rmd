@@ -73,8 +73,8 @@ unique(dat$location.name)
 # Site list
   # To select site, un-comment your location of interest (alphabetical order)
   # This list may need to be updated as more sites are added/removed
-# loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
- loc = 'AVRC STAR'
+ loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
+# loc = 'AVRC STAR'
 # loc = 'Barley'
 # loc = 'Berthoud'
 # loc = 'Big Hollow'
