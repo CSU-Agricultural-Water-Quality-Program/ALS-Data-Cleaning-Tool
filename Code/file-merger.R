@@ -73,7 +73,7 @@ location.dict <- c(
   "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
   "Legacy" = "LG",
   "Molina" = "MOL",
-  "Stagecoach" = "SB",
+  "Stagecoach" = c("SC","SB"),
   "Morrison Creek" = c("MOR","SB-MOR"),
   "Stage Coach Above" = c("SCA","SB-SCA"),
   "Stage Coach In" = c("SCI", "SB-SCI"),
