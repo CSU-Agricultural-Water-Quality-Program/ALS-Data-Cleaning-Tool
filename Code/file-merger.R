@@ -81,6 +81,10 @@ location.dict <- c(
   "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ",
+  "Fruita Water" = c("FW1", "FW2", "FW"),
+  "Fruita Beer" = "FBR",
+  "Fruita No Till" = "FNT",
+  "Fruita Alfalfa" = "FALF",
   "Lab Blank" = "BK"
 )
 
@@ -110,7 +114,9 @@ trt.dict <- c(
   "Duck Pond" = "DP",
   "Upper willow at @ culvert (swale)" = "CUL",
   "Fish Pond" = "FP",
-  "Fire 2" = "FR2"
+  "Fire 2" = "FR2",
+  "Fruita W1" = c("W1", "FW1"),
+  "Fruita W2" = c("W2", "FW2")
   )
 
 method.dict <- c(
@@ -199,6 +205,13 @@ Upper Yampa		Outflow	-106.922182	40.20191997
 Upper Yampa		Inflow	-106.91579	40.19042
 Upper Yampa	Piezometer North	Point Sample	-106.92215	40.20168
 Upper Yampa	Piezometer South 	Point Sample	-106.92193	40.20131
+Fruita Water		Inflow	-108.6919781	39.18870659
+Fruita Water	W1	Outflow	-108.6945949	39.18915138
+Fruita Water	W2	Outflow	-108.6946281	39.18913084
+Fruita Beer		Inflow	-108.6592228	39.17582245
+Fruita Beer		Outflow	-108.663471	39.17578835
+Fruita No Till		Inflow	-108.7285248	39.24897763
+Fruita No Till		Outflow	-108.7266562	39.24607514
 ", sep = '\t', header = TRUE, stringsAsFactors = FALSE)
 
 # Define Private Functions (i.e., do not call them directly)
