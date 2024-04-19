@@ -81,10 +81,10 @@ location.dict <- c(
   "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ",
-  "Fruita W" = c("FW1", "FW2", "FW"),
-  "Fruita B" = "FB",
+  "Fruita W" = c("W1", "W2", "FW"),
+  "Fruita B" = c("FB", "FBR"),
   "Fruita No Till" = "FNT",
-  "Fruita Alfalfa" = "FA",
+  "Fruita Alfalfa" = c("FA", "FALF"),
   "Lab Blank" = "BK"
 )
 
@@ -115,12 +115,12 @@ trt.dict <- c(
   "Upper willow at @ culvert (swale)" = "CUL",
   "Fish Pond" = "FP",
   "Fire 2" = "FR2",
-  "Fruita W1" = c("W1", "FW1"),
-  "Fruita W2" = c("W2", "FW2")
+  "Fruita W1" = c("W1", "FW"),
+  "Fruita W2" = c("W2", "FW")
   )
 
 method.dict <- c(
-  "ISCO" = c("ISC", "IN", "OT", "0T"),
+  "ISCO" = c("ISC"), # formerly had "IN", "OT", "0T" here, but I think it messed up labels
   "Low-Cost Sampler" = c("LC", "INLC", "OTLC"),
   "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"),
   "Hourly Grab" = c("GBH"),
@@ -212,6 +212,8 @@ Fruita B		Inflow	-108.6592228	39.17582245
 Fruita B		Outflow	-108.663471	39.17578835
 Fruita No Till		Inflow	-108.7285248	39.24897763
 Fruita No Till		Outflow	-108.7266562	39.24607514
+Fruita Alfalfa		Inflow	-108.7801719	39.22423003
+Fruita Alfalfa		Outflow	-108.7800218	39.22234458
 ", sep = '\t', header = TRUE, stringsAsFactors = FALSE)
 
 # Define Private Functions (i.e., do not call them directly)
@@ -322,6 +324,7 @@ processData <- function(df) {
       flow.vol.liter = NA
       ) %>%
     # If event.type is NA, use "Point Sample" as default
+    # TODO: consider changing this to "Check source" to avoid mislabeling
     mutate(
       event.type = if_else(is.na(event.type), "Point Sample", event.type)
     ) %>%
