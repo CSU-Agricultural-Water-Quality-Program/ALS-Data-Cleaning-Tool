@@ -81,7 +81,7 @@ location.dict <- c(
   "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ",
-  "Fruita W" = c("W1", "W2", "FW"),
+  "Fruita W" = c("W1", "W2", "FW", "FW1", "FW2"),
   "Fruita B" = c("FB", "FBR"),
   "Fruita No Till" = "FNT",
   "Fruita Alfalfa" = c("FA", "FALF"),
@@ -115,8 +115,8 @@ trt.dict <- c(
   "Upper willow at @ culvert (swale)" = "CUL",
   "Fish Pond" = "FP",
   "Fire 2" = "FR2",
-  "Fruita W1" = c("W1", "FW"),
-  "Fruita W2" = c("W2", "FW")
+  "Fruita W1" = c("W1", "FW1"),
+  "Fruita W2" = c("W2", "FW2")
   )
 
 method.dict <- c(
@@ -326,7 +326,7 @@ processData <- function(df) {
     # If event.type is NA, use "Point Sample" as default
     # TODO: consider changing this to "Check source" to avoid mislabeling
     mutate(
-      event.type = if_else(is.na(event.type), "Point Sample", event.type)
+      event.type = ifelse(is.na(event.type), "Point Sample", event.type)
     ) %>%
     mutate(
       # remove numbers from new columns due to dict mapping
@@ -342,7 +342,7 @@ processData <- function(df) {
       # treatment.name needs special treatment because of CT/MT/ST 1/2 having #'s
       # so we modify treatment.name based on whether the last TWO characters are
       # numbers. If yes, then drop one digit, else leave it alone to preserve.
-      treatment.name = if_else(
+      treatment.name = ifelse(
         grepl("[0-9][0-9]$", treatment.name), 
         substr(treatment.name, 1, nchar(treatment.name) - 1), 
         treatment.name
