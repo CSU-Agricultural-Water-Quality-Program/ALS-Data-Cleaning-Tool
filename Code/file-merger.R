@@ -83,8 +83,8 @@ location.dict <- c(
   "Yellow Jacket " = "YJ",
   "Fruita W" = c("W1", "W2", "FW", "FW1", "FW2"),
   "Fruita B" = c("FB", "FBR"),
-  "Fruita No Till" = "FNT",
-  "Fruita Alfalfa" = c("FA", "FALF"),
+  "Fruita NT" = "FNT",
+  "Fruita A" = c("FA", "FALF"),
   "Lab Blank" = "BK"
 )
 
@@ -115,8 +115,8 @@ trt.dict <- c(
   "Upper willow at @ culvert (swale)" = "CUL",
   "Fish Pond" = "FP",
   "Fire 2" = "FR2",
-  "Fruita W1" = c("W1", "FW1"),
-  "Fruita W2" = c("W2", "FW2")
+  "W1" = c("W1", "FW1"),
+  "W2" = c("W2", "FW2")
   )
 
 method.dict <- c(
@@ -346,7 +346,8 @@ processData <- function(df) {
         grepl("[0-9][0-9]$", treatment.name), 
         substr(treatment.name, 1, nchar(treatment.name) - 1), 
         treatment.name
-      )
+      ),
+      event.count = as.character(event.count)
     )
   return(df)
 }
@@ -460,7 +461,10 @@ dfTss <- function(tss_fp) {
         TRUE ~ NA_character_
       ),
       RESULT = as.numeric(RESULT),
-      UNITS = tssUnits.dict[ANALYTE]
+      UNITS = tssUnits.dict[ANALYTE],
+      COLLECTED = as.POSIXct(COLLECTED, format = '%Y-%m-%d %H:%M:%S'),
+      treatment.name = as.character(treatment.name),
+      event.count = as.character(event.count)
     ) 
   return(df)
 }

@@ -23,7 +23,7 @@ knitr::opts_knit$set(root.dir = here::here())
 
 # Introduction
 
-This report details data collected from 2023-01-01 to `r Sys.Date()` by the Colorado State University (CSU) Agriculture Water Quality Program (AWQP). For more information, please contact AJ Brown at [Ansley.Brown\@colostate.edu](mailto:Ansley.Brown@colostate.edu){.email} or visit the CSU AWQP Website at <https://waterquality.colostate.edu>.
+This report details data collected from 2024-01-01 to `r Sys.Date()` by the Colorado State University (CSU) Agriculture Water Quality Program (AWQP). For more information, please contact AJ Brown at [Ansley.Brown\@colostate.edu](mailto:Ansley.Brown@colostate.edu){.email} or visit the CSU AWQP Website at <https://waterquality.colostate.edu>.
 
 
 
@@ -160,8 +160,6 @@ make_scatter_plots <- function(dataframe) {
 
 ```
 
-
-
 ## ARDEC 2200
 
 ```{r}
@@ -183,8 +181,6 @@ AVRC <- dat %>%
 
 make_scatter_plots(AVRC)
 ```
-
-
 
 ## Barley
 
@@ -208,8 +204,6 @@ BelowStage <- dat %>%
 make_scatter_plots(BelowStage)
 ```
 
-
-
 ## Berthoud
 
 ```{r}
@@ -219,7 +213,6 @@ Berthoud <- dat %>%
 
 make_scatter_plots(Berthoud)
 ```
-
 
 ## Big Hollow
 
@@ -231,7 +224,6 @@ BigHollow <- dat %>%
 make_scatter_plots(BigHollow)
 ```
 
-
 ## Boulder Lake
 
 ```{r}
@@ -242,7 +234,41 @@ BoulderLake <- dat %>%
 make_scatter_plots(BoulderLake)
 ```
 
+## Fruita A
+```{r}
+fa <- dat %>% 
+  filter(location.name == "Fruita A")
 
+
+make_scatter_plots(fa)
+```
+
+## Fruita B
+```{r}
+fb <- dat %>% 
+  filter(location.name == "Fruita B")
+
+
+make_scatter_plots(fb)
+```
+
+## Fruita NT
+```{r}
+fnt <- dat %>% 
+  filter(location.name == "Fruita NT")
+
+
+make_scatter_plots(fnt)
+```
+
+## Fruita W
+```{r}
+fw <- dat %>% 
+  filter(location.name == "Fruita W")
+
+
+make_scatter_plots(fw)
+```
 
 ## Gunnison
 
@@ -283,7 +309,6 @@ Molina <- dat %>%
 
 make_scatter_plots(Molina)
 ```
-
 
 ## Morrison Creek
 
@@ -345,7 +370,6 @@ UY <- dat %>%
 make_scatter_plots(UY)
 ```
 
-
 ## Yellow Jacket
 
 ```{r}
@@ -356,10 +380,7 @@ YJ <- dat %>%
 make_scatter_plots(YJ)
 ```
 
-
-
 # Raw Data
-
 
 ```{r}
 datatable(dat)
