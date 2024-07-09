@@ -1,7 +1,4 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
+# Private Data folders
 Confidential Data
 Confidential TSS
 
@@ -27,6 +24,7 @@ Confidential TSS
 
 # RStudio files
 .Rproj.user/
+.Rproj.user/*
 
 # produced vignettes
 vignettes/*.html
