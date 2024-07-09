@@ -494,7 +494,7 @@ executeFxns <- function(file_path) {
 }
 
 mergeFiles <- function(directory, tss_fp) {
-  # import all htm files in the directory, merge, and return df
+  # import all data files in the directory, merge, and return df
   print("Merging files...")
   file_list <- list.files(path = directory,
                           pattern = "*.xls", 
