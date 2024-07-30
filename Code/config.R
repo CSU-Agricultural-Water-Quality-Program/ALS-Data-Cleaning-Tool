@@ -23,8 +23,8 @@ create_directory_if_not_exists <- function(directory_path) {
 }
 
 # Native GitHub Repo Folders:
-# directory <- "./Data"
-# tss_file_path <- './TSS/TSS_Master_2023.xlsx'
+directory <- "./Data"
+tss_file_path <- './TSS/TSS_Master_2023.xlsx'
 
 # for real data in file that won't be uploaded to github repo:
 # directory <- "{your file path to ALS data FOLDER here}"
@@ -34,8 +34,8 @@ create_directory_if_not_exists <- function(directory_path) {
 # directory <- "./Confidential Data/2023"
 # tss_file_path <- './Confidential TSS/2023/TSS_Master_2023.xlsx'
 
-directory <- "./Confidential Data/2024"
-tss_file_path <- './Confidential TSS/2024/TSS_Master_2024.xlsx'
+# directory <- "./Confidential Data/2024"
+# tss_file_path <- './Confidential TSS/2024/TSS_Master_2024.xlsx'
 
 create_directory_if_not_exists(directory)
 create_directory_if_not_exists(dirname(tss_file_path))
