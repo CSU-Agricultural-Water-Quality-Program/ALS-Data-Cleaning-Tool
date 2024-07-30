@@ -85,7 +85,9 @@ location.dict <- c(
   "Fruita B" = c("FB", "FBR"),
   "Fruita NT" = "FNT",
   "Fruita A" = c("FA", "FALF"),
-  "Lab Blank" = "BK"
+  "Lab Blank" = "BK",
+  "Method Blank" = "Method Blank",
+  "Lab Control Sample" = "Lab Control Sample"
 )
 
 trt.dict <- c(
@@ -124,7 +126,9 @@ method.dict <- c(
   "Low-Cost Sampler" = c("LC", "INLC", "OTLC"),
   "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"),
   "Hourly Grab" = c("GBH"),
-  "Lab Blank" = c("BK")
+  "Lab Blank" = c("BK"),
+  "Method Blank" = c("Method Blank"),
+  "Lab Control Sample" = c("Lab Control Sample")
   )
 
 eventType.dict <- c(
@@ -132,7 +136,9 @@ eventType.dict <- c(
                "IN7", "IN8", "IN9"),
   "Outflow" = c("OUT", "OT", "OTLC", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2",
                 "0T"),
-  "Lab Blank" = c("BK")
+  "Lab Blank" = c("BK"),
+  "Method Blank" = c("Method Blank"),
+  "Lab Control Sample" = c("Lab Control Sample")
   )
 
 eventCount.dict <- c(
@@ -265,20 +271,26 @@ importDataXls <- function(file_path) {
 
 importDataKelso <- function(file_path) {
   # Selenium testing is done by the Kelso lab and is a csv file
-  df <- read_csv(file_path) %>%  #read in csv file 
-    mutate(METHOD =paste0(`Extraction Method`, sep = "-", Method)) %>%  #Create METHOD column
+  df <- read_csv(file_path) %>%  #read in csv file
+    # TODO: check if we actually need to add these NA cols to make it work, b/c we remove them later anyway in executeFxns
+    mutate(METHOD =paste0(`Extraction Method`, sep = "-", Method),
+           LAB.ID = NA,
+           CAS.NUMBER = NA,
+           RESULT.REPORTED.TO = NA,
+           REPORT.BASIS = NA,
+           PERCENT.MOISTURE = NA,
+           PERCENT.SOLID = NA
+           ) %>%  #Create columns to be congruent with houston data
     select(Sample, Result, Units, Component, 'Dilution Factor', 'Reporting Limit', 
-           'Detection Limit', 'Date Collected', 'Date Received', METHOD) %>%  #Select desired columns, dropping the rest
+           'Detection Limit', METHOD, LAB.ID, CAS.NUMBER, RESULT.REPORTED.TO,
+           REPORT.BASIS, PERCENT.MOISTURE, PERCENT.SOLID) %>%  #Select desired columns, dropping the rest
     rename("SAMPLE ID" = "Sample", "RESULT" = "Result", "UNITS" = "Units", 
-           "ANALYTE"="Component", "DILUTION"="Dilution Factor", "RL"="Reporting Limit", "MDL"="Detection Limit", 
-           "DATE COLLECTED" ="Date Collected", "DATE RECEIVED"="Date Received" ) #Rename headings in csv to match the results file 
+           "ANALYTE"="Component", "DILUTION"="Dilution Factor",
+           "RL"="Reporting Limit", "MDL"="Detection Limit" 
+           ) %>% #Rename headings in csv to match the results file 
+    data.frame() # convert to data frame type
   return(df) #return dataframe
 }
-
-# Se and other results from the Kelso, WA ALS lab are in CSV currently.
-# So, we may put an importDataCSV() function here for merging Kelso results.
-# However, if i get a login for the Kelso, WA lab, and that export format is
-# .xls (.htm) like the Houston lab, then it may not be needed.
 
 cleanData <- function(df) {
 # takes imported data and cleans it for processing
@@ -411,6 +423,7 @@ flagData <- function(df){
   return(df)
 }
 
+# TODO: investigate addCoord; it doesn't work reliably
 addCoord <- function(df, geo_key) {
   # Merge the main dataframe with the geospatial key
   df <- merge(df, geo_key, by = c(
@@ -481,9 +494,16 @@ dfTss <- function(tss_fp) {
   return(df)
 }
 
-executeFxns <- function(file_path) {
-  # execute all previous functions and return final dataframe
-  df <- importData(file_path) %>%
+executeFxns <- function(file_path, kelso=FALSE, geo_key) {
+  # Conditionally use importData or importDataKelso based on kelso variable
+  if (kelso) {
+    df <- importDataKelso(file_path)
+  } else {
+    df <- importData(file_path)
+  }
+  
+  # Execute the remaining functions and return the final dataframe
+  df <- df %>%
     cleanData() %>% # clean ALS format
     processData() %>% # create new columns using IDs
     addCoord(geo_key) %>% # add spatial data
@@ -509,35 +529,52 @@ mergeFiles <- function(directory, tss_fp) {
   # import all data files in the directory, merge, and return df
   print("Merging files...")
   file_list <- list.files(path = directory,
-                          pattern = "*.xls", 
+                          pattern = "*.xls|.csv", 
                           full.names = TRUE)
-  print("Data files to be merged:")
-  data_files <- file_list[!grepl("-Samples", file_list)]
+  # import houston data files
+  data_files <- file_list[!grepl("-Samples|Kelso", file_list)]
+  print("Houston data files to be merged:")
   print(data_files)
-  print("Metadata files to be merged:")
+  # import kelso data files
+  kelso_files <- file_list[grepl("Kelso", file_list)]
+  print("Kelso data files to be merged (if any):")
+  print(kelso_files)
+  # import meta data files
   meta_files <- file_list[grepl("-Samples", file_list)]
+  print("Metadata files to be merged:")
   print(meta_files)
-  # merge data files
+  
+  # merge houston data files
   df_data <- data_files %>%
-    # pair and merge files here
-    lapply(executeFxns) %>%
-    bind_rows
+    lapply(executeFxns, kelso=FALSE, geo_key=geo_key) %>%
+    bind_rows()
+  
+  # merge kelso data files
+  df_kelso <- kelso_files %>%
+    lapply(executeFxns, kelso=TRUE, geo_key=geo_key) %>%
+    bind_rows()
+  
   # merge metadata files
   df_meta <- meta_files %>%
-    # pair and merge files here
     lapply(importDataXls) %>%
     bind_rows
-  # merge data and metadata
-  # print(df_data[721,]) # this row causes multiple row match warning
-  df_merge <- df_data %>%
+  
+  # Merge Houston and Kelso data
+  df_combined <- bind_rows(df_data, df_kelso)
+  
+  # Merge combined data with metadata
+  df_merge <- df_combined %>%
     left_join(df_meta, by = 'SAMPLE.ID')
-  # change to posixct
+  
+  # Change to POSIXct
   df_merge$COLLECTED <- as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M')
-  # import TSS data to df w/ metadata
+  
+  # Import TSS data to df with metadata
   df_tss <- dfTss(tss_fp)
-  # merge tss data with als data
+  
+  # Merge TSS data with the combined data
   df <- bind_rows(df_merge, df_tss) %>%
-    filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE)) 
+    filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE))
   
   # Drop unnecessary columns that get re-created during merge
   # List of columns to drop
