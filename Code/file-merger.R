@@ -2,7 +2,7 @@
 # AJ Brown, ansley.brown@colostate.edu
 # Started: 13 July 2022
 # Updated: 21 Feb 2023
-
+#test
 # Tool to clean and merge multiple .htm files directly downloaded
 # from the ALS global portal into one master file and create categories for
 # further analysis.
@@ -261,6 +261,18 @@ importDataXls <- function(file_path) {
   df <- read_excel(file_path) %>% # read in html file
     data.frame() # convert to dataframe
   return(df) # return dataframe
+}
+
+importDataKelso <- function(file_path) {
+  # Selenium testing is done by the Kelso lab and is a csv file
+  df <- read_csv(file_path) %>%  #read in csv file 
+    mutate(METHOD =paste0(`Extraction Method`, sep = "-", Method)) %>%  #Create METHOD column
+    select(Sample, Result, Units, Component, 'Dilution Factor', 'Reporting Limit', 
+           'Detection Limit', 'Date Collected', 'Date Received', METHOD) %>%  #Select desired columns, dropping the rest
+    rename("SAMPLE ID" = "Sample", "RESULT" = "Result", "UNITS" = "Units", 
+           "ANALYTE"="Component", "DILUTION"="Dilution Factor", "RL"="Reporting Limit", "MDL"="Detection Limit", 
+           "DATE COLLECTED" ="Date Collected", "DATE RECEIVED"="Date Received" ) #Rename headings in csv to match the results file 
+  return(df) #return dataframe
 }
 
 # Se and other results from the Kelso, WA ALS lab are in CSV currently.
