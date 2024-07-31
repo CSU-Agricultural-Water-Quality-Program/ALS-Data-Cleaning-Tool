@@ -46,8 +46,57 @@ and
     * a separate excel file that details the ID protocols used to label each water sample, that is the basis for this codebase to dissect information back into a more useable format.
 
 ## <u>Code Workflow
-[![](https://mermaid.ink/img/pako:eNrtVlFv2zgM_iuCCgwu4BSJvaWJHw7Ikg47XHu3LQU6DH5RbLoxpkiGJK_N0v73kZKTtinWXu_1qgdZsj5-pEiR0oYXugSe8VxVUl8VS2EcO5_lKldXwoGJogv6sLlYNRJyxaZaSihcrRUTqmT455PRBVhbq8vDwyzLUIz1en-wyemcvWGTi8-fEGPbxaURzZKdigWbKCHXtrZv1MI2r91zHXvc0KPY0MMReflE_aiNVitQTkjysDbCaVODpXgIaX08lrq1DqOGQfkLpNWBww8j38fsYnInvWY5IohAikVg-H4n1pFFH8M3Zudf74lupUjIgG2lQ6V2e4LIcjwVntJZG53P52wmnCCpUriAyBWoMgwR47FVLSE61QXukYas0rIEcxhAQU30d-tw38qxL35u7xPvSIJEsCcKB5udgRNPgP3Wo48gfqw9VD6Bpc1FfoePPbLdNOXXLidyTlEkQjaVIBRmEjvXWr4e_tfu_93lPKQUJRdmkPHpU68abVz0p__s8tAEZFj0uIJyKfIZtY_ySx60AnMJ0Rn1-yC_5EFw7TV2Fx3WspPrfd2-Wt3L6Zfv9Z_WNe2ucAUTgmKy4WZeO-jNGyjqqi4Q5RfoBiYjbtjJZjM1gFe1ZSUVEhMAlTZMK4i7G6O1YHoW6AKHkmomCFMsmUXu21vciG535XdP_f1XwFY7kU-k7P7aGzb7vRFCys714f2A6v37oivDAV8rJvfr-wO7Hpl1JiyRkA8WwsIN-7DZdMGpanxmbHmdZqsALTsoWdUdrta1Bsg3d7q6cOaqkMLaGVTMV2-0S2YHJ-l09n4QM-uM_g7ZQZqm20nvqi7dMkua6wfCdEkE2VEyfddPXyJL93eQPZj69hLhq53ifn_04f1zimMKjzbZQVVVD3jMjmU4ePv2v7Kgazue6WiaHif_lqfvWwgIjzkm5krUJT5aNxTBnLslrCDnGQ4V4AtASCoctwgVrdPztSp45kwLMTe6vVzyrEKn4qxtMDAwqwXm7GoLgbLGG_ssvIr94zjmjVDftN5BcMqzDb_m2Xh41B-nyThJ0mGajAZJzNc86w2So-EoSQbH78bHY_RYMryN-U_P0D8aDY6Hg_GQVtPhGJd-AZL58p8?type=png)](https://mermaid.live/edit#pako:eNrtVlFv2zgM_iuCCgwu4BSJvaWJHw7Ikg47XHu3LQU6DH5RbLoxpkiGJK_N0v73kZKTtinWXu_1qgdZsj5-pEiR0oYXugSe8VxVUl8VS2EcO5_lKldXwoGJogv6sLlYNRJyxaZaSihcrRUTqmT455PRBVhbq8vDwyzLUIz1en-wyemcvWGTi8-fEGPbxaURzZKdigWbKCHXtrZv1MI2r91zHXvc0KPY0MMReflE_aiNVitQTkjysDbCaVODpXgIaX08lrq1DqOGQfkLpNWBww8j38fsYnInvWY5IohAikVg-H4n1pFFH8M3Zudf74lupUjIgG2lQ6V2e4LIcjwVntJZG53P52wmnCCpUriAyBWoMgwR47FVLSE61QXukYas0rIEcxhAQU30d-tw38qxL35u7xPvSIJEsCcKB5udgRNPgP3Wo48gfqw9VD6Bpc1FfoePPbLdNOXXLidyTlEkQjaVIBRmEjvXWr4e_tfu_93lPKQUJRdmkPHpU68abVz0p__s8tAEZFj0uIJyKfIZtY_ySx60AnMJ0Rn1-yC_5EFw7TV2Fx3WspPrfd2-Wt3L6Zfv9Z_WNe2ucAUTgmKy4WZeO-jNGyjqqi4Q5RfoBiYjbtjJZjM1gFe1ZSUVEhMAlTZMK4i7G6O1YHoW6AKHkmomCFMsmUXu21vciG535XdP_f1XwFY7kU-k7P7aGzb7vRFCys714f2A6v37oivDAV8rJvfr-wO7Hpl1JiyRkA8WwsIN-7DZdMGpanxmbHmdZqsALTsoWdUdrta1Bsg3d7q6cOaqkMLaGVTMV2-0S2YHJ-l09n4QM-uM_g7ZQZqm20nvqi7dMkua6wfCdEkE2VEyfddPXyJL93eQPZj69hLhq53ifn_04f1zimMKjzbZQVVVD3jMjmU4ePv2v7Kgazue6WiaHif_lqfvWwgIjzkm5krUJT5aNxTBnLslrCDnGQ4V4AtASCoctwgVrdPztSp45kwLMTe6vVzyrEKn4qxtMDAwqwXm7GoLgbLGG_ssvIr94zjmjVDftN5BcMqzDb_m2Xh41B-nyThJ0mGajAZJzNc86w2So-EoSQbH78bHY_RYMryN-U_P0D8aDY6Hg_GQVtPhGJd-AZL58p8)
+```mermaid
 
+flowchart TD
+
+water((Water Sample
+ Collection and 
+ Processing)):::wat --> ALS & AWQP
+ subgraph Lab Analysis&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp                   
+    ALS(ALS Environmental Laboratories):::als --> houston  & Kelso
+    Kelso(Kelso, WA Laboratory \n ):::labs --> kelso
+    houston(Houston, TX Laboratory):::labs--> result & sample
+    AWQP --> tss(TSS Data):::dat
+    
+end
+    tss --> file(Local file folder)
+    result(Nutrient Results Data):::dat --> file
+    sample(Sample Meta Data):::dat --> file
+    kelso(Heavy Metal Data):::dat --> file
+    AWQP(AWQP Laboratory):::labs --> tss
+
+subgraph "ALS Data Cleaning Tool&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp"
+    file:::r --> import(Import Data):::r
+    import --> clean(Clean Data):::r
+    clean --> merge(Merge Data):::r
+    merge --> export(Process & Export Data):::r
+end
+
+subgraph &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspOutput Results
+    export -->|Site-Specific Report and Data| E{{Creates data report for one, 
+    user-selected research site}}:::out
+    
+    export -->|Water Sample Report for All Samples| D{{Creates data report for all
+    collected water sample data in local file folder}}:::out
+   
+    export -->|Master Database| F{{Export final data into master database for
+    future use}}:::out
+end
+
+classDef labs fill:#E3CDB1, stroke:#333, stroke-width:2px
+
+classDef dat fill:#82C503, stroke:#333, stroke-width:2px
+
+classDef als fill:##CCCCCC, stroke:#333, stroke-width:2px
+
+classDef wat fill:#008FB3, stroke:#333, stroke-width:2px, color:#fff
+
+classDef r fill:#006144, stroke:#333, stroke-width:2px, color:#fff
+
+classDef out fill:#C8C372, stroke:#333, stroke-width:2px, color:#000000
+
+```
 
 ## <u>Some Helpful Troubleshooting Notes</u>
 
