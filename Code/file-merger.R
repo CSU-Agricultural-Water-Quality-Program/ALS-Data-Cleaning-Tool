@@ -532,11 +532,11 @@ mergeFiles <- function(directory, tss_fp) {
                           pattern = "*.xls|.csv", 
                           full.names = TRUE)
   # import houston data files
-  data_files <- file_list[!grepl("-Samples|Kelso", file_list)]
+  data_files <- file_list[!grepl("-Samples|Kelso|kelso", file_list)]
   print("Houston data files to be merged:")
   print(data_files)
   # import kelso data files
-  kelso_files <- file_list[grepl("Kelso", file_list)]
+  kelso_files <- file_list[grepl("Kelso|kelso", file_list)]
   print("Kelso data files to be merged (if any):")
   print(kelso_files)
   # import meta data files
