@@ -117,7 +117,7 @@ classDef out fill:#C8C372, stroke:#333, stroke-width:2px, color:#000000
     * ~~Create confidential data folder to run using real ALS data~~
     * ~~create confidential TSS folder to run using real data~~
 * file-merger
-    * Add integration of separate excel file results when ALS Houston exports work to other ALS labs (e.g., when Selenium analysis is requested.)
+    * ~~Add integration of separate excel file results when ALS Houston exports work to other ALS labs (e.g., when Selenium analysis is requested.)~~
     * Fix sample hold time flag "H" in flagData funciton in file_merger.R
     * Add GPS coordinates dictionary to assign coordinates to each location and treatment (as necessary)
     * Develop a method to incorporate flow volume and calculate mass loads
@@ -129,7 +129,7 @@ classDef out fill:#C8C372, stroke:#333, stroke-width:2px, color:#000000
     * ~~Add static box and whisker plot to show distribution of results for each analyte over all irrigation/storm events~~
     * ~~Add method to include/exclude lab blanks from the data~~
 * water_report
-    * See if we can parse Kerbel results by treatment
+    * See if we can parse Kerbel results by treatment, and any other sties with treatements
     * ~~Create table of methods used in introduction~~
     * ~~fix Kerbel inflow/outflow not being colorized properly~~
 * site_selector
