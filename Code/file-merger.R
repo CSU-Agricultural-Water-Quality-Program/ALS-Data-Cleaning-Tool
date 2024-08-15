@@ -82,7 +82,7 @@ location.dict <- c(
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ",
   "Fruita W" = c("W1", "W2", "FW", "FW1", "FW2"),
-  "Fruita B" = c("FB", "FBR"),
+  "Fruita B" = c("FB", "FBR", "F-BR"),
   "Fruita NT" = "FNT",
   "Fruita A" = c("FA", "FALF"),
   "Lab Blank" = "BK",
@@ -439,14 +439,16 @@ addCoord <- function(df, geo_key) {
 dfTss <- function(tss_fp) {
   df <- read_excel(tss_fp, sheet = "MasterData") %>%
     # collect relevant columns
-    select(Sample_ID, Collection_date, `TSS_mg/L`, pH, `EC_mS/cm`) %>%
+    select(Sample_ID, Collection_date, `TSS_mg/L`, pH, `EC_mS/cm`, BAD_GOOD) %>%
     # rename to be congruent with ALS data
     rename(SAMPLE.ID = Sample_ID,
            COLLECTED = Collection_date,
            `Suspended Solids (Residue, Non-Filterable)` = `TSS_mg/L`,
            `Specific Conductance` = `EC_mS/cm`) %>%
+    # standardize the BAD_GOOD column to lowercase
+    mutate(BAD_GOOD = tolower(BAD_GOOD)) %>%
     # get rid of stock solution and D.I. TSS values
-    filter(!(SAMPLE.ID %in% c("Stock Solution", "DI"))) %>%
+    filter(!(SAMPLE.ID %in% c("Stock Solution", "DI")) & BAD_GOOD != "bad") %>%
     # omit NA values
     na.omit() %>%
     # processData here to get other columns correctly designated

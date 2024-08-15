@@ -1,6 +1,12 @@
+# Private files
+Code/site_selector.html
+Code/water_report.html
+Report/*all_files*
+
 # Private Data folders
 Confidential Data
 Confidential TSS
+site_selector_temporary_results
 
 # History files
 .Rhistory

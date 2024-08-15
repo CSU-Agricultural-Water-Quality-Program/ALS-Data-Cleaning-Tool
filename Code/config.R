@@ -42,3 +42,7 @@ create_directory_if_not_exists(dirname(tss_file_path))
 
 # Getting the directory name for TSS file path
 tss_directory <- dirname(tss_file_path)
+
+# Creating site_selector_temporary_results directory
+site_selector_dir <- file.path(directory, "site_selector_temporary_results")
+create_directory_if_not_exists(site_selector_dir)
