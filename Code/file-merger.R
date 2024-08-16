@@ -438,18 +438,25 @@ addCoord <- function(df, geo_key) {
 
 dfTss <- function(tss_fp) {
   df <- read_excel(tss_fp, sheet = "MasterData") %>%
-    # collect relevant columns
-    select(Sample_ID, Collection_date, `TSS_mg/L`, pH, `EC_mS/cm`, BAD_GOOD) %>%
-    # rename to be congruent with ALS data
+    # Standardize the BAD_GOOD column to lowercase
+    mutate(BAD_GOOD = tolower(BAD_GOOD)) %>%
+    # Consolidate filtering steps
+    filter(
+      # Keep rows where BAD_GOOD is not 'bad' or is NA
+      is.na(BAD_GOOD) | BAD_GOOD != 'bad',
+      # Remove 'Stock Solution' and 'DI' from SAMPLE.ID
+      !(Sample_ID %in% c("Stock Solution", "DI")),
+      # Remove rows where 'TSS_mg/L' is NA
+      !is.na(`TSS_mg/L`)
+    ) %>%
+    # Collect relevant columns
+    select(Sample_ID, Collection_date, `TSS_mg/L`, pH, `EC_mS/cm`) %>%
+    # Rename to be congruent with ALS data
     rename(SAMPLE.ID = Sample_ID,
            COLLECTED = Collection_date,
            `Suspended Solids (Residue, Non-Filterable)` = `TSS_mg/L`,
            `Specific Conductance` = `EC_mS/cm`) %>%
-    # standardize the BAD_GOOD column to lowercase
-    mutate(BAD_GOOD = tolower(BAD_GOOD)) %>%
-    # get rid of stock solution and D.I. TSS values
-    filter(!(SAMPLE.ID %in% c("Stock Solution", "DI")) & BAD_GOOD != "bad") %>%
-    # omit NA values
+    # Omit NA values (if still needed, this would omit rows with NA in any remaining column)
     na.omit() %>%
     # processData here to get other columns correctly designated
     processData() %>%
@@ -462,10 +469,10 @@ dfTss <- function(tss_fp) {
       `pH` = as.numeric(`pH`)
     ) %>%
     pivot_longer(cols = c(
-                          'pH', 'Suspended Solids (Residue, Non-Filterable)', 
-                          'Specific Conductance'),
-                 names_to = "ANALYTE", 
-                 values_to = "RESULT") %>%
+      'pH', 'Suspended Solids (Residue, Non-Filterable)', 
+      'Specific Conductance'),
+      names_to = "ANALYTE", 
+      values_to = "RESULT") %>%
     mutate(
       DILUTION = 1,
       `RESULT.REPORTED.TO` = "RL",
@@ -495,6 +502,7 @@ dfTss <- function(tss_fp) {
     ) 
   return(df)
 }
+
 
 executeFxns <- function(file_path, kelso=FALSE, geo_key) {
   # Conditionally use importData or importDataKelso based on kelso variable
