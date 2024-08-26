@@ -82,7 +82,7 @@ location.dict <- c(
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ",
   "Fruita W" = c("W1", "W2", "FW", "FW1", "FW2"),
-  "Fruita B" = c("FB", "FBR", "F-BR"),
+  "Fruita B" = c("FB", "FBR", "F-BR", "F-B"),
   "Fruita NT" = "FNT",
   "Fruita A" = c("FA", "FALF"),
   "Lab Blank" = "BK",
