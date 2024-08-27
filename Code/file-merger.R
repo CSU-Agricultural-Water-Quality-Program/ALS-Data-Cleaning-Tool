@@ -26,7 +26,10 @@
 # Example code execution for users
 # df_test <- returnSingleFile(path=file_path, export=FALSE)
 # df_all <- returnAllFiles(d=directory, export=FALSE)
-# Then take df_test or df_all and do whatever you want with it (e.g., graph)
+
+# for checking one site/trt only:
+# filtered_df <- df_all %>% filter(location.name == selected_location)
+# Then take df_test, df_all, or filtered_df and do whatever you want with it (e.g., graph)
 
 
 # Import libraries
@@ -82,9 +85,9 @@ location.dict <- c(
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ",
   "Fruita W" = c("W1", "W2", "FW", "FW1", "FW2"),
-  "Fruita B" = c("FB", "FBR", "F-BR", "F-B"),
+  "Fruita B" = c("FB", "FBR", "F-BR", "F-B", "BR"),
   "Fruita NT" = "FNT",
-  "Fruita A" = c("FA", "FALF"),
+  "Fruita A" = c("FA", "FALF", "F-ALF", "ALF"),
   "Lab Blank" = "BK",
   "Method Blank" = "Method Blank",
   "Lab Control Sample" = "Lab Control Sample"
