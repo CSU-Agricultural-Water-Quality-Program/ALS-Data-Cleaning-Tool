@@ -81,12 +81,12 @@ unique(dat$location.name)
 # loc = 'Boulder Lake'
 # loc = 'Below Stagecoach Dam'
 # loc = 'Fruita A'
-# loc = 'Fruita B'
+loc = 'Fruita B'
 # loc = 'Fruita NT'
 # loc = 'Fruita W'
 # loc = 'Gunnison'
 # loc = 'Kerbel'
-loc = 'Legacy'
+# loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Morrison Creek'
 # loc = 'Stage Coach Above'
@@ -181,7 +181,7 @@ create_violinplot <- function(df, selected_location) {
   tryCatch({
     # Call the function to filter the Data
     
-    y_axis_var_names <- sort(unique(df$analyte))
+    y_axis_var_names <- sort(unique(df$analyte.abbr))
     
     # Specify event colors and types
     event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
@@ -189,7 +189,7 @@ create_violinplot <- function(df, selected_location) {
     
     # Create the buttons for the dropdown menu
     dropdown_buttons <- lapply(unique(y_axis_var_names), function(analyte_name) {
-      y_data <- df$result[df$analyte == analyte_name]
+      y_data <- df$result[df$analyte.abbr == analyte_name]
       y_range <- range(c(0, y_data), na.rm = TRUE)
       
       list(
@@ -254,14 +254,14 @@ analyte to see it displayed correctly.
 create_scatterplot <- function(df, selected_location) {
   
   tryCatch({
-    y_axis_var_names <- sort(unique(df$analyte))
+    y_axis_var_names <- sort(unique(df$analyte.abbr))
   
     # Specify event colors and types
     event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
     event_types <- c("Inflow", "Outflow", "Point Sample")
     
     create_buttons <- function(y_axis_var_name) {
-      analyte_data <- df[df$analyte == y_axis_var_name, ]
+      analyte_data <- df[df$analyte.abbr == y_axis_var_name, ]
       y_data <- analyte_data$result
       
       y_range <- range(y_data)
@@ -278,7 +278,7 @@ create_scatterplot <- function(df, selected_location) {
     
     # Create a scatter plot with the first analyte's data
     first_analyte <- y_axis_var_names[1]
-    first_analyte_data <- df[df$analyte == first_analyte, ]
+    first_analyte_data <- df[df$analyte.abbr == first_analyte, ]
     first_analyte_y_range <- create_buttons(first_analyte)
     
     initial_y_data <- first_analyte_data$result
@@ -332,12 +332,12 @@ create_scatterplot_matrix <- function(df, location_name) {
       mutate(sample.id = gsub("-[1-5]$", "", sample.id), # remove -1 to -5 at the end of strings 
              sample.id = gsub("-[1-5]-D$", "-D", sample.id),  # do the same for duplicates
              sample.id = gsub("-2,3,5", "", sample.id)) %>%  # remove special case of "-2,3,5"
-      select(sample.id, result, analyte, event.type)
+      select(sample.id, result, analyte.abbr, event.type)
 
     # Pivot the data wider with aggregation of duplicates by mean
     pivoted_data <- filtered_data %>%
       tidyr::pivot_wider(
-        names_from = analyte,
+        names_from = analyte.abbr,
         values_from = result,
         values_fn = list(result = mean)  # Specify how to aggregate duplicates
       )
@@ -389,7 +389,7 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
                    position = position_dodge(0)
                    ) + 
       geom_jitter(width = 0.2, size = 1.5, alpha = 0.6) + # Add jitter to show individual data points
-      facet_grid(analyte ~ event.count, scales = "free_y", space = "free_x") +
+      facet_grid(analyte.abbr ~ event.count, scales = "free_y", space = "free_x") +
       theme_minimal() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 14), # Increase x axis text size
@@ -449,7 +449,7 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
     
     # Summarize the data
     summary_df <- df %>%
-      group_by(event.type, analyte, event.count) %>%
+      group_by(event.type, analyte.abbr, event.count) %>%
       summarize(mean = mean(result, na.rm = TRUE),
                 sd = sd(result, na.rm = TRUE),
                 .groups = 'drop')
@@ -461,7 +461,7 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
     bar_plot <- ggplot(summary_df, aes(x = factor(event.type), y = mean, fill = factor(event.type))) +
       geom_bar(stat = "identity", position = position_dodge(0), color = 'black') +
       geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2, position = position_dodge(0)) +
-      facet_grid(analyte ~ event.count, scales = "free_y", space = "free_x") +
+      facet_grid(analyte.abbr ~ event.count, scales = "free_y", space = "free_x") +
       theme_minimal() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 14), # Increase x axis text size

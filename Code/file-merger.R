@@ -166,6 +166,21 @@ tssUnits.dict <- c(
   "pH" = "pH"
    )
 
+analyteAbbr.dict <- c(
+  "TKN"   = "Nitrogen, Total Kjeldahl",
+  "NO2-N" = "Nitrogen, Nitrite  (As N)",
+  "PO4-P" = "Phosphorus, Total Orthophosphate (as P)",
+  "TP"    = "Phosphorus, Total (As P)",
+  "TDS"   = "Total Dissolved Solids (Residue, Filterable)",
+  "NO3-N" = "Nitrogen, Nitrate (As N)",
+  "TSS"   = c("Suspended Solids (Residue, Non-Filterable)","TSS"),
+  "Fe"    = "Iron, Total",
+  "Se"    = "Selenium, Total",
+  "pH"    = "pH",
+  "EC25"  = "Specific Conductance"
+)
+
+
 
 # copy/paste excel data below to create geodata dataframe (i.e., separated by tabs, \t)
 geo_key <- read.csv(text = "
@@ -587,7 +602,11 @@ mergeFiles <- function(directory, tss_fp) {
   
   # Merge TSS data with the combined data
   df <- bind_rows(df_merge, df_tss) %>%
-    filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE))
+    filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE)) %>%
+    mutate(
+        # create analyte abbreviation column based on ANALYTE
+        analyte.abbr = sapply(ANALYTE, function(x) map_values(x, analyteAbbr.dict))
+    )
   
   # Drop unnecessary columns that get re-created during merge
   # List of columns to drop
