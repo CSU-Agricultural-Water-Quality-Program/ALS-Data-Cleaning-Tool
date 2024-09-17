@@ -242,12 +242,21 @@ Fruita Alfalfa		Outflow	-108.7800218	39.22234458
 
 # Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {
- # function to map sample ID text to dictionary values
-  # Split the text by spaces
+  # Check if text is related to Suspended Solids (SS) and return the abbreviation directly
+  if (grepl("Suspended Solids", text)) {
+    for (key in names(dict)) {
+      if (text %in% dict[[key]]) {
+        return(key)
+      }
+    }
+    return(NA)
+  }
+  
+  # Proceed with normal splitting for other cases
   text_values <- unlist(strsplit(text, "-"))
-
+  
   # Map each value to the corresponding dictionary value
-  mapped_values <- lapply(text_values, function(x) {
+  mapped_values <- sapply(text_values, function(x) {
     for (key in names(dict)) {
       if (x %in% dict[[key]]) {
         return(key)
@@ -255,19 +264,18 @@ map_values <- function(text, dict) {
     }
     return(NA)
   })
-
-  # Combine the mapped values into a single vector
-  combined_values <- unlist(mapped_values)
-
+  
   # Remove any NAs
-  combined_values <- combined_values[!is.na(combined_values)]
-
+  mapped_values <- mapped_values[!is.na(mapped_values)]
+  
   # Return the first combined value (or NA if there are no values)
-  if (length(combined_values) > 0) {
-    return(combined_values[1])
+  result <- if (length(mapped_values) > 0) {
+    mapped_values[1]
   } else {
-    return(NA)
+    NA
   }
+  
+  return(result)
 }
 
 importData <- function(file_path) {
@@ -377,7 +385,7 @@ processData <- function(df) {
       across(c(
           "location.name", 
           "method.name", 
-          "event.type"
+          "event.type",
         ), 
         ~gsub("[0-9]", "", .)
       ),
@@ -521,7 +529,6 @@ dfTss <- function(tss_fp) {
   return(df)
 }
 
-
 executeFxns <- function(file_path, kelso=FALSE, geo_key) {
   # Conditionally use importData or importDataKelso based on kelso variable
   if (kelso) {
@@ -605,7 +612,8 @@ mergeFiles <- function(directory, tss_fp) {
     filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE)) %>%
     mutate(
         # create analyte abbreviation column based on ANALYTE
-        analyte.abbr = sapply(ANALYTE, function(x) map_values(x, analyteAbbr.dict))
+        analyte.abbr = sapply(ANALYTE, function(x) map_values(x, analyteAbbr.dict)),
+        analyte.abbr = gsub("1", "", analyte.abbr)
     )
   
   # Drop unnecessary columns that get re-created during merge
