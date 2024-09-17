@@ -380,8 +380,9 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
       dir.create(output_dir, recursive = TRUE)
     }
     
-    # Create the file path
-    file_path <- file.path(output_dir, file_name)
+    # Create the file paths for portrait and landscape versions
+    file_path_portrait <- file.path(output_dir, file_name)
+    file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
     
     # Generate the box and whisker plot
     bw_plot <- ggplot(df, aes(x = factor(event.type), y = result, fill = factor(event.type))) +
@@ -404,12 +405,15 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
         strip.background = element_rect(colour = "black", fill = "white"),
         panel.grid.major = element_line(size = 1), # Increase major grid line size
         panel.grid.minor = element_line(size = 0.5) # Increase minor grid line size
-        )+
+      ) +
       labs(title = plot.title, x = "Event Type", y = "Result", fill = "Event Type") +
       scale_fill_brewer(palette = "Pastel1") # Colorblind-friendly palette
     
-    # Save the plot as a PNG file
-    ggsave(file_path, bw_plot, width = 8, height = 12, units = "in")
+    # Save the portrait version of the plot
+    ggsave(file_path_portrait, bw_plot, width = 8.5, height = 11, units = "in")
+    
+    # Save the landscape version of the plot
+    ggsave(file_path_landscape, bw_plot, width = 11, height = 8.5, units = "in")
     
     # Return the plot object for rendering in the HTML document
     return(bw_plot)
@@ -418,6 +422,7 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
     return(e$message) # Return error message
   })
 }
+
 
 bw_N <- create_and_save_boxwhisker_plot(N_df,
                                         output_dir = "./site_selector_temporary_results",
@@ -454,8 +459,9 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
                 sd = sd(result, na.rm = TRUE),
                 .groups = 'drop')
 
-    # Create the file path
-    file_path <- file.path(output_dir, file_name)
+    # Create the file paths for portrait and landscape versions
+    file_path_portrait <- file.path(output_dir, file_name)
+    file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
     
     # Generate the bar plot with error bars
     bar_plot <- ggplot(summary_df, aes(x = factor(event.type), y = mean, fill = factor(event.type))) +
@@ -476,13 +482,16 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
         strip.background = element_rect(colour = "black", fill = "white"),
         panel.grid.major = element_line(size = 1), # Increase major grid line size
         panel.grid.minor = element_line(size = 0.5) # Increase minor grid line size
-        )+
+      ) +
       labs(title = plot.title, x = "Event Type", y = "Result", fill = "Event Type") +
       scale_fill_brewer(palette = "Pastel1") # Colorblind-friendly palette
 
-    # Save the plot as a PNG file
-    ggsave(file_path, bar_plot, width = 8, height = 12, units = "in")
+    # Save the portrait version of the plot
+    ggsave(file_path_portrait, bar_plot, width = 8.5, height = 11, units = "in")
     
+    # Save the landscape version of the plot
+    ggsave(file_path_landscape, bar_plot, width = 11, height = 8.5, units = "in")
+
     # Return the plot object for rendering in the HTML document
     return(bar_plot)
   }, error = function(e) {
