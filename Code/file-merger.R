@@ -91,7 +91,7 @@ location.dict <- c(
   "Lab Blank" = "BK",
   "Method Blank" = "Method Blank",
   "Lab Control Sample" = "Lab Control Sample"
-)
+  )
 
 trt.dict <- c(
   "ST1" = c("ST1", "AVST1"),
@@ -100,7 +100,7 @@ trt.dict <- c(
   "CT2" = c("CT2", "AVCT2"),
   "MT1" = "MT1",
   "MT2" = "MT2",
-  "Inflow" = "INF",
+  "Inflow" = c("INF", "IN", "Inflow"),
   "River A" = "RVA",
   "River B" = "RVB",
   "River Middle" = "RVMID",
@@ -162,7 +162,10 @@ eventCount.dict <- c(
 
 tssUnits.dict <- c(
   "TSS" = "mg/L",
-  "EC" = "mS/cm",
+  "Suspended Solids (Residue, Non-Filterable)" = "mg/L",
+  "EC" = "dS/cm",
+  "EC25" = "dS/cm",
+  "Specific Conductance" = "dS/cm",
   "pH" = "pH"
    )
 
@@ -178,7 +181,7 @@ analyteAbbr.dict <- c(
   "Se"    = "Selenium, Total",
   "pH"    = "pH",
   "EC25"  = "Specific Conductance"
-)
+  )
 
 
 
@@ -395,6 +398,12 @@ processData <- function(df) {
       treatment.name = ifelse(
         grepl("[0-9][0-9]$", treatment.name), 
         substr(treatment.name, 1, nchar(treatment.name) - 1), 
+        treatment.name
+      ),
+      # check treatment name for "Inflow" and remove number after it e.g., "Inflow2" should be "Inflow"
+      treatment.name = ifelse(
+        grepl("Inflow", treatment.name), 
+        "Inflow", 
         treatment.name
       ),
       event.count = as.character(event.count)
