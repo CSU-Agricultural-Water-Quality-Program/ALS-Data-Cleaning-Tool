@@ -373,7 +373,18 @@ create_scatterplot_matrix(filtered_df, loc)
 
 # Static Box and Whisker Plots
 ```{r, fig.height=20, fig.width=12}
-create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.title) {
+# Create a check for treatment.name levels, aside from "Inflow", and make treatment.name the x-axis if present (e.g., 'CT1').
+if (length(levels(as.factor(filtered_df$treatment.name))) > 1) {
+  x_axis_var_name <- "treatment.name"
+} else {
+  x_axis_var_name <- "event.type"
+}
+
+
+```
+
+```{r}
+create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.title, x_axis_var) {
   tryCatch({
     # Ensure the output directory exists
     if (!dir.exists(output_dir)) {
@@ -384,11 +395,9 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
     file_path_portrait <- file.path(output_dir, file_name)
     file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
     
-    # Generate the box and whisker plot
-    bw_plot <- ggplot(df, aes(x = factor(event.type), y = result, fill = factor(event.type))) +
-      geom_boxplot(#outlier.shape = NA, # Hide outliers for clarity
-                   position = position_dodge(0)
-                   ) + 
+    # Generate the box and whisker plot with dynamic x-axis
+    bw_plot <- ggplot(df, aes_string(x = x_axis_var, y = "result", fill = x_axis_var)) +
+      geom_boxplot(position = position_dodge(0)) + 
       geom_jitter(width = 0.2, size = 1.5, alpha = 0.6) + # Add jitter to show individual data points
       facet_grid(analyte.abbr ~ event.count, scales = "free_y", space = "free_x") +
       theme_minimal() +
@@ -424,18 +433,22 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
 }
 
 
+
 bw_N <- create_and_save_boxwhisker_plot(N_df,
                                         output_dir = "./site_selector_temporary_results",
                                         file_name = "bw_N.jpg",
-                                        plot.title = 'Forms of Nitrogen')
+                                        plot.title = 'Forms of Nitrogen',
+                                        x_axis_var = x_axis_var_name)
 bw_P <- create_and_save_boxwhisker_plot(P_df,
                                         output_dir = "./site_selector_temporary_results",
                                         file_name = "bw_P.jpg",
-                                        plot.title = 'Forms of Phosphorous')
+                                        plot.title = 'Forms of Phosphorous',
+                                        x_axis_var = x_axis_var_name)
 bw_Misc <- create_and_save_boxwhisker_plot(Misc_df,
-                                            output_dir = "./site_selector_temporary_results",
-                                            file_name = "bw_Misc.jpg",
-                                        plot.title = 'Water Quality Analytes')
+                                           output_dir = "./site_selector_temporary_results",
+                                           file_name = "bw_Misc.jpg",
+                                           plot.title = 'Water Quality Analytes',
+                                           x_axis_var = x_axis_var_name)
 
 bw_N
 bw_P
@@ -445,7 +458,7 @@ bw_Misc
 
 # Static Bar Plots
 ```{r, fig.height=20, fig.width=12}
-create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
+create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title, x_axis_var) {
   tryCatch({
     # Ensure the output directory exists
     if (!dir.exists(output_dir)) {
@@ -454,7 +467,7 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
     
     # Summarize the data
     summary_df <- df %>%
-      group_by(event.type, analyte.abbr, event.count) %>%
+      group_by(!!sym(x_axis_var), analyte.abbr, event.count) %>%
       summarize(mean = mean(result, na.rm = TRUE),
                 sd = sd(result, na.rm = TRUE),
                 .groups = 'drop')
@@ -463,8 +476,8 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
     file_path_portrait <- file.path(output_dir, file_name)
     file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
     
-    # Generate the bar plot with error bars
-    bar_plot <- ggplot(summary_df, aes(x = factor(event.type), y = mean, fill = factor(event.type))) +
+    # Generate the bar plot with error bars and dynamic x-axis
+    bar_plot <- ggplot(summary_df, aes_string(x = x_axis_var, y = "mean", fill = x_axis_var)) +
       geom_bar(stat = "identity", position = position_dodge(0), color = 'black') +
       geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2, position = position_dodge(0)) +
       facet_grid(analyte.abbr ~ event.count, scales = "free_y", space = "free_x") +
@@ -500,18 +513,22 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title) {
   })
 }
 
+
 bar_N <- create_and_save_bar_plot(N_df,
                                   output_dir = "./site_selector_temporary_results",
                                   file_name = "bar_N.jpg",
-                                  plot.title = 'Forms of Nitrogen')
+                                  plot.title = 'Forms of Nitrogen',
+                                  x_axis_var = x_axis_var_name)
 bar_P <- create_and_save_bar_plot(P_df,
                                   output_dir = "./site_selector_temporary_results",
                                   file_name = "bar_P.jpg",
-                                  plot.title = 'Forms of Phosphorus')
+                                  plot.title = 'Forms of Phosphorus',
+                                  x_axis_var = x_axis_var_name)
 bar_Misc <- create_and_save_bar_plot(Misc_df,
                                      output_dir = "./site_selector_temporary_results",
                                      file_name = "bar_Misc.jpg",
-                                    plot.title = 'Water Quality Analytes')
+                                     plot.title = 'Water Quality Analytes',
+                                     x_axis_var = x_axis_var_name)
 
 bar_N
 bar_P

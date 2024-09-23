@@ -28,7 +28,7 @@
 # df_all <- returnAllFiles(d=directory, export=FALSE)
 
 # for checking one site/trt only:
-# filtered_df <- df_all %>% filter(location.name == selected_location)
+# filtered_df <- df_all %>% filter(location.name == 'Kerbel')
 # Then take df_test, df_all, or filtered_df and do whatever you want with it (e.g., graph)
 
 
@@ -63,7 +63,7 @@ source('./Code/config.R')
 
 # Dictionaries for interpreting sample ID codes
   # Add to these at needed for new locations, treatments, methods, etc.
-location.dict <- c(
+location.dict <- list(
   "ARDEC" = "A2", #TODO: fix 2200 labeling in process data fxn; 2200 is removed
   "ARDEC South - Conv" = "ASC",
   "ARDEC South - Org" = "ASO",
@@ -93,13 +93,12 @@ location.dict <- c(
   "Lab Control Sample" = "Lab Control Sample"
   )
 
-trt.dict <- c(
-  "ST1" = c("ST1", "AVST1"),
-  "ST2" = c("ST2", "AVST2"),
-  "CT1" = c("CT1", "AVCT1"),
-  "CT2" = c("CT2", "AVCT2"),
-  "MT1" = "MT1",
-  "MT2" = "MT2",
+trt.dict <- list(
+  #note that leaving AVRC and Kerbel as CT/MT/ST breaks the GPS coordinate locator b/c it needs the block# in the trt name to find it (e.g., CT2)
+  #I've opted to let this be the case for now, but it could be fixed by adding the block# to the treatment.name here if needed.
+  "ST" = c("ST1", "AVST1", "ST2", "AVST2"),
+  "CT" = c("CT1", "AVCT1", "CT2", "AVCT2"),
+  "MT" = c("MT1", "MT2"),
   "Inflow" = c("INF", "IN", "Inflow"),
   "River A" = "RVA",
   "River B" = "RVB",
@@ -124,7 +123,7 @@ trt.dict <- c(
   "W2" = c("W2", "FW2")
   )
 
-method.dict <- c(
+method.dict <- list(
   "ISCO" = c("ISC"), # formerly had "IN", "OT", "0T" here, but I think it messed up labels
   "Low-Cost Sampler" = c("LC", "INLC", "OTLC"),
   "Grab Sample" = c("GB", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"),
@@ -134,7 +133,7 @@ method.dict <- c(
   "Lab Control Sample" = c("Lab Control Sample")
   )
 
-eventType.dict <- c(
+eventType.dict <- list(
   "Inflow" = c("IN", "INF", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", 
                "IN7", "IN8", "IN9"),
   "Outflow" = c("OUT", "OT", "OTLC", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2",
@@ -144,7 +143,7 @@ eventType.dict <- c(
   "Lab Control Sample" = c("Lab Control Sample")
   )
 
-eventCount.dict <- c(
+eventCount.dict <- list(
   "Irrigation 1" = c("01"),
   "Irrigation 2" = c("02"),
   "Irrigation 3" = c("03"),
@@ -169,27 +168,25 @@ tssUnits.dict <- c(
   "pH" = "pH"
    )
 
-analyteAbbr.dict <- c(
+analyteAbbr.dict <- list(
   "TKN"   = "Nitrogen, Total Kjeldahl",
   "NO2-N" = "Nitrogen, Nitrite  (As N)",
   "PO4-P" = "Phosphorus, Total Orthophosphate (as P)",
   "TP"    = "Phosphorus, Total (As P)",
   "TDS"   = "Total Dissolved Solids (Residue, Filterable)",
   "NO3-N" = "Nitrogen, Nitrate (As N)",
-  "TSS"   = c("Suspended Solids (Residue, Non-Filterable)","TSS"),
+  "TSS"   = c("Suspended Solids (Residue, Non-Filterable)", "TSS"),
   "Fe"    = "Iron, Total",
   "Se"    = "Selenium, Total",
   "pH"    = "pH",
   "EC25"  = "Specific Conductance"
   )
 
-
-
 # copy/paste excel data below to create geodata dataframe (i.e., separated by tabs, \t)
 geo_key <- read.csv(text = "
 location.name	treatment.name	event.type	long	lat
-ARDEC		Outflow	-104.9869329	40.65356941
-ARDEC		Inflow	-104.9888983	40.65361825
+ARDEC 2200		Outflow	-104.9869329	40.65356941
+ARDEC 2200		Inflow	-104.9888983	40.65361825
 AVRC STAR	CT1	Point Sample	-103.689906	38.03957397
 AVRC STAR	ST1	Point Sample	-103.6898805	38.03982154
 AVRC STAR	ST2	Point Sample	-103.68987	38.04005803
@@ -220,6 +217,7 @@ Kerbel	ST1	Outflow	-104.99764	40.67641
 Kerbel	ST2	Outflow	-104.99701	40.67636
 Kerbel	MT1	Outflow	-104.99798	40.67641
 Kerbel	MT2	Outflow	-104.99735	40.67638
+Kerbel	Inflow	Inflow	-104.997502	40.679262
 Legacy		Outflow	-106.8205175	40.43192773
 Molina		Inflow	-108.04037	39.163825
 Molina		Outflow	-108.04204	39.17067
@@ -232,11 +230,11 @@ Upper Yampa		Outflow	-106.922182	40.20191997
 Upper Yampa		Inflow	-106.91579	40.19042
 Upper Yampa	Piezometer North	Point Sample	-106.92215	40.20168
 Upper Yampa	Piezometer South 	Point Sample	-106.92193	40.20131
-Fruita W		Inflow	-108.6919781	39.18870659
-Fruita W	W1	Outflow	-108.6945949	39.18915138
-Fruita W	W2	Outflow	-108.6946281	39.18913084
-Fruita B		Inflow	-108.6592228	39.17582245
-Fruita B		Outflow	-108.663471	39.17578835
+Fruita Water		Inflow	-108.6919781	39.18870659
+Fruita Water	W1	Outflow	-108.6945949	39.18915138
+Fruita Water	W2	Outflow	-108.6946281	39.18913084
+Fruita Beer		Inflow	-108.6592228	39.17582245
+Fruita Beer		Outflow	-108.663471	39.17578835
 Fruita No Till		Inflow	-108.7285248	39.24897763
 Fruita No Till		Outflow	-108.7266562	39.24607514
 Fruita Alfalfa		Inflow	-108.7801719	39.22423003
@@ -245,40 +243,21 @@ Fruita Alfalfa		Outflow	-108.7800218	39.22234458
 
 # Define Private Functions (i.e., do not call them directly)
 map_values <- function(text, dict) {
-  # Check if text is related to Suspended Solids (SS) and return the abbreviation directly
-  if (grepl("Suspended Solids", text)) {
-    for (key in names(dict)) {
-      if (text %in% dict[[key]]) {
-        return(key)
+  # Ensure text is treated as a character string
+  text <- as.character(text)
+  
+  # Loop through each key in the dictionary
+  for (key in names(dict)) {
+    # Check each value associated with the current key
+    for (value in dict[[key]]) {
+      # Use fixed = TRUE for exact substring matching (without regex)
+      if (grepl(value, text, fixed = TRUE)) {
+        return(key)  # Return the key if a match is found
       }
     }
-    return(NA)
   }
   
-  # Proceed with normal splitting for other cases
-  text_values <- unlist(strsplit(text, "-"))
-  
-  # Map each value to the corresponding dictionary value
-  mapped_values <- sapply(text_values, function(x) {
-    for (key in names(dict)) {
-      if (x %in% dict[[key]]) {
-        return(key)
-      }
-    }
-    return(NA)
-  })
-  
-  # Remove any NAs
-  mapped_values <- mapped_values[!is.na(mapped_values)]
-  
-  # Return the first combined value (or NA if there are no values)
-  result <- if (length(mapped_values) > 0) {
-    mapped_values[1]
-  } else {
-    NA
-  }
-  
-  return(result)
+  return(NA)  # Return NA if no match is found
 }
 
 importData <- function(file_path) {
@@ -363,8 +342,7 @@ processData <- function(df) {
       # create duplicate column
       duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
       # create location name column based on Sample ID
-      location.name = sapply(SAMPLE.ID,
-                             function(x) map_values(x, location.dict)),
+      location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
       # create treatment name column based on Sample ID
       treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
       # create method name column based on Sample ID
@@ -396,17 +374,17 @@ processData <- function(df) {
       # so we modify treatment.name based on whether the last TWO characters are
       # numbers. If yes, then drop one digit, else leave it alone to preserve.
       treatment.name = ifelse(
-        grepl("[0-9][0-9]$", treatment.name), 
-        substr(treatment.name, 1, nchar(treatment.name) - 1), 
+        grepl("[0-9][0-9]$", treatment.name),
+        substr(treatment.name, 1, nchar(treatment.name) - 1),
         treatment.name
       ),
       # check treatment name for "Inflow" and remove number after it e.g., "Inflow2" should be "Inflow"
       treatment.name = ifelse(
-        grepl("Inflow", treatment.name), 
-        "Inflow", 
+        grepl("Inflow", treatment.name),
+        "Inflow",
         treatment.name
       ),
-      event.count = as.character(event.count)
+      event.count = as.factor(event.count)
     )
   return(df)
 }
