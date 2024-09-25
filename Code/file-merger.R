@@ -251,6 +251,7 @@ map_values <- function(text, dict) {
     # Check each value associated with the current key
     for (value in dict[[key]]) {
       # Use fixed = TRUE for exact substring matching (without regex)
+      # TODO: fix grepl below; identifies 'ISC' as Stageocach erroneously
       if (grepl(value, text, fixed = TRUE)) {
         return(key)  # Return the key if a match is found
       }
