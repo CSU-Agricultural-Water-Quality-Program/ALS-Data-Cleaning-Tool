@@ -28,7 +28,7 @@
 # df_all <- returnAllFiles(d=directory, export=FALSE)
 
 # for checking one site/trt only:
-# filtered_df <- df_all %>% filter(location.name == 'Kerbel')
+# filtered_df <- df_all %>% filter(location.name == 'Stagecoach')
 # Then take df_test, df_all, or filtered_df and do whatever you want with it (e.g., graph)
 
 
@@ -242,7 +242,7 @@ Fruita Alfalfa		Outflow	-108.7800218	39.22234458
 ", sep = '\t', header = TRUE, stringsAsFactors = FALSE)
 
 # Define Private Functions (i.e., do not call them directly)
-map_values <- function(text, dict) {
+map_values_analyte <- function(text, dict) {
   # Ensure text is treated as a character string
   text <- as.character(text)
   
@@ -260,6 +260,25 @@ map_values <- function(text, dict) {
   
   return(NA)  # Return NA if no match is found
 }
+
+map_values <- function(text, dict) {
+  # Ensure text is treated as a character string
+  text <- as.character(text)
+  
+  # Loop through each key in the dictionary
+  for (key in names(dict)) {
+    # Check each value associated with the current key
+    for (value in dict[[key]]) {
+      # Use grepl with word boundaries to match whole words
+      if (grepl(paste0("\\b", value, "\\b"), text)) {
+        return(key)  # Return the key if a match is found
+      }
+    }
+  }
+  
+  return(NA)  # Return NA if no match is found
+}
+
 
 importData <- function(file_path) {
   # ALS exports data as xls, but it is actually htm,
@@ -280,7 +299,7 @@ importDataXls <- function(file_path) {
 
 importDataKelso <- function(file_path) {
   # Selenium testing is done by the Kelso lab and is a csv file
-  df <- read_csv(file_path) %>%  #read in csv file
+  df <- read_csv(file_path, show_col_types = FALSE) %>%  #read in csv file
     # TODO: check if we actually need to add these NA cols to make it work, b/c we remove them later anyway in executeFxns
     mutate(METHOD =paste0(`Extraction Method`, sep = "-", Method),
            LAB.ID = NA,
@@ -317,7 +336,9 @@ cleanData <- function(df) {
       # remove "See Attached" values, code 9999 set for flagging in flagData()
       RESULT = gsub("See Attached", 9999, RESULT),
       # make results numeric
-      RESULT = as.numeric(ifelse(RESULT == "N/A", NA, RESULT)),
+      RESULT = gsub("N/A", NA, RESULT),
+      RESULT = gsub("[^0-9.-]", "", RESULT),  # Remove any remaining non-numeric characters
+      RESULT = as.numeric(RESULT),  # Convert to numeric
       # remove the scentific notation from results
       RESULT = ifelse(!is.na(RESULT), format(RESULT, scientific = FALSE), NA),
       # create column to indicate if a result value was a non-detect
@@ -600,7 +621,7 @@ mergeFiles <- function(directory, tss_fp) {
     filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE)) %>%
     mutate(
         # create analyte abbreviation column based on ANALYTE
-        analyte.abbr = sapply(ANALYTE, function(x) map_values(x, analyteAbbr.dict)),
+        analyte.abbr = sapply(ANALYTE, function(x) map_values_analyte(x, analyteAbbr.dict)),
         analyte.abbr = gsub("1", "", analyte.abbr)
     )
   
