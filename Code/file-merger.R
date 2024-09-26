@@ -73,7 +73,7 @@ location.dict <- list(
   "Big Hollow" = "HOL",
   "Boulder Lake" = "BOL",
   "Gunnison" = "GU",
-  "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
+  "Kerbel" = c("K", "KB", "KBI", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
   "Legacy" = "LG",
   "Molina" = "MOL",
   "Stagecoach" = c("SC", "SB", "SCA", "SB-SCA", "SCI", "SB-SCI", "SCO", "SB-SCO", "MOR", "SB-MOR", "TR", "SB-TR"),
@@ -99,7 +99,8 @@ trt.dict <- list(
   "ST" = c("ST1", "AVST1", "ST2", "AVST2"),
   "CT" = c("CT1", "AVCT1", "CT2", "AVCT2"),
   "MT" = c("MT1", "MT2"),
-  "Inflow" = c("INF", "IN", "Inflow"),
+  "Inflow" = c("INF", "IN", "Inflow", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", 
+               "IN7", "IN8", "IN9"),
   "River A" = "RVA",
   "River B" = "RVB",
   "River Middle" = "RVMID",
@@ -141,7 +142,7 @@ method.dict <- list(
 
 eventType.dict <- list(
   "Inflow" = c("IN", "INF", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", 
-               "IN7", "IN8", "IN9"),
+               "IN7", "IN8", "IN9", "Inflow"),
   "Outflow" = c("OUT", "OT", "OTLC", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2",
                 "0T"),
   "Lab Blank" = c("BK"),

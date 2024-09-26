@@ -31,6 +31,9 @@ create_directory_if_not_exists <- function(directory_path) {
 # tss_file_path <- '{your file path to TSS data FILE here}'
 
 # Example using real data files for and create folder function:
+# directory <- "./Confidential Data/2022"
+# tss_file_path <- './Confidential TSS/2022/TSS_Master_2022.xlsx'
+
 # directory <- "./Confidential Data/2023"
 # tss_file_path <- './Confidential TSS/2023/TSS_Master_2023.xlsx'
 
