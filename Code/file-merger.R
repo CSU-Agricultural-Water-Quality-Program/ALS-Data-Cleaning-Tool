@@ -76,7 +76,7 @@ location.dict <- list(
   "Kerbel" = c("K", "KB", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
   "Legacy" = "LG",
   "Molina" = "MOL",
-  "Stagecoach" = c("SC","SB"),
+  "Stagecoach" = c("SC", "SB", "SCA", "SB-SCA", "SCI", "SB-SCI", "SCO", "SB-SCO", "MOR", "SB-MOR", "TR", "SB-TR"),
   "Morrison Creek" = c("MOR","SB-MOR"),
   "Stage Coach Above" = c("SCA","SB-SCA"),
   "Stage Coach In" = c("SCI", "SB-SCI"),
@@ -119,6 +119,12 @@ trt.dict <- list(
   "Upper willow at @ culvert (swale)" = "CUL",
   "Fish Pond" = "FP",
   "Fire 2" = "FR2",
+  "Stagecoach ISCO" = c("SC", "SB"),
+  "Morrison Creek" = c("MOR","SB-MOR"),
+  "Stagecoach Above" = c("SCA","SB-SCA"),
+  "Stagecoach In" = c("SCI", "SB-SCI"),
+  "Stagecoach Dam Outflow" = c("SCO","SB-SCO"),
+  "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
   "W1" = c("W1", "FW1"),
   "W2" = c("W2", "FW2")
   )
