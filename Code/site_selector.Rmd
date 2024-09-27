@@ -85,12 +85,12 @@ unique(dat$location.name)
 # loc = 'Fruita NT'
 # loc = 'Fruita W'
 # loc = 'Gunnison'
- loc = 'Kerbel'
+# loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Stagecoach'
 # loc = 'The Ranch'
-# loc = 'Upper Yampa'
+ loc = 'Upper Yampa'
 # loc = 'Yellow Jacket'
 
 #create a filtered df to use for violin plots and scatterplot
@@ -179,10 +179,6 @@ create_violinplot <- function(df, selected_location) {
     
     y_axis_var_names <- sort(unique(df$analyte.abbr))
     
-    # Specify event colors and types
-    event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
-    event_types <- c("Inflow", "Outflow", "Point Sample")
-    
     # Create the buttons for the dropdown menu
     dropdown_buttons <- lapply(unique(y_axis_var_names), function(analyte_name) {
       y_data <- df$result[df$analyte.abbr == analyte_name]
@@ -197,10 +193,9 @@ create_violinplot <- function(df, selected_location) {
     })
     
     location_violin_plot <- plot_ly(data = df,
-                                    x = ~event.type,
+                                    x = ~treatment.name,
                                     y = ~result,
-                                    color = ~event.type,
-                                    colors = event_colors,
+                                    color = ~treatment.name,
                                     type = 'violin', box = list(
                                       visible = TRUE
                                     ),
@@ -251,10 +246,6 @@ create_scatterplot <- function(df, selected_location) {
   
   tryCatch({
     y_axis_var_names <- sort(unique(df$analyte.abbr))
-  
-    # Specify event colors and types
-    event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
-    event_types <- c("Inflow", "Outflow", "Point Sample")
     
     create_buttons <- function(y_axis_var_name) {
       analyte_data <- df[df$analyte.abbr == y_axis_var_name, ]
@@ -283,10 +274,10 @@ create_scatterplot <- function(df, selected_location) {
     initial_y_range_with_buffer <- initial_y_range + diff(initial_y_range) * c(-buffer_factor, buffer_factor)
     
     location_scatter_plot <- plot_ly(data = df, x = ~collected, y = ~result,
-                                     color = ~event.type, colors = event_colors,
+                                     color = ~treatment.name,
                                      type = 'scatter', mode = 'markers',
                                      marker = list(size = 8, opacity = 0.6),
-                                     legendgroup = ~event.type,
+                                     legendgroup = ~treatment.name,
                                      showlegend = TRUE) %>%
       layout(
         title = paste("Scatter plot for Location:", selected_location),

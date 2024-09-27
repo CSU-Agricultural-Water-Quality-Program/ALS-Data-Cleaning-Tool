@@ -99,8 +99,6 @@ trt.dict <- list(
   "ST" = c("ST1", "AVST1", "ST2", "AVST2"),
   "CT" = c("CT1", "AVCT1", "CT2", "AVCT2"),
   "MT" = c("MT1", "MT2"),
-  "Inflow" = c("INF", "IN", "Inflow", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", 
-               "IN7", "IN8", "IN9"),
   "River A" = "RVA",
   "River B" = "RVB",
   "River Middle" = "RVMID",
@@ -372,12 +370,14 @@ processData <- function(df) {
       duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
       # create location name column based on Sample ID
       location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
-      # create treatment name column based on Sample ID
-      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
       # create method name column based on Sample ID
       method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
       # create event type name column based on Sample ID
       event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
+      # create treatment name column based on Sample ID
+      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
+      # make treatment default to event.type when treatment is NA
+      treatment.name = ifelse(is.na(treatment.name), event.type, treatment.name),
       # create event count column based on Sample ID
       event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict)),
       # create flow volume column (in Liters), and fill it with NAs for now
@@ -499,7 +499,7 @@ dfTss <- function(tss_fp) {
            `Suspended Solids (Residue, Non-Filterable)` = `TSS_mg/L`,
            `Specific Conductance` = `EC_mS/cm`) %>%
     # Omit NA values (if still needed, this would omit rows with NA in any remaining column)
-    na.omit() %>%
+    #na.omit() %>%
     # processData here to get other columns correctly designated
     processData() %>%
     # TSS-specific column filling/data cleaning
