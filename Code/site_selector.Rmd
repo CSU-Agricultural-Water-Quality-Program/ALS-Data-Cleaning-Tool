@@ -66,7 +66,6 @@ dat <- returnAllFiles(d = directory, export = FALSE)
 dat2 <- dat
 # make columns lowercase so they are all the same case
 colnames(dat) <- tolower(names(dat))
-unique(dat$location.name)
 ```
 
 ```{r, include=FALSE}
@@ -83,14 +82,14 @@ unique(dat$location.name)
 # loc = 'Fruita A'
 # loc = 'Fruita B'
 # loc = 'Fruita NT'
-# loc = 'Fruita W'
+loc = 'Fruita W'
 # loc = 'Gunnison'
 # loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Stagecoach'
 # loc = 'The Ranch'
- loc = 'Upper Yampa'
+# loc = 'Upper Yampa'
 # loc = 'Yellow Jacket'
 
 #create a filtered df to use for violin plots and scatterplot
@@ -145,6 +144,23 @@ Misc_df <- filtered_df %>% filter(analyte %in% analytes_plot3)
 
 ### CSV Export of selected site data saved as: 
 `r file`
+
+# Number of events captured at this site:
+```{r}
+# Combine event.count values into a single row for each treatment.name
+unique_treatments <- filtered_df %>%
+  select(treatment.name, event.count) %>%
+  distinct() %>%
+  group_by(treatment.name) %>%
+  summarize(event.count = paste(event.count, collapse = ", ")) %>%
+  arrange(treatment.name)
+
+# Print the table using datatable
+datatable(unique_treatments, 
+              caption = "Unique Treatments and Corresponding Event Counts")
+
+
+```
 
 # Water Analytes Present and Methods Used for Determination:
 ```{r}
@@ -204,8 +220,8 @@ create_violinplot <- function(df, selected_location) {
                                     )) %>%
       layout(
         title = paste("Violin plots for Location:", selected_location),
-        xaxis = list(title = "Event Type"),  # Update x-axis title
-        yaxis = list(title = "Result"),
+        xaxis = list(title = "Sample Location"),  # Update x-axis title
+        yaxis = list(title = "Result (mg/L, ug/L, dS/m, or pH)"),
         showlegend = TRUE,
         updatemenus = list(
           list(
