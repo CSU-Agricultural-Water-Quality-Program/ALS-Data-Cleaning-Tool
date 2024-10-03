@@ -77,11 +77,11 @@ location.dict <- list(
   "Legacy" = "LG",
   "Molina" = "MOL",
   "Stagecoach" = c("SC", "SB", "SCA", "SB-SCA", "SCI", "SB-SCI", "SCO", "SB-SCO", "MOR", "SB-MOR", "TR", "SB-TR"),
-  "Morrison Creek" = c("MOR","SB-MOR"),
-  "Stage Coach Above" = c("SCA","SB-SCA"),
-  "Stage Coach In" = c("SCI", "SB-SCI"),
-  "Stage Coach Dam Outflow" = c("SCO","SB-SCO"),
-  "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
+  # "Morrison Creek" = c("MOR","SB-MOR"),
+  # "Stage Coach Above" = c("SCA","SB-SCA"),
+  # "Stage Coach In" = c("SCI", "SB-SCI"),
+  # "Stage Coach Dam Outflow" = c("SCO","SB-SCO"),
+  # "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
   "Upper Yampa" = "UYM",
   "Yellow Jacket " = "YJ",
   "Fruita W" = c("W1", "W2", "FW", "FW1", "FW2"),
