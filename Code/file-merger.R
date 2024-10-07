@@ -542,7 +542,7 @@ executeFxns <- function(file_path, kelso=FALSE, geo_key) {
     cleanData() %>% # clean ALS format
     processData() %>% # create new columns using IDs
     addCoord(geo_key) %>% # add spatial data
-   # flagData() %>% # flag and QA/QC data
+    flagData() %>% # flag and QA/QC data
     { select(., -all_of( # remove unnecessary columns
       c("REPORT.BASIS", 
         "PERCENT.MOISTURE", 
