@@ -226,10 +226,11 @@ Kerbel	Inflow	Inflow	-104.997502	40.679262
 Legacy		Outflow	-106.8205175	40.43192773
 Molina		Inflow	-108.04037	39.163825
 Molina		Outflow	-108.04204	39.17067
-Morrison Creek		Point Sample	-106.8158776	40.28942095
-Stage Coach Above		Point Sample	-106.8812387	40.2691647
-Stage Coach In		Point Sample	-106.8495245	40.28580534
-Stagecoach		Outflow	-106.825602	40.29226711
+Stagecoach	Morrison Creek	Point Sample	-106.8158776	40.28942095
+Stagecoach	Stage Coach Above	Point Sample	-106.8812387	40.2691647
+Stagecoach	Stage Coach In	Point Sample	-106.8495245	40.28580534
+Stagecoach	Stagecoach ISCO	Outflow	-106.825602	40.29226711
+Stagecoach	Stage Coach Dam Outflow	Point Sample	-106.8290859	40.28655773
 The Ranch		Point Sample	-106.8150173	40.29174667
 Upper Yampa		Outflow	-106.922182	40.20191997
 Upper Yampa		Inflow	-106.91579	40.19042
@@ -361,6 +362,7 @@ cleanData <- function(df) {
   return(df)
 }
 
+# TODO: add the calculation of total N and Mineral P here
 processData <- function(df) {
   # Process data to create new columns for analysis based on ID codes
     # create new columns based on ID codes
@@ -418,8 +420,8 @@ processData <- function(df) {
   return(df)
 }
 
+# TODO: fix and start using the flag data function
 flagData <- function(df){
-  # TODO: this function is messing things up. Fix it. then put it back in executeFxns()
 # function to flag data and perform QA/QC after merging both htm and xls files
   # check water data for flags such as:
     # H = past hold time (declared in cleanData function)
@@ -427,26 +429,6 @@ flagData <- function(df){
     # N = non-EPA method used
     # P = Ortho-P > Total P
     # more?
-  
-  # Compare Orthophosphate and Total Phosphorus within groups
-    # Preparing a separate dataframe for comparison
-  comparison_df <- df %>%
-    group_by(duplicate, method.name, event.count, location.name, treatment.name, event.type) %>%
-    summarize(
-      ortho_P = max(RESULT[ANALYTE == "Phosphorus, Total Orthophosphate (as P)"], na.rm = TRUE),
-      total_P = max(RESULT[ANALYTE == "Phosphorus, Total (As P)"], na.rm = TRUE),
-      .groups = 'drop'
-    )
-
-    # Joining the comparison dataframe back to the original dataframe
-  df <- df %>%
-    left_join(comparison_df, by = c("duplicate", "method.name", "event.count", "location.name", "treatment.name", "event.type")) %>%
-    mutate(
-      # Updating the flag column based on the comparison
-      flag = ifelse(ortho_P > total_P, ifelse(is.na(flag), "P", paste0(flag, ", P")), flag),
-      # Other flagging conditions...
-    ) %>%
-    select(-ortho_P, -total_P) # Removing the extra columns
   
   # Other, more simple flag conditions...
   df <- df %>%
@@ -456,11 +438,11 @@ flagData <- function(df){
       # Identify "See Attached" results and append
       flag = ifelse(RESULT == 9999, ifelse(is.na(flag), "See Attached", paste0(flag, ", See Attached")), flag),
       # convert ALS specific conductivity to mS/cm like we use at AWQP
-      RESULT = ifelse(
-        "Suspended Solids (Residue, Non-Filterable)" %in% names(.) && ANALYTE == "Suspended Solids (Residue, Non-Filterable)", 
-        RESULT / 1000, # they report uS/cm
-        RESULT
-      )
+      # RESULT = ifelse(
+      #   "Specific Conductance" %in% names(.) && ANALYTE == "Specific Conductance", 
+      #   RESULT / 1000, # ALS repors EC in uS/cm, so divide by 1000 to get mS/cm
+      #   RESULT
+      # )
     )
   return(df)
 }
@@ -504,7 +486,7 @@ dfTss <- function(tss_fp) {
     processData() %>%
     # TSS-specific column filling/data cleaning
     mutate(
-      non.detect = FALSE,
+      non.detect = NA, #make this a placeholder column for later when we detect non-detects
       `Suspended Solids (Residue, Non-Filterable)` = as.numeric(
         `Suspended Solids (Residue, Non-Filterable)`),
       `Specific Conductance` = as.numeric(`Specific Conductance`),
@@ -536,7 +518,9 @@ dfTss <- function(tss_fp) {
         ANALYTE == "Specific Conductance" ~ "E120.1 - COND_W",
         TRUE ~ NA_character_
       ),
-      RESULT = as.numeric(RESULT),
+      # Add logic to replace negative values in RESULT with 0 and mark non.detect
+      non.detect = RESULT <= 0,
+      RESULT = ifelse(RESULT < 0, 0, RESULT),
       UNITS = tssUnits.dict[ANALYTE],
       COLLECTED = as.POSIXct(COLLECTED, format = '%Y-%m-%d %H:%M:%S'),
       treatment.name = as.character(treatment.name),
@@ -558,7 +542,7 @@ executeFxns <- function(file_path, kelso=FALSE, geo_key) {
     cleanData() %>% # clean ALS format
     processData() %>% # create new columns using IDs
     addCoord(geo_key) %>% # add spatial data
-    # flagData() %>% # flag and QA/QC data
+   # flagData() %>% # flag and QA/QC data
     { select(., -all_of( # remove unnecessary columns
       c("REPORT.BASIS", 
         "PERCENT.MOISTURE", 
