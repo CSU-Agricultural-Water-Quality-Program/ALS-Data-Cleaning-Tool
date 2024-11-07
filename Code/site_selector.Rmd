@@ -85,10 +85,10 @@ colnames(dat) <- tolower(names(dat))
 # loc = 'Fruita NT'
 # loc = 'Fruita W'
 # loc = 'Gunnison'
-# loc = 'Kerbel'
+loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
-loc = 'Stagecoach'
+# loc = 'Stagecoach'
 # loc = 'The Ranch'
 # loc = 'Upper Yampa'
 # loc = 'Yellow Jacket'
@@ -437,6 +437,9 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title, x_ax
       summarize(mean = mean(result, na.rm = TRUE),
                 sd = sd(result, na.rm = TRUE),
                 .groups = 'drop')
+    
+    # Ensure "Inflow" is the first level if present
+    summary_df[[x_axis_var]] <- factor(summary_df[[x_axis_var]], levels = c("Inflow", setdiff(unique(summary_df[[x_axis_var]]), "Inflow")))
 
     # Create the file paths for portrait and landscape versions
     file_path_portrait <- file.path(output_dir, file_name)
@@ -445,7 +448,7 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title, x_ax
     # Generate the bar plot with error bars and raw data points
     bar_plot <- ggplot(summary_df, aes(x = !!sym(x_axis_var), y = mean, fill = !!sym(x_axis_var))) +
       geom_bar(stat = "identity", position = position_dodge(0), color = 'black') +
-      geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2, position = position_dodge(0)) +
+      geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd), width = 0.2, position = position_dodge(0)) +
       # Add raw data points using geom_jitter
       geom_jitter(data = df, aes(x = !!sym(x_axis_var), y = result), 
                   width = 0.2, alpha = 0.6, size = 2, show.legend = FALSE) +  # Jitter to avoid overlap
@@ -512,6 +515,80 @@ bar_Misc <- create_and_save_bar_plot(Misc_df,
                                      x_axis_var = x_axis_var_name)
 bar_Misc
 ```
+
+## Annual means for each analyte
+```{r}
+# Updated Faceted Bar Plot by Analyte with Units, Matching Colors, Y-axis Min at 0, and "Inflow" Ordered First
+create_facet_bar_plot <- function(df, output_dir, file_name, x_axis_var) {
+  tryCatch({
+    # Ensure the output directory exists
+    if (!dir.exists(output_dir)) {
+      dir.create(output_dir, recursive = TRUE)
+    }
+
+    # Extract unique analytes and their corresponding units
+    analyte_units <- df %>% 
+      select(analyte.abbr, units) %>% 
+      distinct()
+
+    # Summarize data and merge units
+    summary_df <- df %>%
+      group_by(!!sym(x_axis_var), analyte.abbr) %>%
+      summarize(mean = mean(result, na.rm = TRUE),
+                sd = sd(result, na.rm = TRUE),
+                .groups = 'drop') %>%
+      left_join(analyte_units, by = "analyte.abbr")  # Join to get the units
+
+    # Ensure "Inflow" is the first level if present
+    summary_df[[x_axis_var]] <- factor(summary_df[[x_axis_var]], levels = c("Inflow", setdiff(unique(summary_df[[x_axis_var]]), "Inflow")))
+
+    # Create custom facet labels with analyte and unit, ensuring a closing parenthesis
+    facet_labels <- summary_df %>%
+      mutate(facet_label = paste(analyte.abbr, units, sep = " ("), facet_label = paste0(facet_label, ")")) %>%
+      distinct(analyte.abbr, facet_label) %>%
+      deframe()
+
+    # File path for saving the plot
+    file_path <- file.path(output_dir, file_name)
+
+    # Generate faceted bar plot with custom facet labels and matching color palette
+    facet_bar_plot <- ggplot(summary_df, aes(x = !!sym(x_axis_var), y = mean, fill = !!sym(x_axis_var))) +
+      geom_bar(stat = "identity", position = "dodge", color = "black") +
+      geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd), width = 0.2, position = position_dodge(width = 0.9)) +
+      facet_wrap(~ analyte.abbr, scales = "free_y", labeller = as_labeller(facet_labels)) +  # Use custom facet labels
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text = element_text(size = 10),
+        legend.position = "bottom"
+      ) +
+      labs(title = "Average Result by Analyte",
+           x = "Event Type",
+           y = "Mean Result",
+           fill = x_axis_var) +
+      scale_fill_brewer(palette = "Pastel1") +  # Adjust this to match your preferred palette
+      coord_cartesian(ylim = c(0, NA))  # Ensure y-axis starts at 0
+
+    # Save the plot
+    ggsave(file_path, facet_bar_plot, width = 10, height = 8, units = "in")
+
+    # Return the plot object for rendering in the HTML document
+    return(facet_bar_plot)
+  }, error = function(e) {
+    message("An error occurred in create_facet_bar_plot: ", e$message)
+    return(NULL)
+  })
+}
+
+# Call the updated function with the full dataset (filtered_df)
+facet_bar <- create_facet_bar_plot(filtered_df,
+                                   output_dir = "./site_selector_temporary_results",
+                                   file_name = "facet_bar_analytes_annual.jpg",
+                                   x_axis_var = x_axis_var_name)
+facet_bar
+
+```
+
 
 # Raw Data
 Use the table below to look at raw values.
