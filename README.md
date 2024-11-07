@@ -54,7 +54,7 @@ water((Water Sample
  Collection and 
  Processing)):::wat --> ALS & AWQP
 
- subgraph "Lab Analysis\n\n"                 
+ subgraph "Lab Analysis"                 
     ALS(ALS Environmental Laboratories):::als --> houston  & Kelso
     Kelso(Kelso, WA Laboratory \n ):::labs --> kelso
     houston(Houston, TX Laboratory):::labs--> result & sample
@@ -67,7 +67,7 @@ end
     kelso(Heavy Metal Data):::dat --> file
     AWQP(AWQP Laboratory):::labs --> tss
 
-subgraph "ALS Data Cleaning Tool\n\n"
+subgraph "ALS Data Cleaning Tool"
 
     file:::r --> import(Import Data):::r
     import --> clean(Clean Data):::r
@@ -75,7 +75,7 @@ subgraph "ALS Data Cleaning Tool\n\n"
     merge --> export(Process & Export Data):::r
 end
 
-subgraph "Results\n\n"
+subgraph "Results"
     export -->|Site-Specific Report and Data| E{{Creates data report for one, 
     user-selected research site}}:::out
     
