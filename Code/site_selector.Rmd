@@ -451,7 +451,7 @@ create_and_save_bar_plot <- function(df, output_dir, file_name, plot.title, x_ax
       geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd), width = 0.2, position = position_dodge(0)) +
       # Add raw data points using geom_jitter
       geom_jitter(data = df, aes(x = !!sym(x_axis_var), y = result), 
-                  width = 0.2, alpha = 0.6, size = 2, show.legend = FALSE) +  # Jitter to avoid overlap
+                  width = 0.2, alpha = 0.6, size = 1, show.legend = FALSE) +  # Jitter to avoid overlap
       facet_grid(analyte.abbr ~ event.count, scales = "free_y", space = "free_x") +
       theme_minimal() +
       theme(
@@ -555,6 +555,10 @@ create_facet_bar_plot <- function(df, output_dir, file_name, x_axis_var) {
     facet_bar_plot <- ggplot(summary_df, aes(x = !!sym(x_axis_var), y = mean, fill = !!sym(x_axis_var))) +
       geom_bar(stat = "identity", position = "dodge", color = "black") +
       geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd), width = 0.2, position = position_dodge(width = 0.9)) +
+      # Add raw data points using geom_jitter
+      geom_jitter(data = df, aes(x = !!sym(x_axis_var), y = result), 
+                  width = 0.2, alpha = 0.6, size = 1, show.legend = FALSE) +  # Jitter to avoid overlap
+      # TODO: play with adding sampler method in facet_wrap
       facet_wrap(~ analyte.abbr, scales = "free_y", labeller = as_labeller(facet_labels)) +  # Use custom facet labels
       theme_minimal() +
       theme(
