@@ -519,7 +519,8 @@ bar_Misc
 ## Annual means for each analyte
 ```{r}
 # Updated Faceted Bar Plot by Analyte with Units, Matching Colors, Y-axis Min at 0, and "Inflow" Ordered First
-create_facet_bar_plot <- function(df, output_dir, file_name, x_axis_var) {
+# Updated Faceted Bar Plot with Optional Stratification by Method
+create_facet_bar_plot <- function(df, output_dir, file_name, x_axis_var, stratify_by_method = FALSE) {
   tryCatch({
     # Ensure the output directory exists
     if (!dir.exists(output_dir)) {
@@ -533,7 +534,7 @@ create_facet_bar_plot <- function(df, output_dir, file_name, x_axis_var) {
 
     # Summarize data and merge units
     summary_df <- df %>%
-      group_by(!!sym(x_axis_var), analyte.abbr) %>%
+      group_by(!!sym(x_axis_var), analyte.abbr, method.name) %>%
       summarize(mean = mean(result, na.rm = TRUE),
                 sd = sd(result, na.rm = TRUE),
                 .groups = 'drop') %>%
@@ -551,14 +552,27 @@ create_facet_bar_plot <- function(df, output_dir, file_name, x_axis_var) {
     # File path for saving the plot
     file_path <- file.path(output_dir, file_name)
 
-    # Generate faceted bar plot with custom facet labels and matching color palette
-    facet_bar_plot <- ggplot(summary_df, aes(x = !!sym(x_axis_var), y = mean, fill = !!sym(x_axis_var))) +
-      geom_bar(stat = "identity", position = "dodge", color = "black") +
-      geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd), width = 0.2, position = position_dodge(width = 0.9)) +
-      # Add raw data points using geom_jitter
-      geom_jitter(data = df, aes(x = !!sym(x_axis_var), y = result), 
-                  width = 0.2, alpha = 0.6, size = 1, show.legend = FALSE) +  # Jitter to avoid overlap
-      # TODO: play with adding sampler method in facet_wrap
+    # Conditionally stratify by method.name if stratify_by_method is TRUE
+    if (stratify_by_method) {
+      # If stratifying by method, ensure method.name is used in the plot and adjust dodge width
+      facet_bar_plot <- ggplot(summary_df, aes(x = !!sym(x_axis_var), y = mean, fill = method.name)) +
+        geom_bar(stat = "identity", position = position_dodge(width = 0.7), color = "black") +
+        geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd), width = 0.2, position = position_dodge(width = 0.7))
+    } else {
+      # When not stratifying by method, remove method.name grouping to prevent redundant bars
+      summary_df <- summary_df %>%
+        group_by(!!sym(x_axis_var), analyte.abbr) %>%
+        summarize(mean = mean(mean), sd = mean(sd), .groups = "drop")
+
+      facet_bar_plot <- ggplot(summary_df, aes(x = !!sym(x_axis_var), y = mean, fill = !!sym(x_axis_var))) +
+        geom_bar(stat = "identity", position = "dodge", color = "black") +
+        geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd), width = 0.2, position = position_dodge(width = 0.9)) +
+        geom_jitter(data = df, aes(x = !!sym(x_axis_var), y = result), 
+                    width = 0.2, alpha = 0.6, size = 1, show.legend = FALSE)
+    }
+
+    # Add facets, theme, labels, and save the plot
+    facet_bar_plot <- facet_bar_plot +
       facet_wrap(~ analyte.abbr, scales = "free_y", labeller = as_labeller(facet_labels)) +  # Use custom facet labels
       theme_minimal() +
       theme(
@@ -569,7 +583,7 @@ create_facet_bar_plot <- function(df, output_dir, file_name, x_axis_var) {
       labs(title = "Average Result by Analyte",
            x = "Event Type",
            y = "Mean Result",
-           fill = x_axis_var) +
+           fill = ifelse(stratify_by_method, "Method", x_axis_var)) +
       scale_fill_brewer(palette = "Pastel1") +  # Adjust this to match your preferred palette
       coord_cartesian(ylim = c(0, NA))  # Ensure y-axis starts at 0
 
@@ -583,14 +597,32 @@ create_facet_bar_plot <- function(df, output_dir, file_name, x_axis_var) {
     return(NULL)
   })
 }
+```
 
-# Call the updated function with the full dataset (filtered_df)
-facet_bar <- create_facet_bar_plot(filtered_df,
-                                   output_dir = "./site_selector_temporary_results",
-                                   file_name = "facet_bar_analytes_annual.jpg",
-                                   x_axis_var = x_axis_var_name)
-facet_bar
+### By Method and Treatment
+```{r}
+# Face with stratification by method
+facet_bar_with_method <- create_facet_bar_plot(
+  filtered_df,
+  output_dir = "./site_selector_temporary_results",
+  file_name = "facet_bar_analytes_method_annual.jpg",
+  x_axis_var = x_axis_var_name,
+  stratify_by_method = TRUE
+)
+facet_bar_with_method
+```
 
+### By Treatment Only
+```{r}
+# Facet bar without method
+facet_bar_without_method <- create_facet_bar_plot(
+  filtered_df,
+  output_dir = "./site_selector_temporary_results",
+  file_name = "facet_bar_analytes_annual.jpg",
+  x_axis_var = x_axis_var_name,
+  stratify_by_method = FALSE
+)
+facet_bar_without_method
 ```
 
 
