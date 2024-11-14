@@ -285,7 +285,6 @@ map_values <- function(text, dict) {
   return(NA)  # Return NA if no match is found
 }
 
-
 importData <- function(file_path) {
   # ALS exports data as xls, but it is actually htm,
    # so it requires some cleaning here.
@@ -305,7 +304,9 @@ importDataXls <- function(file_path) {
 
 importDataKelso <- function(file_path) {
   # Selenium testing is done by the Kelso lab and is a csv file
-  df <- read_csv(file_path, show_col_types = FALSE) %>%  #read in csv file
+  # read in csv file
+  df <- read_csv(file_path, show_col_types = FALSE) %>% 
+  # create columns to be congruent with houston data
     # TODO: check if we actually need to add these NA cols to make it work, b/c we remove them later anyway in executeFxns
     mutate(METHOD =paste0(`Extraction Method`, sep = "-", Method),
            LAB.ID = NA,
@@ -314,16 +315,22 @@ importDataKelso <- function(file_path) {
            REPORT.BASIS = NA,
            PERCENT.MOISTURE = NA,
            PERCENT.SOLID = NA
-           ) %>%  #Create columns to be congruent with houston data
+           ) %>%  
+  # Drop any rows where the Sample Type column is not 'SMPL'
+    filter(`Sample Type` == 'SMPL') %>%
+  # Select desired columns, dropping the rest
     select(Sample, Result, Units, Component, 'Dilution Factor', 'Reporting Limit', 
            'Detection Limit', METHOD, LAB.ID, CAS.NUMBER, RESULT.REPORTED.TO,
-           REPORT.BASIS, PERCENT.MOISTURE, PERCENT.SOLID) %>%  #Select desired columns, dropping the rest
+           REPORT.BASIS, PERCENT.MOISTURE, PERCENT.SOLID) %>%  
+  # Rename columns to match Houston data
     rename("SAMPLE ID" = "Sample", "RESULT" = "Result", "UNITS" = "Units", 
            "ANALYTE"="Component", "DILUTION"="Dilution Factor",
            "RL"="Reporting Limit", "MDL"="Detection Limit" 
-           ) %>% #Rename headings in csv to match the results file 
-    data.frame() # convert to data frame type
-  return(df) #return dataframe
+           ) %>%
+  # convert to data frame type
+    data.frame() 
+  # return dataframe
+  return(df) 
 }
 
 cleanData <- function(df) {
