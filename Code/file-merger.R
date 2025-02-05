@@ -174,18 +174,20 @@ tssUnits.dict <- c(
    )
 
 analyteAbbr.dict <- list(
-  "TKN"   = "Nitrogen, Total Kjeldahl",
-  "NO2-N" = "Nitrogen, Nitrite  (As N)",
-  "PO4-P" = "Phosphorus, Total Orthophosphate (as P)",
-  "TP"    = "Phosphorus, Total (As P)",
-  "TDS"   = "Total Dissolved Solids (Residue, Filterable)",
-  "NO3-N" = "Nitrogen, Nitrate (As N)",
+  "TKN"   = c("Nitrogen, Total Kjeldahl"),
+  "NO2_N" = c("Nitrogen, Nitrite  (As N)", "NITRITE AS N"),
+  "PO4_P" = c("Phosphorus, Total Orthophosphate (as P)", "ORTHOPHOSPHATE AS P"),
+  "TP"    = c("Phosphorus, Total (As P)", "TOTAL PHOSPHORUS"),
+  "TDS"   = c("Total Dissolved Solids (Residue, Filterable)"),
+  "NO3_N" = c("Nitrogen, Nitrate (As N)", "NITRATE AS N"),
   "TSS"   = c("Suspended Solids (Residue, Non-Filterable)", "TSS"),
-  "Fe"    = "Iron, Total",
-  "Se"    = "Selenium, Total",
-  "pH"    = "pH",
-  "EC25"  = "Specific Conductance"
-  )
+  "Fe"    = c("Iron, Total"),
+  "Se"    = c("Selenium, Total", "SELENIUM"),
+  "pH"    = c("pH", "POTENTIAL HYDROGEN"),
+  "EC25"  = c("Specific Conductance", "ELECTRICAL CONDUCTIVITY")
+)
+
+
 
 # copy/paste excel data below to create geodata dataframe (i.e., separated by tabs, \t)
 geo_key <- read.csv(text = "
