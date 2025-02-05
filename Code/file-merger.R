@@ -173,6 +173,7 @@ tssUnits.dict <- c(
   "pH" = "pH"
    )
 
+#untested analyte dict update - but worked in the load-calc-experiment script
 analyteAbbr.dict <- list(
   "TKN"   = c("Nitrogen, Total Kjeldahl"),
   "NO2_N" = c("Nitrogen, Nitrite  (As N)", "NITRITE AS N"),
