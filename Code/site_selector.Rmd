@@ -75,6 +75,7 @@ colnames(dat) <- tolower(names(dat))
   # This list may need to be updated as more sites are added/removed
 # loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
 # loc = 'AVRC STAR'
+# loc - 'AVRC Cowpea'
 # loc = 'Barley'
 # loc = 'Berthoud'
 # loc = 'Big Hollow'
@@ -84,8 +85,10 @@ colnames(dat) <- tolower(names(dat))
 # loc = 'Fruita B'
 # loc = 'Fruita NT'
 # loc = 'Fruita W'
+# loc = 'Fruita C'
+ loc = 'Fruita F'
 # loc = 'Gunnison'
-loc = 'Kerbel'
+# loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Stagecoach'

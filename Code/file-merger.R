@@ -88,6 +88,9 @@ location.dict <- list(
   "Fruita B" = c("FB", "FBR", "F-BR", "F-B", "BR"),
   "Fruita NT" = "FNT",
   "Fruita A" = c("FA", "FALF", "F-ALF", "ALF"),
+  "Fruita C" = c("FC", "FC1", "FC2", "C1", "C2"),
+  "Fruita F" = c("FF", "FF1", "FF2", "FF3", "FF4", "F1", "F2", "F3", "F4"),
+  "AVRC Cowpea" = c("COW", "T1", "T2", "T3", "T4"),
   "Lab Blank" = "BK",
   "Method Blank" = "Method Blank",
   "Lab Control Sample" = "Lab Control Sample"
@@ -125,7 +128,17 @@ trt.dict <- list(
   "Stagecoach Dam Outflow" = c("SCO","SB-SCO"),
   "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
   "W1" = c("W1", "FW1"),
-  "W2" = c("W2", "FW2")
+  "W2" = c("W2", "FW2"),
+  "C1" = c("C1", "FC1"),
+  "C2" = c("C2", "FC2"),
+  "Fertilizer Treatment 1" =c("F1", "FF1"),
+  "Fertilizer Treatment 2" =c("F2", "FF2"),
+  "Fertilizer Treatment 3" =c("F3", "FF3"),
+  "Fertilizer Treatment 4" =c("F4", "FF4"),
+  "Cowpea Treatment 1" = c("T1"),
+  "Cowpea Treatment 2" = c("T2"),
+  "Cowpea Treatment 3" = c("T3"),
+  "Cowpea Treatment 4" = c("T4")
   )
 
 method.dict <- list(
@@ -248,6 +261,19 @@ Fruita No Till		Inflow	-108.7285248	39.24897763
 Fruita No Till		Outflow	-108.7266562	39.24607514
 Fruita Alfalfa		Inflow	-108.7801719	39.22423003
 Fruita Alfalfa		Outflow	-108.7800218	39.22234458
+Fruita Chicken		Inflow	-108.673517	39.167938
+Fruita Chicken	C1	Outflow	-108.677814	39.165480
+Fruita Chicken	C2	Outflow	-108.677830	39.164432
+Fruita Fertilizer		Inflow	-108.67325	39.19308
+Fruita Fertilizer   F1  Outflow	-108.68052	39.18974
+Fruita Fertilizer   F2  Outflow	-108.68052	39.18974
+Fruita Fertilizer   F3  Outflow	-108.68052	39.18974
+Fruita Fertilizer   F4  Outflow	-108.68052	39.18974
+AVRC Cowpea		Inflow	TBD	TBD	
+AVRC Cowpea	  T1	Outflow TBD TBD	
+AVRC Cowpea	  T2	Outflow	TBD	TBD
+AVRC Cowpea	  T3	Outflow	TBD	TBD	
+AVRC Cowpea	  T4	Outflow	TBD	TBD	
 ", sep = '\t', header = TRUE, stringsAsFactors = FALSE)
 
 # Define Private Functions (i.e., do not call them directly)
