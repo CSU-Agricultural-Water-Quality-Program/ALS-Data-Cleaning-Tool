@@ -362,8 +362,17 @@ importDataKelso <- function(file_path) {
   return(df) 
 }
 
-cleanData <- function(df) {
+cleanData <- function(df, file_path = NULL) {
 # takes imported data and cleans it for processing
+  # Check for expected columns
+  required_cols <- c("SAMPLE.ID", "RESULT")
+  missing_cols <- setdiff(required_cols, names(df))
+  
+  if (length(missing_cols) > 0) {
+    stop(paste0("❌ Missing columns in file: ", file_path, 
+                "\nRequired column(s) missing: ", paste(missing_cols, collapse = ", ")))
+  }
+  
    # Drop unnecessary rows containing the word "sample:"
   df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
     # other cleaning processes:
@@ -575,7 +584,7 @@ executeFxns <- function(file_path, kelso=FALSE, geo_key) {
   
   # Execute the remaining functions and return the final dataframe
   df <- df %>%
-    cleanData() %>% # clean ALS format
+    cleanData(file_path = file_path) %>% # clean ALS format
     processData() %>% # create new columns using IDs
     addCoord(geo_key) %>% # add spatial data
     flagData() %>% # flag and QA/QC data
@@ -600,15 +609,16 @@ mergeFiles <- function(directory, tss_fp) {
   # import all data files in the directory, merge, and return df
   print("Merging files...")
   file_list <- list.files(path = directory,
-                          pattern = "*.xls|.csv", 
-                          full.names = TRUE)
+                          pattern = "\\.(xls|csv)$", 
+                          full.names = TRUE,
+                          ignore.case = TRUE)
   # import houston data files
-  data_files <- file_list[!grepl("-Samples|Kelso|kelso", file_list)]
+  data_files <- file_list[!grepl("-Samples|Kelso|kelso|kelos|Kelos", file_list)]
   print("Houston data files to be merged:")
   print(data_files)
   # import kelso data files
-  kelso_files <- file_list[grepl("Kelso|kelso", file_list)]
-  print("Kelso data files to be merged (if any):")
+  kelso_files <- file_list[grepl("Kelso|kelso|kelos|Kelos", file_list)]
+  print("Kelso data files to be merged:")
   print(kelso_files)
   # import meta data files
   meta_files <- file_list[grepl("-Samples", file_list)]
@@ -616,19 +626,36 @@ mergeFiles <- function(directory, tss_fp) {
   print(meta_files)
   
   # merge houston data files
-  df_data <- data_files %>%
-    lapply(executeFxns, kelso=FALSE, geo_key=geo_key) %>%
-    bind_rows()
+  if (length(data_files) > 0) {
+    df_data <- data_files %>%
+      lapply(executeFxns, kelso = FALSE, geo_key = geo_key) %>%
+      purrr::compact() %>%  # remove NULLs if any executeFxns failed
+      bind_rows()
+  } else {
+    warning("⚠️ No Houston data files found. Proceeding with Kelso data\n")
+    df_data <- data.frame()
+  }
   
   # merge kelso data files
-  df_kelso <- kelso_files %>%
-    lapply(executeFxns, kelso=TRUE, geo_key=geo_key) %>%
-    bind_rows()
+  if (length(kelso_files) > 0) {
+    df_kelso <- kelso_files %>%
+      lapply(executeFxns, kelso = TRUE, geo_key = geo_key) %>%
+      purrr::compact() %>%
+      bind_rows()
+  } else {
+    warning("⚠️ No Kelso data files found. Proceeding with metadata\n")
+    df_kelso <- data.frame()
+  }
   
   # merge metadata files
-  df_meta <- meta_files %>%
-    lapply(importDataXls) %>%
-    bind_rows
+  df_meta <- if (length(meta_files) > 0) {
+    meta_files %>% 
+      lapply(importDataXls) %>%
+      bind_rows()
+  } else {
+    warning("⚠️ No metadata files found. Error below is likely due to this.\n")
+    data.frame()
+  }
   
   # Merge Houston and Kelso data
   df_combined <- bind_rows(df_data, df_kelso)
@@ -641,15 +668,27 @@ mergeFiles <- function(directory, tss_fp) {
   df_merge$COLLECTED <- as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M')
   
   # Import TSS data to df with metadata
-  df_tss <- dfTss(tss_fp)
+  if (!is.null(tss_fp) && file.exists(tss_fp)) {
+    df_tss <- tryCatch({
+      tss_data <- dfTss(tss_fp)
+      message("✅ TSS data imported: ", nrow(tss_data), " rows.")
+      tss_data
+    }, error = function(e) {
+      warning("⚠️ Failed to read TSS file at: ", tss_fp, "\nError: ", e$message)
+      data.frame()
+    })
+  } else {
+    warning("⚠️ TSS file not found or path is NULL: ", tss_fp)
+    df_tss <- data.frame()
+  }
   
   # Merge TSS data with the combined data
   df <- bind_rows(df_merge, df_tss) %>%
     filter(!grepl("Analysis", ANALYTE, ignore.case = TRUE)) %>%
     mutate(
-        # create analyte abbreviation column based on ANALYTE
-        analyte.abbr = sapply(ANALYTE, function(x) map_values_analyte(x, analyteAbbr.dict)),
-        analyte.abbr = gsub("1", "", analyte.abbr)
+      # create analyte abbreviation column based on ANALYTE
+      analyte.abbr = sapply(ANALYTE, function(x) map_values_analyte(x, analyteAbbr.dict)),
+      analyte.abbr = gsub("1", "", analyte.abbr)
     )
   
   # Drop unnecessary columns that get re-created during merge
