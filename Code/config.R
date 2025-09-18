@@ -38,11 +38,11 @@ create_directory_if_not_exists <- function(directory_path) {
 # directory <- "./Confidential Data/2023"
 # tss_file_path <- './Confidential TSS/2023/TSS_Master_2023.xlsx'
 
-directory <- "./Confidential Data/2024"
-tss_file_path <- './Confidential TSS/2024/TSS_Master_2024_Cleaned.xlsx'
+#directory <- "./Confidential Data/2024"
+#tss_file_path <- './Confidential TSS/2024/TSS_Master_2024_Cleaned.xlsx'
 
- # directory <- "./Confidential Data/2025"
- # tss_file_path <- './Confidential TSS/2025/TSS_Master_2025.xlsx'
+  directory <- "./Confidential Data/2025"
+  tss_file_path <- './Confidential TSS/2025/TSS_Master_2025.xlsx'
 
 create_directory_if_not_exists(directory)
 create_directory_if_not_exists(dirname(tss_file_path))
@@ -53,3 +53,4 @@ tss_directory <- dirname(tss_file_path)
 # Creating site_selector_temporary_results directory
 site_selector_dir <- file.path('.', "site_selector_temporary_results")
 create_directory_if_not_exists(site_selector_dir)
+
