@@ -73,7 +73,7 @@ location.dict <- list(
   "Big Hollow" = "HOL",
   "Boulder Lake" = "BOL",
   "Gunnison" = "GU",
-  "Kerbel" = c("K", "KB", "KBI", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
+  "Kerbel" = c("K", "KBI", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
   "Legacy" = "LG",
   "Molina" = "MOL",
   "Stagecoach" = c("SC", "SB", "SCA", "SB-SCA", "SCI", "SB-SCI", "SCO", "SB-SCO", "MOR", "SB-MOR", "TR", "SB-TR"),
