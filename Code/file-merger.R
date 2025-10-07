@@ -91,6 +91,7 @@ location.dict <- list(
   "Fruita C" = c("FC", "FC1", "FC2", "C1", "C2"),
   "Fruita F" = c("FF", "FF1", "FF2", "FF3", "FF4", "F1", "F2", "F3", "F4"),
   "AVRC Cowpea" = c("COW", "T1", "T2", "T3", "T4"),
+  "North Sand Creek" = c("NSC", "J", "G", "F"),
   "Lab Blank" = "BK",
   "Method Blank" = "Method Blank",
   "Lab Control Sample" = "Lab Control Sample"
@@ -138,7 +139,10 @@ trt.dict <- list(
   "Cowpea Treatment 1" = c("T1"),
   "Cowpea Treatment 2" = c("T2"),
   "Cowpea Treatment 3" = c("T3"),
-  "Cowpea Treatment 4" = c("T4")
+  "Cowpea Treatment 4" = c("T4"),
+  "NSC Site J" = c("J"),
+  "NSC Site G" = c("G"),
+  "NSC Site F" = c("F")
   )
 
 method.dict <- list(
