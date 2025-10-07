@@ -367,49 +367,73 @@ importDataKelso <- function(file_path) {
 }
 
 cleanData <- function(df, file_path = NULL) {
-# takes imported data and cleans it for processing
-  # Check for expected columns
+  # takes imported data and cleans it for processing
+  
+  # --- sanity check on required columns ---
   required_cols <- c("SAMPLE.ID", "RESULT")
   missing_cols <- setdiff(required_cols, names(df))
-  
   if (length(missing_cols) > 0) {
-    stop(paste0("❌ Missing columns in file: ", file_path, 
-                "\nRequired column(s) missing: ", paste(missing_cols, collapse = ", ")))
+    stop(paste0(
+      "❌ Missing columns in file: ", file_path,
+      "\nRequired column(s) missing: ", paste(missing_cols, collapse = ", ")
+    ))
   }
   
-   # Drop unnecessary rows containing the word "sample:"
-  df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
-    # other cleaning processes:
+  # --- main cleaning pipeline (keep RESULT as text until we coerce once, at the end) ---
+  df <- df[!grepl("Sample:", df$SAMPLE.ID), ] %>%
     mutate(
-      # create flag column for later
-      flag = NA,
-      # convert values containing "<" to 0
-      RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
-      #  Flag values with H as past hold time and remove "H"
-      flag = ifelse(str_detect(RESULT, "H"), "H", flag),
-      RESULT = gsub("H", "", RESULT),
-      # remove "See Attached" values, code 9999 set for flagging in flagData()
-      RESULT = gsub("See Attached", 9999, RESULT),
-      # make results numeric
-      RESULT = gsub("N/A", NA, RESULT),
-      RESULT = gsub("[^0-9.-]", "", RESULT),  # Remove any remaining non-numeric characters
-      RESULT = as.numeric(RESULT),  # Convert to numeric
-      # remove the scentific notation from results
-      RESULT = ifelse(!is.na(RESULT), format(RESULT, scientific = FALSE), NA),
-      # create column to indicate if a result value was a non-detect
-      non.detect = ifelse(RESULT == 0, TRUE, FALSE),
-      # change "N/A" to NA in any column
-      across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
-      # convert select columns to numeric if needed
-      mutate_at(c("RESULT",
-                  "DILUTION",
-                  "MDL",
-                  "RL",
-                  "PERCENT.MOISTURE",
-                  "PERCENT.SOLID"),
-                 as.numeric) %>%
+      # initialize flag column
+      flag = NA_character_,
+      
+      # normalize RESULT as character for string ops
+      RESULT = as.character(RESULT),
+      
+      # 1) convert any censored (“<…”) values to explicit 0 (as text for now)
+      RESULT = ifelse(grepl("<", RESULT, fixed = TRUE), "0", RESULT),
+      
+      # 2) capture hold-time flag "H" then strip the H out of RESULT
+      flag   = ifelse(stringr::str_detect(RESULT, "H"), "H", flag),
+      RESULT = gsub("H", "", RESULT, fixed = TRUE),
+      
+      # 3) "See Attached" sentinel -> 9999 (still text for now)
+      RESULT = gsub("See Attached", "9999", RESULT, fixed = TRUE),
+      
+      # 4) Standardize obvious missing
+      RESULT = ifelse(RESULT %in% c("N/A", "NA", "", " "), NA, RESULT),
+      
+      # 5) Trim stray whitespace
+      RESULT = ifelse(is.na(RESULT), NA, trimws(RESULT)),
+      
+      # 6) Strip everything except digits, decimal point, sign, and scientific notation markers
+      #    This preserves strings like 0.000E+00, -1.2e-3, etc., for numeric parsing
+      RESULT = ifelse(
+        is.na(RESULT), NA_character_,
+        gsub("[^0-9eE+\\-\\.]", "", RESULT)
+      )
+    )
+  
+  # --- Numeric coercion (robust to scientific notation) ---
+  # Prefer readr::parse_double for consistent locale behavior and better diagnostics.
+  # (You already load readr/tidyverse earlier.)
+  df <- df %>%
+    mutate(
+      RESULT           = readr::parse_double(RESULT, na = c("", "NA"), locale = readr::locale(decimal_mark = ".", grouping_mark = ",")),
+      DILUTION         = suppressWarnings(as.numeric(DILUTION)),
+      MDL              = suppressWarnings(as.numeric(MDL)),
+      RL               = suppressWarnings(as.numeric(RL)),
+      PERCENT.MOISTURE = suppressWarnings(as.numeric(PERCENT.MOISTURE)),
+      PERCENT.SOLID    = suppressWarnings(as.numeric(PERCENT.SOLID))
+    )
+  
+  # --- non-detect flag AFTER numeric coercion ---
+  df <- df %>%
+    mutate(
+      non.detect = dplyr::if_else(!is.na(RESULT) & RESULT == 0, TRUE, FALSE, missing = NA)
+    )
+  
   return(df)
 }
+
 
 # TODO: add the calculation of total N and Mineral P here
 processData <- function(df) {
