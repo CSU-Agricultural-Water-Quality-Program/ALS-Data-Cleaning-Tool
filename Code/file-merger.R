@@ -8,20 +8,20 @@
 # further analysis.
 
 # Script work flow:
-  # 0) Import libraries
-  # 1) Define global variables
-  # 1a) Working file_path
-  # 1b) Set the default file directory
-  # 1c) Define dictionaries for interpreting sample ID codes
-  # 2) Define functions
-  # 2a) map_values <-- a function to map sample ID text to dictionary values
-  # 2b) import data
-  # 2c) clean data
-  # 2d) process data
-  # 2e) execute previous functions
-  # 2f) repeat for all files in a directory
-  # 4) View resulting dataframe(s) for QA/QC
-  # 3) Export data as csv
+# 0) Import libraries
+# 1) Define global variables
+# 1a) Working file_path
+# 1b) Set the default file directory
+# 1c) Define dictionaries for interpreting sample ID codes
+# 2) Define functions
+# 2a) map_values <-- a function to map sample ID text to dictionary values
+# 2b) import data
+# 2c) clean data
+# 2d) process data
+# 2e) execute previous functions
+# 2f) repeat for all files in a directory
+# 4) View resulting dataframe(s) for QA/QC
+# 3) Export data as csv
 
 # Example code execution for users
 # df_test <- returnSingleFile(path=file_path, export=FALSE)
@@ -41,11 +41,10 @@ package.list <- c("magrittr",
                   "lattice",
                   "rvest",
                   "xml2",
-                  "stringr",
                   'tidyverse',
                   'lubridate',
                   'stringr'
-                  )
+)
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -62,7 +61,7 @@ source('./Code/config.R')
 
 
 # Dictionaries for interpreting sample ID codes
-  # Add to these at needed for new locations, treatments, methods, etc.
+# Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- list(
   "ARDEC" = "A2", #TODO: fix 2200 labeling in process data fxn; 2200 is removed
   "ARDEC South - Conv" = "ASC",
@@ -91,10 +90,11 @@ location.dict <- list(
   "Fruita C" = c("FC", "FC1", "FC2", "C1", "C2"),
   "Fruita F" = c("FF", "FF1", "FF2", "FF3", "FF4", "F1", "F2", "F3", "F4"),
   "AVRC Cowpea" = c("COW", "T1", "T2", "T3", "T4"),
+  "North Sand Creek" = c("NSC", "J", "G", "F"),
   "Lab Blank" = "BK",
   "Method Blank" = "Method Blank",
   "Lab Control Sample" = "Lab Control Sample"
-  )
+)
 
 trt.dict <- list(
   #note that leaving AVRC and Kerbel as CT/MT/ST breaks the GPS coordinate locator b/c it needs the block# in the trt name to find it (e.g., CT2)
@@ -138,8 +138,11 @@ trt.dict <- list(
   "Cowpea Treatment 1" = c("T1"),
   "Cowpea Treatment 2" = c("T2"),
   "Cowpea Treatment 3" = c("T3"),
-  "Cowpea Treatment 4" = c("T4")
-  )
+  "Cowpea Treatment 4" = c("T4"),
+  "NSC Site J" = c("J"),
+  "NSC Site G" = c("G"),
+  "NSC Site F" = c("F")
+)
 
 method.dict <- list(
   "ISCO" = c("ISC"), # formerly had "IN", "OT", "0T" here, but I think it messed up labels
@@ -149,7 +152,7 @@ method.dict <- list(
   "Lab Blank" = c("BK"),
   "Method Blank" = c("Method Blank"),
   "Lab Control Sample" = c("Lab Control Sample")
-  )
+)
 
 eventType.dict <- list(
   "Inflow" = c("IN", "INF", "INLC", "IN1", "IN2", "IN3", "IN4", "IN5", "IN6", 
@@ -159,7 +162,7 @@ eventType.dict <- list(
   "Lab Blank" = c("BK"),
   "Method Blank" = c("Method Blank"),
   "Lab Control Sample" = c("Lab Control Sample")
-  )
+)
 
 eventCount.dict <- list(
   "Irrigation 1" = c("01"),
@@ -175,7 +178,7 @@ eventCount.dict <- list(
   "Storm 3" = c("S3"),
   "Storm 4" = c("S4"),
   "Storm 5" = c("S5")
-  )
+)
 
 tssUnits.dict <- c(
   "TSS" = "mg/L",
@@ -184,7 +187,7 @@ tssUnits.dict <- c(
   "EC25" = "dS/cm",
   "Specific Conductance" = "dS/cm",
   "pH" = "pH"
-   )
+)
 
 #untested analyte dict update - but worked in the load-calc-experiment script
 analyteAbbr.dict <- list(
@@ -232,12 +235,12 @@ Fire 2		Point Sample	-105.987369	40.157551
 Fire 3		Point Sample	-105.990499	40.154385
 Gunnison		Outflow	-106.8269323	38.52626188
 Gunnison		Inflow	-106.8160882	38.52338862
-Kerbel	CT1	Outflow	-104.99828	40.67641
-Kerbel	CT2	Outflow	-104.99666	40.67637
-Kerbel	ST1	Outflow	-104.99764	40.67641
-Kerbel	ST2	Outflow	-104.99701	40.67636
-Kerbel	MT1	Outflow	-104.99798	40.67641
-Kerbel	MT2	Outflow	-104.99735	40.67638
+Kerbel	CT	Outflow	-104.99828	40.67641
+Kerbel	CT	Outflow	-104.99666	40.67637
+Kerbel	ST	Outflow	-104.99764	40.67641
+Kerbel	ST	Outflow	-104.99701	40.67636
+Kerbel	MT	Outflow	-104.99798	40.67641
+Kerbel	MT	Outflow	-104.99735	40.67638
 Kerbel	Inflow	Inflow	-104.997502	40.679262
 Legacy		Outflow	-106.8205175	40.43192773
 Molina		Inflow	-108.04037	39.163825
@@ -277,6 +280,7 @@ AVRC Cowpea	  T4	Outflow	TBD	TBD
 ", sep = '\t', header = TRUE, stringsAsFactors = FALSE)
 
 # Define Private Functions (i.e., do not call them directly)
+
 map_values_analyte <- function(text, dict) {
   # Ensure text is treated as a character string
   text <- as.character(text)
@@ -314,20 +318,106 @@ map_values <- function(text, dict) {
   return(NA)  # Return NA if no match is found
 }
 
+standardize_als_column_names <- function(df) {
+  # Upper-case and replace non-alnum with dots to normalize
+  std_names <- toupper(gsub("[^A-Za-z0-9]+", ".", names(df)))
+  names(df) <- std_names
+  
+  # Known synonym map -> canonical
+  alias_map <- c(
+    "SAMPLE.ID"          = "SAMPLE.ID",
+    "SAMPLE.ID."         = "SAMPLE.ID",
+    "SAMPLEID"           = "SAMPLE.ID",
+    "SAMPLE"             = "SAMPLE.ID",
+    "SAMPLE.ID.NUMBER"   = "SAMPLE.ID",
+    "SAMPLE.ID.CODE"     = "SAMPLE.ID",
+    "SAMPLE.ID1"         = "SAMPLE.ID",
+    "SAMPLE.ID2"         = "SAMPLE.ID",
+    "SAMPLE.ID3"         = "SAMPLE.ID",
+    "SAMPLE.ID4"         = "SAMPLE.ID",
+    "SAMPLE.ID5"         = "SAMPLE.ID",
+    "SAMPLE.ID6"         = "SAMPLE.ID",
+    "SAMPLE.ID7"         = "SAMPLE.ID",
+    "SAMPLE.ID8"         = "SAMPLE.ID",
+    "SAMPLE.ID9"         = "SAMPLE.ID",
+    "SAMPLE.ID10"        = "SAMPLE.ID",
+    "SAMPLE.ID11"        = "SAMPLE.ID",
+    "SAMPLE.ID12"        = "SAMPLE.ID",
+    "SAMPLE.ID13"        = "SAMPLE.ID",
+    "SAMPLE.ID14"        = "SAMPLE.ID",
+    "SAMPLE.ID15"        = "SAMPLE.ID",
+    "SAMPLE.ID16"        = "SAMPLE.ID",
+    "SAMPLE.ID17"        = "SAMPLE.ID",
+    "SAMPLE.ID18"        = "SAMPLE.ID",
+    "SAMPLE.ID19"        = "SAMPLE.ID",
+    "SAMPLE.ID20"        = "SAMPLE.ID",
+    "SAMPLE.ID21"        = "SAMPLE.ID",
+    "SAMPLE.ID22"        = "SAMPLE.ID",
+    "SAMPLE.ID23"        = "SAMPLE.ID",
+    "SAMPLE.ID24"        = "SAMPLE.ID",
+    "SAMPLE.ID25"        = "SAMPLE.ID",
+    "SAMPLE.ID26"        = "SAMPLE.ID",
+    "SAMPLE.ID27"        = "SAMPLE.ID",
+    "SAMPLE.ID28"        = "SAMPLE.ID",
+    "SAMPLE.ID29"        = "SAMPLE.ID",
+    "SAMPLE.ID30"        = "SAMPLE.ID",
+    
+    "SAMPLE.ID."         = "SAMPLE.ID",
+    "SAMPLE.ID.."        = "SAMPLE.ID",
+    "SAMPLE.ID..."       = "SAMPLE.ID",
+    "SAMPLE.ID...."      = "SAMPLE.ID",
+    
+    "RESULT"             = "RESULT",
+    "RESULT.VALUE"       = "RESULT",
+    "VALUE"              = "RESULT",
+    "CONCENTRATION"      = "RESULT",
+    "MEASURED.RESULT"    = "RESULT",
+    
+    "RESULT.REPORTED.TO" = "RESULT.REPORTED.TO",
+    "REPORTING.LIMIT"    = "RL",
+    "RL"                 = "RL",
+    "DETECTION.LIMIT"    = "MDL",
+    "MDL"                = "MDL",
+    "DILUTION.FACTOR"    = "DILUTION",
+    "DILUTION"           = "DILUTION",
+    "UNITS"              = "UNITS",
+    "UNIT"               = "UNITS",
+    "ANALYTE"            = "ANALYTE",
+    "COMPONENT"          = "ANALYTE"
+  )
+  
+  # Apply alias remapping where present
+  names(df) <- dplyr::recode(names(df), !!!alias_map, .default = names(df))
+  
+  df
+}
+
 importData <- function(file_path) {
-  # ALS exports data as xls, but it is actually htm,
-   # so it requires some cleaning here.
-  df <- read_html(file_path) %>% # read in html file
-    html_table() %>% # convert to table
-    data.frame() # convert to dataframe
-  return(df) # return dataframe
+  # ALS exports results data as htm. Very confusing.
+  tabs <- xml2::read_html(file_path) %>% rvest::html_table(fill = TRUE)
+  if (length(tabs) == 0) stop("No tables found in HTML/XLS: ", file_path)
+  
+  # Standardize names per table, then pick a table that has both SAMPLE.ID & RESULT
+  std_tabs <- lapply(tabs, standardize_als_column_names)
+  
+  # 1) prefer tables with BOTH SAMPLE.ID and RESULT
+  has_both <- purrr::keep(std_tabs, ~ all(c("SAMPLE.ID","RESULT") %in% names(.x)))
+  if (length(has_both) > 0) return(as.data.frame(has_both[[1]]))
+  
+  # 2) next-best: has RESULT (we will fail later if SAMPLE.ID truly absent)
+  has_result <- purrr::keep(std_tabs, ~ "RESULT" %in% names(.x))
+  if (length(has_result) > 0) return(as.data.frame(has_result[[1]]))
+  
+  # 3) fallback: widest table
+  pick <- which.max(purrr::map_int(std_tabs, ncol))
+  as.data.frame(std_tabs[[pick]])
 }
 
 importDataXls <- function(file_path) {
   # ALS exports meta data as xls. Very confusing.
-   # so we have to import it differently
-  df <- read_excel(file_path) %>% # read in html file
-    data.frame() # convert to dataframe
+  # so we have to import it differently
+  df <- readxl::read_excel(file_path) %>% data.frame()
+  df <- standardize_als_column_names(df)
   return(df) # return dataframe
 }
 
@@ -335,7 +425,7 @@ importDataKelso <- function(file_path) {
   # Selenium testing is done by the Kelso lab and is a csv file
   # read in csv file
   df <- read_csv(file_path, show_col_types = FALSE) %>% 
-  # create columns to be congruent with houston data
+    # create columns to be congruent with houston data
     # TODO: check if we actually need to add these NA cols to make it work, b/c we remove them later anyway in executeFxns
     mutate(METHOD =paste0(`Extraction Method`, sep = "-", Method),
            LAB.ID = NA,
@@ -344,165 +434,220 @@ importDataKelso <- function(file_path) {
            REPORT.BASIS = NA,
            PERCENT.MOISTURE = NA,
            PERCENT.SOLID = NA
-           ) %>%  
-  # Drop any rows where the Sample Type column is not 'SMPL'
+    ) %>%  
+    # Drop any rows where the Sample Type column is not 'SMPL'
     filter(`Sample Type` == 'SMPL') %>%
-  # Select desired columns, dropping the rest
+    # Select desired columns, dropping the rest
     select(Sample, Result, Units, Component, 'Dilution Factor', 'Reporting Limit', 
            'Detection Limit', METHOD, LAB.ID, CAS.NUMBER, RESULT.REPORTED.TO,
            REPORT.BASIS, PERCENT.MOISTURE, PERCENT.SOLID) %>%  
-  # Rename columns to match Houston data
+    # Rename columns to match Houston data
     rename("SAMPLE ID" = "Sample", "RESULT" = "Result", "UNITS" = "Units", 
            "ANALYTE"="Component", "DILUTION"="Dilution Factor",
            "RL"="Reporting Limit", "MDL"="Detection Limit" 
-           ) %>%
-  # convert to data frame type
+    ) %>%
+    # convert to data frame type
     data.frame() 
   # return dataframe
   return(df) 
 }
 
 cleanData <- function(df, file_path = NULL) {
-# takes imported data and cleans it for processing
-  # Check for expected columns
+  # takes imported data and cleans it for processing
+  
+  # normalize column names early (handles SAMPLE ID/RESULT variants)
+  df <- standardize_als_column_names(df)
+  
+  # --- sanity check on required columns ---
   required_cols <- c("SAMPLE.ID", "RESULT")
   missing_cols <- setdiff(required_cols, names(df))
-  
   if (length(missing_cols) > 0) {
-    stop(paste0("❌ Missing columns in file: ", file_path, 
-                "\nRequired column(s) missing: ", paste(missing_cols, collapse = ", ")))
+    stop(paste0(
+      "❌ Missing columns in file: ", file_path,
+      "\nRequired column(s) missing: ", paste(missing_cols, collapse = ", ")
+    ))
   }
   
-   # Drop unnecessary rows containing the word "sample:"
-  df <- df[!grepl("Sample:", df$SAMPLE.ID),] %>% 
-    # other cleaning processes:
+  # --- main cleaning pipeline (keep RESULT as text until final coercion) ---
+  df <- df[!grepl("Sample:", df$SAMPLE.ID), ] %>%
     mutate(
-      # create flag column for later
-      flag = NA,
-      # convert values containing "<" to 0
-      RESULT = ifelse(grepl("<", RESULT), 0, RESULT),
-      #  Flag values with H as past hold time and remove "H"
-      flag = ifelse(str_detect(RESULT, "H"), "H", flag),
-      RESULT = gsub("H", "", RESULT),
-      # remove "See Attached" values, code 9999 set for flagging in flagData()
-      RESULT = gsub("See Attached", 9999, RESULT),
-      # make results numeric
-      RESULT = gsub("N/A", NA, RESULT),
-      RESULT = gsub("[^0-9.-]", "", RESULT),  # Remove any remaining non-numeric characters
-      RESULT = as.numeric(RESULT),  # Convert to numeric
-      # remove the scentific notation from results
-      RESULT = ifelse(!is.na(RESULT), format(RESULT, scientific = FALSE), NA),
-      # create column to indicate if a result value was a non-detect
-      non.detect = ifelse(RESULT == 0, TRUE, FALSE),
-      # change "N/A" to NA in any column
-      across(everything(), ~ ifelse(. == "N/A", NA, .))) %>%
-      # convert select columns to numeric if needed
-      mutate_at(c("RESULT",
-                  "DILUTION",
-                  "MDL",
-                  "RL",
-                  "PERCENT.MOISTURE",
-                  "PERCENT.SOLID"),
-                 as.numeric) %>%
+      flag   = NA_character_,
+      RESULT = as.character(RESULT),
+      
+      # censored values (“<…”) -> explicit 0 (as text for now)
+      RESULT = ifelse(grepl("<", RESULT, fixed = TRUE), "0", RESULT),
+      
+      # “H” hold-time -> save flag, then strip
+      flag   = ifelse(stringr::str_detect(RESULT, "H"),
+                      if_else(is.na(flag), "H", paste0(flag, ", H")),
+                      flag),
+      RESULT = gsub("H", "", RESULT, fixed = TRUE),
+      
+      # “See Attached” sentinel -> 9999 (text for now; we’ll flag + drop later)
+      RESULT = gsub("See Attached", "9999", RESULT,  fixed = TRUE),
+      
+      # normalize empties
+      RESULT = ifelse(RESULT %in% c("N/A", "NA", "", " "), NA, RESULT),
+      
+      # trim + keep sci-notation characters only
+      RESULT = ifelse(is.na(RESULT), NA_character_, trimws(RESULT)),
+      RESULT = ifelse(
+        is.na(RESULT), NA_character_,
+        gsub("[^0-9eE+\\-\\.]", "", RESULT)
+      )
+    ) %>%
+    # Numeric coercion (robust sci-notation)
+    mutate(
+      RESULT           = readr::parse_double(RESULT, na = c("", "NA"),
+                                             locale = readr::locale(decimal_mark = ".", grouping_mark = ",")),
+      DILUTION         = suppressWarnings(as.numeric(DILUTION)),
+      MDL              = suppressWarnings(as.numeric(MDL)),
+      RL               = suppressWarnings(as.numeric(RL)),
+      PERCENT.MOISTURE = suppressWarnings(as.numeric(PERCENT.MOISTURE)),
+      PERCENT.SOLID    = suppressWarnings(as.numeric(PERCENT.SOLID))
+    ) %>%
+    # Convert 9999 (“See Attached”) to a separate flag, then remove from RESULT
+    mutate(
+      see_attached = dplyr::if_else(!is.na(RESULT) & RESULT == 9999, TRUE, FALSE, missing = NA),
+      RESULT       = dplyr::if_else(see_attached, NA_real_, RESULT)
+    ) %>%
+    # Non-detect after numeric: prefer MDL rule; fallback to exact 0 when MDL missing
+    mutate(
+      non.detect = dplyr::case_when(
+        !is.na(MDL)  & !is.na(RESULT) & RESULT <= MDL ~ TRUE,
+        is.na(MDL)   & !is.na(RESULT) & RESULT == 0   ~ TRUE,
+        TRUE                                          ~ FALSE
+      )
+    )
+  
   return(df)
 }
 
 # TODO: add the calculation of total N and Mineral P here
+dict_to_regex <- function(dict) {
+  tibble::tibble(
+    key = names(dict),
+    rx  = purrr::map_chr(dict, ~ paste0("\\b(", paste(sort(.x, decreasing = TRUE), collapse="|"), ")\\b"))
+  )
+}
+
+map_by_regex <- function(x, rx_tbl) {
+  out <- rep(NA_character_, length(x))
+  for (i in seq_len(nrow(rx_tbl))) {
+    hits <- stringr::str_detect(x, rx_tbl$rx[i])
+    out[is.na(out) & hits] <- rx_tbl$key[i]
+  }
+  out
+}
+
+# --- ADD once (after dicts are defined) so they’re in scope globally ---
+.location_rx <- dict_to_regex(location.dict)
+.method_rx   <- dict_to_regex(method.dict)
+.event_rx    <- dict_to_regex(eventType.dict)
+.trt_rx      <- dict_to_regex(trt.dict)
+.eventcnt_rx <- dict_to_regex(eventCount.dict)
+
 processData <- function(df) {
-  # Process data to create new columns for analysis based on ID codes
-    # create new columns based on ID codes
-  df <- df %>%
+  df %>%
     mutate(
-      # create duplicate column
-      duplicate = ifelse(grepl("-D", SAMPLE.ID, fixed = FALSE), TRUE, FALSE),
-      # create location name column based on Sample ID
-      location.name = sapply(SAMPLE.ID, function(x) map_values(x, location.dict)),
-      # create method name column based on Sample ID
-      method.name = sapply(SAMPLE.ID, function(x) map_values(x, method.dict)),
-      # create event type name column based on Sample ID
-      event.type = sapply(SAMPLE.ID, function(x) map_values(x, eventType.dict)),
-      # create treatment name column based on Sample ID
-      treatment.name = sapply(SAMPLE.ID, function(x) map_values(x, trt.dict)),
-      # make treatment default to event.type when treatment is NA
-      treatment.name = ifelse(is.na(treatment.name), event.type, treatment.name),
-      # create event count column based on Sample ID
-      event.count = sapply(SAMPLE.ID, function(x) map_values(x, eventCount.dict)),
-      # create flow volume column (in Liters), and fill it with NAs for now
-      flow.vol.liter = NA
-      ) %>%
-    # If event.type is NA, use "Point Sample" as default
-    # TODO: consider changing this to "Check source" to avoid mislabeling
-    mutate(
-      event.type = ifelse(is.na(event.type), "Point Sample", event.type)
+      duplicate      = stringr::str_detect(SAMPLE.ID, "-D"),
+      location.name  = map_by_regex(SAMPLE.ID, .location_rx),
+      method.name    = map_by_regex(SAMPLE.ID, .method_rx),
+      event.type     = map_by_regex(SAMPLE.ID, .event_rx),
+      treatment.name = map_by_regex(SAMPLE.ID, .trt_rx),
+      event.count    = map_by_regex(SAMPLE.ID, .eventcnt_rx),
+      treatment.name = dplyr::if_else(is.na(treatment.name), event.type, treatment.name),
+      event.type     = dplyr::coalesce(event.type, "Point Sample")
     ) %>%
     mutate(
-      # remove numbers from new columns due to dict mapping
-      # caution: if there are more than 10 dict keys, this will not work
-      # note: avoid naming future locations with numbers in the name
-      across(c(
-          "location.name", 
-          "method.name", 
-          "event.type",
-        ), 
-        ~gsub("[0-9]", "", .)
-      ),
-      # treatment.name needs special treatment because of CT/MT/ST 1/2 having #'s
-      # so we modify treatment.name based on whether the last TWO characters are
-      # numbers. If yes, then drop one digit, else leave it alone to preserve.
-      treatment.name = ifelse(
-        grepl("[0-9][0-9]$", treatment.name),
+      across(c(location.name, method.name, event.type),
+             ~ gsub("[0-9]", "", .)),
+      treatment.name = dplyr::if_else(
+        stringr::str_detect(treatment.name, "[0-9][0-9]$"),
         substr(treatment.name, 1, nchar(treatment.name) - 1),
         treatment.name
       ),
-      # check treatment name for "Inflow" and remove number after it e.g., "Inflow2" should be "Inflow"
-      treatment.name = ifelse(
-        grepl("Inflow", treatment.name),
-        "Inflow",
-        treatment.name
+      treatment.name = dplyr::if_else(
+        stringr::str_detect(treatment.name, "Inflow"),
+        "Inflow", treatment.name
       ),
       event.count = as.factor(event.count)
     )
-  return(df)
 }
 
 # TODO: fix and start using the flag data function
 flagData <- function(df){
-# function to flag data and perform QA/QC after merging both htm and xls files
+  # function to flag data and perform QA/QC after merging both htm and xls files
   # check water data for flags such as:
-    # H = past hold time (declared in cleanData function)
-    # J = minimum detection limit (MDL) > value > reporting limit (RL)
-    # N = non-EPA method used
-    # P = Ortho-P > Total P
-    # more?
+  # H = past hold time (declared in cleanData function)
+  # J = minimum detection limit (MDL) > value > reporting limit (RL)
+  # N = non-EPA method used
+  # P = Ortho-P > Total P
+  # more?
   
   # Other, more simple flag conditions...
-  df <- df %>%
+  df %>%
     mutate(
-      # Check for J values and append to existing flag
-      flag = ifelse(RESULT > MDL & RESULT < RL, ifelse(is.na(flag), "J", paste0(flag, ", J")), flag),
-      # Identify "See Attached" results and append
-      flag = ifelse(RESULT == 9999, ifelse(is.na(flag), "See Attached", paste0(flag, ", See Attached")), flag),
-      # convert ALS specific conductivity to mS/cm like we use at AWQP
-      # RESULT = ifelse(
-      #   "Specific Conductance" %in% names(.) && ANALYTE == "Specific Conductance", 
-      #   RESULT / 1000, # ALS repors EC in uS/cm, so divide by 1000 to get mS/cm
-      #   RESULT
-      # )
+      # J flag: RESULT in [MDL, RL) with both limits present (vectorized)
+      flag = dplyr::if_else(
+        !is.na(RESULT) & !is.na(MDL) & !is.na(RL) & RESULT >= MDL & RESULT < RL,
+        dplyr::if_else(is.na(flag), "J", paste0(flag, ", J")),
+        flag
+      ),
+      # See Attached: use vectorized condition; do NOT use isTRUE() on a vector
+      flag = dplyr::if_else(
+        dplyr::coalesce(see_attached, FALSE),
+        dplyr::if_else(is.na(flag), "See Attached", paste0(flag, ", See Attached")),
+        flag
+      )
     )
-  return(df)
 }
 
 # TODO: investigate addCoord; it doesn't work reliably
 addCoord <- function(df, geo_key) {
-  # Merge the main dataframe with the geospatial key
-  df <- merge(df, geo_key, by = c(
-    "location.name", 
-    "treatment.name",
-    "event.type"
-    ), 
-    all.x = TRUE
+  dup_keys <- geo_key %>%
+    dplyr::count(location.name, treatment.name, event.type) %>%
+    dplyr::filter(n > 1)
+  if (nrow(dup_keys) > 0) {
+    warning("Duplicate rows in geo_key for some (location, treatment, event) keys; using first match.")
+    geo_key <- geo_key %>%
+      dplyr::distinct(location.name, treatment.name, event.type, .keep_all = TRUE)
+  }
+  
+  out <- df %>%
+    dplyr::left_join(geo_key, by = c("location.name","treatment.name","event.type"))
+  
+  n_missing <- sum(is.na(out$long) | is.na(out$lat))
+  if (n_missing > 0) {
+    warning(sprintf("Missing coordinates for %d rows after join.", n_missing))
+  }
+  out
+}
+
+normalize_ec <- function(df) {
+  df %>%
+    mutate(
+      RESULT = dplyr::if_else(
+        ANALYTE %in% c("Specific Conductance","EC25","EC") &
+          !is.na(RESULT) & RESULT > 50 & RESULT < 200000,  # crude heuristic for µS/cm
+        RESULT / 1000,  # µS/cm -> mS/cm
+        RESULT
+      ),
+      UNITS  = dplyr::if_else(
+        ANALYTE %in% c("Specific Conductance","EC25","EC"),
+        "mS/cm", UNITS
+      )
     )
-  return(df)
+}
+
+qa_scan <- function(df){
+  list(
+    negative_results = df %>% dplyr::filter(!is.na(RESULT) & RESULT < 0) %>% nrow(),
+    rl_less_than_mdl = df %>% dplyr::filter(!is.na(RL) & !is.na(MDL) & RL < MDL) %>% nrow(),
+    zero_not_flagged = df %>% dplyr::filter(!is.na(RESULT) & RESULT == 0 & non.detect != TRUE) %>% nrow(),
+    missing_coords   = df %>% dplyr::filter(is.na(long) | is.na(lat)) %>% nrow(),
+    see_attached_kept= df %>% dplyr::filter(see_attached %in% TRUE, !is.na(RESULT)) %>% nrow()
+  )
 }
 
 dfTss <- function(tss_fp) {
@@ -582,26 +727,17 @@ executeFxns <- function(file_path, kelso=FALSE, geo_key) {
     df <- importData(file_path)
   }
   
-  # Execute the remaining functions and return the final dataframe
   df <- df %>%
-    cleanData(file_path = file_path) %>% # clean ALS format
-    processData() %>% # create new columns using IDs
-    addCoord(geo_key) %>% # add spatial data
-    flagData() %>% # flag and QA/QC data
-    { select(., -all_of( # remove unnecessary columns
-      c("REPORT.BASIS", 
-        "PERCENT.MOISTURE", 
-        "PERCENT.SOLID", 
-        "LAB.ID.y", 
-        "MATRIX", 
-        "HOLD")
-      [c("REPORT.BASIS", 
-         "PERCENT.MOISTURE", 
-         "PERCENT.SOLID", 
-         "LAB.ID.y", 
-         "MATRIX", 
-         "HOLD") %in% 
-          names(.)])) }
+    cleanData(file_path = file_path) %>%   # clean ALS/Kelso format
+    processData() %>%                      # create new columns using IDs
+    normalize_ec() %>%                     # <-- optional EC unit normalization
+    addCoord(geo_key) %>%                  # add spatial data
+    flagData() %>%                         # flag and QA/QC data
+    { select(., -all_of(
+      c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID","LAB.ID.y","MATRIX","HOLD")
+      [c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID","LAB.ID.y","MATRIX","HOLD") %in% names(.)]
+    )) }
+  
   return(df)
 }
 
@@ -665,7 +801,12 @@ mergeFiles <- function(directory, tss_fp) {
     left_join(df_meta, by = 'SAMPLE.ID')
   
   # Change to POSIXct
-  df_merge$COLLECTED <- as.POSIXct(df_merge$COLLECTED, format = '%d %b %Y %H:%M')
+  df_merge$COLLECTED <- lubridate::parse_date_time(
+    df_merge$COLLECTED,
+    orders = c("d b Y H:M", "Y-m-d H:M:S", "m/d/Y H:M", "Y-m-d"),
+    tz = "America/Denver"
+  )
+  
   
   # Import TSS data to df with metadata
   if (!is.null(tss_fp) && file.exists(tss_fp)) {
@@ -699,7 +840,7 @@ mergeFiles <- function(directory, tss_fp) {
   # Drop only if the column exists
   cols_to_drop <- cols_to_drop[cols_to_drop %in% names(df)]
   df <- select(df, -all_of(cols_to_drop))
-
+  
   return(df)
   
 }
@@ -707,7 +848,7 @@ mergeFiles <- function(directory, tss_fp) {
 # Define public functions (i.e., to be called by user)
 returnSingleFile <- function(path = file_path, export = FALSE) {
   # return and optionally export a single file for QA/QC
-  df <- executeFxns(path)
+  df <- executeFxns(path, kelso = FALSE, geo_key = geo_key)
   if (export == TRUE) {
     # Get the current date in YYYY-MM-DD format
     currentDate <- format(Sys.Date(), "%Y-%m-%d")
