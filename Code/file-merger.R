@@ -236,12 +236,12 @@ Fire 2		Point Sample	-105.987369	40.157551
 Fire 3		Point Sample	-105.990499	40.154385
 Gunnison		Outflow	-106.8269323	38.52626188
 Gunnison		Inflow	-106.8160882	38.52338862
-Kerbel	CT1	Outflow	-104.99828	40.67641
-Kerbel	CT2	Outflow	-104.99666	40.67637
-Kerbel	ST1	Outflow	-104.99764	40.67641
-Kerbel	ST2	Outflow	-104.99701	40.67636
-Kerbel	MT1	Outflow	-104.99798	40.67641
-Kerbel	MT2	Outflow	-104.99735	40.67638
+Kerbel	CT	Outflow	-104.99828	40.67641
+Kerbel	CT	Outflow	-104.99666	40.67637
+Kerbel	ST	Outflow	-104.99764	40.67641
+Kerbel	ST	Outflow	-104.99701	40.67636
+Kerbel	MT	Outflow	-104.99798	40.67641
+Kerbel	MT	Outflow	-104.99735	40.67638
 Kerbel	Inflow	Inflow	-104.997502	40.679262
 Legacy		Outflow	-106.8205175	40.43192773
 Molina		Inflow	-108.04037	39.163825
@@ -414,7 +414,6 @@ cleanData <- function(df, file_path = NULL) {
   
   # --- Numeric coercion (robust to scientific notation) ---
   # Prefer readr::parse_double for consistent locale behavior and better diagnostics.
-  # (You already load readr/tidyverse earlier.)
   df <- df %>%
     mutate(
       RESULT           = readr::parse_double(RESULT, na = c("", "NA"), locale = readr::locale(decimal_mark = ".", grouping_mark = ",")),
@@ -522,16 +521,27 @@ flagData <- function(df){
 
 # TODO: investigate addCoord; it doesn't work reliably
 addCoord <- function(df, geo_key) {
-  # Merge the main dataframe with the geospatial key
-  df <- merge(df, geo_key, by = c(
-    "location.name", 
-    "treatment.name",
-    "event.type"
-    ), 
-    all.x = TRUE
-    )
-  return(df)
+  # check potential duplicate keys in geo_key
+  dup_keys <- geo_key %>%
+    count(location.name, treatment.name, event.type) %>%
+    filter(n > 1)
+  if (nrow(dup_keys) > 0) {
+    warning("Duplicate rows in geo_key for some (location, treatment, event) keys; using first match.")
+    geo_key <- geo_key %>%
+      distinct(location.name, treatment.name, event.type, .keep_all = TRUE)
+  }
+  
+  out <- df %>%
+    left_join(geo_key, by = c("location.name","treatment.name","event.type"))
+  
+  # alert if any coords are still missing
+  n_missing <- sum(is.na(out$long) | is.na(out$lat))
+  if (n_missing > 0) {
+    warning(sprintf("Missing coordinates for %d rows after join.", n_missing))
+  }
+  out
 }
+
 
 dfTss <- function(tss_fp) {
   df <- read_excel(tss_fp, sheet = "MasterData") %>%

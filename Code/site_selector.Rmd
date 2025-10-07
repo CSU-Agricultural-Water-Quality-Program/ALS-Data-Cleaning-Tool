@@ -88,14 +88,14 @@ colnames(dat) <- tolower(names(dat))
 # loc = 'Fruita C'
 # loc = 'Fruita F'
 # loc = 'Gunnison'
-# loc = 'Kerbel'
+loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Stagecoach'
 # loc = 'The Ranch'
 # loc = 'Upper Yampa'
 # loc = 'Yellow Jacket'
- loc = 'North Sand Creek'
+# loc = 'North Sand Creek'
 
 #create a filtered df to use for violin plots and scatterplot
 filter_dataframe <- function(df, selected_location, include_blanks = FALSE) {
