@@ -93,7 +93,7 @@ colnames(dat) <- tolower(names(dat))
 # loc = 'Molina'
 # loc = 'Stagecoach'
 # loc = 'The Ranch'
-# loc = 'Upper Yampa'
+loc = 'Upper Yampa'
 # loc = 'Yellow Jacket'
 # loc = 'North Sand Creek'
 
@@ -195,6 +195,8 @@ datatable(unique_analyte_method,
 
 
 ```
+
+TODO: add table of reg 31 detections 
 
 
 # Interactive Box and Whisker Plot
