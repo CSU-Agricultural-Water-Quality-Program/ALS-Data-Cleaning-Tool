@@ -74,7 +74,7 @@ colnames(dat) <- tolower(names(dat))
   # To select site, un-comment your location of interest (alphabetical order)
   # This list may need to be updated as more sites are added/removed
 # loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
- loc = 'AVRC STAR'
+# loc = 'AVRC STAR'
 # loc = 'AVRC Cowpea'
 # loc = 'Barley'
 # loc = 'Berthoud'
@@ -88,12 +88,12 @@ colnames(dat) <- tolower(names(dat))
 # loc = 'Fruita C'
 # loc = 'Fruita F'
 # loc = 'Gunnison'
-# loc = 'Kerbel'
+loc = 'Kerbel'
 # loc = 'Legacy'
 # loc = 'Molina'
 # loc = 'Stagecoach'
 # loc = 'The Ranch'
-loc = 'Upper Yampa'
+# loc = 'Upper Yampa'
 # loc = 'Yellow Jacket'
 # loc = 'North Sand Creek'
 
@@ -197,6 +197,8 @@ datatable(unique_analyte_method,
 ```
 
 TODO: add table of reg 31 detections 
+## use filtered_df, how do i display a table of just sample ID, collection date, and the analyte name, the value of that analyte, and the CDPHE regulations and EPA drinking water regulation for said analyte (should be two standards for that analyte), you don't want a giant data frame you want only the ones that do not meet the standards, and an extra column for which standard was triggered and why it is on the list, if it triggers both, then have both listed in that column (is one triggered, or both?) 
+Create a dictionary? with all of the regulation values 
 
 
 # Interactive Box and Whisker Plot
@@ -359,7 +361,9 @@ if (length(levels(as.factor(filtered_df$treatment.name))) > 1) {
 
 ```
 
+See comments below for event.count
 ```{r, eval=FALSE}
+## Original code
 create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.title, x_axis_var) {
   tryCatch({
     # Ensure the output directory exists
@@ -370,11 +374,13 @@ create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.titl
     # Create the file paths for portrait and landscape versions
     file_path_portrait <- file.path(output_dir, file_name)
     file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
+        
     
     # Generate the box and whisker plot with dynamic x-axis
     bw_plot <- ggplot(df, aes_string(x = x_axis_var, y = "result", fill = x_axis_var)) +
       geom_boxplot(position = position_dodge(0)) + 
       geom_jitter(width = 0.2, size = 1.5, alpha = 0.6) + # Add jitter to show individual data points
+      ### Change event.count to a date without time 
       facet_grid(analyte.abbr ~ event.count, scales = "free_y", space = "free_x") +
       theme_minimal() +
       theme(
@@ -425,7 +431,133 @@ bw_Misc <- create_and_save_boxwhisker_plot(Misc_df,
                                            file_name = "bw_Misc.jpg",
                                            plot.title = 'Water Quality Analytes',
                                            x_axis_var = x_axis_var_name)
+
+
+
+bw_N
 ```
+
+```{r}
+####### Abby's edits  
+
+####### Abby's Edits – Fixed Version #######
+
+library(ggplot2)
+library(dplyr)
+library(tools)  # ensures the namespace is available
+
+# Helper function to inspect dropped rows (optional)
+find_dropped_rows <- function(df, x_axis_var) {
+  df %>%
+    dplyr::mutate(
+      collected_date = as.Date(collected),
+      result_num = suppressWarnings(as.numeric(result)),
+      x_val = .data[[x_axis_var]],
+      bad_result = !is.finite(result_num),
+      bad_x = is.na(x_val) | (is.character(x_val) & x_val == "")
+    ) %>%
+    dplyr::filter(bad_result | bad_x) %>%
+    dplyr::select(analyte.abbr, collected, collected_date, result, result_num,
+                  !!x_axis_var, bad_result, bad_x)
+}
+
+# Main plotting function
+create_and_save_boxwhisker_plot <- function(df, output_dir, file_name, plot.title, x_axis_var) {
+  tryCatch({
+    # Ensure the output directory exists
+    if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
+
+    # --- Data hygiene ---
+    df <- df %>%
+      dplyr::mutate(
+        collected_date = as.Date(collected),
+        result = suppressWarnings(as.numeric(result))
+      ) %>%
+      dplyr::filter(is.finite(result), !is.na(.data[[x_axis_var]]))
+
+    # Guard: stop if empty
+    if (nrow(df) == 0) {
+      stop("No finite 'result' values (and/or missing x) after filtering; nothing to plot.")
+    }
+
+    # Order facet columns chronologically
+    df <- df %>%
+      dplyr::arrange(collected_date) %>%
+      dplyr::mutate(collected_date = factor(collected_date, levels = unique(collected_date)))
+
+    # Create output file paths (explicit namespace for safety)
+    file_path_portrait  <- file.path(output_dir, file_name)
+    file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
+
+    # --- Plot ---
+    bw_plot <- ggplot(df, aes(x = .data[[x_axis_var]], y = result, fill = .data[[x_axis_var]])) +
+      geom_boxplot(position = position_dodge(0), na.rm = TRUE) +
+      geom_jitter(width = 0.2, size = 1.5, alpha = 0.6, na.rm = TRUE) +
+      facet_grid(analyte.abbr ~ collected_date, scales = "free_y", space = "free_x") +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 14),
+        axis.text.y = element_text(size = 14),
+        axis.title  = element_text(size = 16),
+        strip.text.x = element_text(size = 10),  # date facets (top)
+        strip.text.y = element_text(size = 14),  # analyte facets (side)
+        legend.text = element_text(size = 14),
+        legend.title = element_text(size = 16),
+        plot.title = element_text(size = 20, hjust = 0.5),
+        plot.subtitle = element_text(size = 18),
+        plot.caption = element_text(size = 12),
+        strip.background = element_rect(colour = "black", fill = "white"),
+        panel.grid.major = element_line(size = 1),
+        panel.grid.minor = element_line(size = 0.5)
+      ) +
+      labs(title = plot.title, x = "Event Type", y = "Result", fill = "Event Type") +
+      scale_fill_brewer(palette = "Pastel1")
+
+    # Save both orientations
+    ggsave(file_path_portrait,  bw_plot, width = 8.5,  height = 11,  units = "in")
+    ggsave(file_path_landscape, bw_plot, width = 11,   height = 8.5, units = "in")
+
+    bw_plot
+  }, error = function(e) {
+    message("An error occurred in create_and_save_boxwhisker_plot: ", e$message)
+    e$message
+  })
+}
+
+# Example calls
+bw_N <- create_and_save_boxwhisker_plot(
+  N_df,
+  output_dir = "./site_selector_temporary_results",
+  file_name = "bw_N.jpg",
+  plot.title = "Forms of Nitrogen",
+  x_axis_var = x_axis_var_name
+)
+
+bw_P <- create_and_save_boxwhisker_plot(
+  P_df,
+  output_dir = "./site_selector_temporary_results",
+  file_name = "bw_P.jpg",
+  plot.title = "Forms of Phosphorous",
+  x_axis_var = x_axis_var_name
+)
+
+bw_Misc <- create_and_save_boxwhisker_plot(
+  Misc_df,
+  output_dir = "./site_selector_temporary_results",
+  file_name = "bw_Misc.jpg",
+  plot.title = "Water Quality Analytes",
+  x_axis_var = x_axis_var_name
+)
+
+bw_N
+
+bw_P
+
+bw_Misc
+```
+
+
+
 
 # Static Bar Plots
 ```{r}
