@@ -52,25 +52,10 @@ packageLoad(package.list)
 # Data build
 source('./Code/file-merger.R')
 dat <- returnAllFiles(d = directory, export = FALSE)
-# make columns lowercase so they are all the same case
 colnames(dat) <- tolower(names(dat))
 ```
 
 ```{r, include=FALSE}
-# Site list
-  # To select site, un-comment your location of interest (alphabetical order)
-  # This list may need to be updated as more sites are added/removed
-# loc = 'ARDEC' #temporarily ARDEC 2200 until I fix file-merger.r
-# loc = 'AVRC STAR'
-# loc = 'AVRC Cowpea'
-# loc = 'Barley'
-# loc = 'Berthoud'
-# loc = 'Big Hollow'
-# loc = 'Boulder Lake'
-# loc = 'Below Stagecoach Dam'
-# loc = 'Fruita A'
-# loc = 'Fruita B'
-# loc = 'Fruita NT'
 # ---- Site list (toggle exactly ONE 'loc' line) ----
 # loc <- 'ARDEC'                     
 # loc <- 'AVRC STAR'
