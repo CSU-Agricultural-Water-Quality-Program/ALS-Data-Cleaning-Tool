@@ -144,6 +144,7 @@ label_map <- filtered_df %>% dplyr::select(event_facet, event_date) %>% dplyr::d
 event_labeller <- function(values) setNames(paste0(values, "\n", format(label_map$event_date[match(values, label_map$event_facet)], "%m-%d")), values)
 ```
 
+
 **Location Selected: <span style="color:#4CAF50">`r loc`</span>**
 
 ```{r, include=FALSE}
