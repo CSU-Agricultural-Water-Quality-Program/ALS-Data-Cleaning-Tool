@@ -188,6 +188,181 @@ unique_treatments <- filtered_df %>%
 DT::datatable(unique_treatments, caption = "Unique Treatments, Event Counts, and Collection Dates (YYYY-MM-DD)")
 ```
 
+
+TODO: add table of reg 31 detections 
+## use filtered_df, how do i display a table of just sample ID, collection date, and the analyte name, the value of that analyte, and the CDPHE regulations and EPA drinking water regulation for said analyte (should be two standards for that analyte), you don't want a giant data frame you want only the ones that do not meet the standards, and an extra column for which standard was triggered and why it is on the list, if it triggers both, then have both listed in that column (is one triggered, or both?) 
+Create a dictionary? with all of the regulation values 
+
+[EPA — National Primary Drinking Water Regulations](https://www.epa.gov/ground-water-and-drinking-water/national-primary-drinking-water-regulations)
+
+[EPA Nutrient Criteria Manual: Lakes & Reservoirs](https://www.epa.gov/sites/default/files/2018-10/documents/nutrient-criteria-manual-lakes-reservoirs.pdf)
+
+EPA analyte thresholds:
+pH: 6.5-8.5
+EC:
+Phosphorus, total orthophosphate:
+phosphorus, total: 0.0001 mg/L
+total dissolved solids (residue, filterable): 500 mg/L
+nitrogen, nitrate: 10 mg/L
+nitrogen, nitrite: 1 mg/L
+nitrogen, total kjeldahl:
+suspended solids (residue, non-filterable):
+
+CDPHE analyte thresholds:
+pH: 6.5-9
+nitrogen, nitrate: 10 mg/L
+nitrogen, nitrite: 1 mg/L
+Total phosphorus: .17 mg/L
+
+
+
+```{r}
+# Reg 31 exceedance table from filtered_df
+
+# Standards dictionary 
+standards <- tibble::tribble(
+  ~analyte_key, ~type,   ~epa_min, ~epa_max, ~epa_threshold, ~cdphe_min, ~cdphe_max, ~cdphe_threshold,
+  "pH",         "range",  6.5,       8.5,        NA_real_,       6.5,        9.0,          NA_real_,
+  "NO3",        "max",    NA_real_,  NA_real_,   10,             NA_real_,   NA_real_,     10,
+  "NO2",        "max",    NA_real_,  NA_real_,   1,              NA_real_,   NA_real_,     1,
+  "TP",         "max",    NA_real_,  NA_real_,   0.0001,         NA_real_,   NA_real_,     0.17,
+  "OP",         "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_,   
+  "TDS",        "max",    NA_real_,  NA_real_,   500,            NA_real_,   NA_real_,     NA_real_,
+  "TSS",        "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_,  
+  "EC",         "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_,   
+  "TKN",        "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_    
+)
+
+# 2) Helper: normalize analyte names to keys in 'standards'
+map_analyte_to_key <- function(x) {
+  x_low <- tolower(x)
+  dplyr::case_when(
+    str_detect(x_low, "^ph$") ~ "pH",
+    str_detect(x_low, "nitrate") ~ "NO3",
+    str_detect(x_low, "nitrite") ~ "NO2",
+    str_detect(x_low, "total kjeldahl") ~ "TKN",
+    str_detect(x_low, "total \\(?as p\\)?$") ~ "TP",
+    str_detect(x_low, "total orthophosphate") ~ "OP",
+    str_detect(x_low, "dissolved solids") ~ "TDS",
+    str_detect(x_low, "suspended solids") ~ "TSS",
+    str_detect(x_low, "specific conductance|^ec$") ~ "EC",
+    TRUE ~ NA_character_
+  )
+}
+
+# 3) Coalesce possible sample ID columns → 'sample_id'
+sample_id_col <- coalesce(
+  filtered_df$sample_id %>% suppressWarnings(),
+  filtered_df$SampleID %>% suppressWarnings(),
+  filtered_df$sample.id %>% suppressWarnings(),
+  filtered_df$SAMPLE_ID %>% suppressWarnings(),
+  filtered_df$Sample_ID %>% suppressWarnings()
+)
+filtered_df <- filtered_df %>%
+  mutate(sample_id = sample_id_col)
+
+# 4) Prepare data & join standards
+df_std <- filtered_df %>%
+  mutate(
+    analyte_key = map_analyte_to_key(analyte),
+    value = suppressWarnings(as.numeric(result)),
+    collected_date = as.Date(collected)
+  ) %>%
+  left_join(standards, by = "analyte_key")
+
+# 5) Compute exceedances with clear messages
+exceed_logic <- function(val, type, e_min, e_max, e_thr, c_min, c_max, c_thr, ak) {
+  msgs <- character(0)
+  trig <- character(0)
+
+  if (is.na(val) || is.na(type)) return(list(triggered = NA_character_, why = NA_character_))
+
+  if (type == "range") {
+    # EPA range
+    if (is.finite(e_min) && is.finite(e_max)) {
+      if (val < e_min || val > e_max) {
+        trig <- c(trig, "EPA")
+        msgs <- c(msgs, sprintf("EPA %s outside %.2f–%.2f (value=%.3g)", ak, e_min, e_max, val))
+      }
+    }
+    # CDPHE range
+    if (is.finite(c_min) && is.finite(c_max)) {
+      if (val < c_min || val > c_max) {
+        trig <- c(trig, "CDPHE")
+        msgs <- c(msgs, sprintf("CDPHE %s outside %.2f–%.2f (value=%.3g)", ak, c_min, c_max, val))
+      }
+    }
+  } else if (type == "max") {
+    # EPA max
+    if (is.finite(e_thr) && val > e_thr) {
+      trig <- c(trig, "EPA")
+      msgs <- c(msgs, sprintf("EPA %s > %.3g (value=%.3g)", ak, e_thr, val))
+    }
+    # CDPHE max
+    if (is.finite(c_thr) && val > c_thr) {
+      trig <- c(trig, "CDPHE")
+      msgs <- c(msgs, sprintf("CDPHE %s > %.3g (value=%.3g)", ak, c_thr, val))
+    }
+  }
+
+  if (length(trig) == 0) {
+    list(triggered = "None", why = NA_character_)
+  } else {
+    list(triggered = paste(unique(trig), collapse = " & "),
+         why = paste(msgs, collapse = " | "))
+  }
+}
+
+res <- df_std %>%
+  rowwise() %>%
+  mutate(out = list(exceed_logic(
+    val = value, type = type,
+    e_min = epa_min, e_max = epa_max, e_thr = epa_threshold,
+    c_min = cdphe_min, c_max = cdphe_max, c_thr = cdphe_threshold,
+    ak = analyte_key
+  ))) %>%
+  unnest_wider(out) %>%
+  ungroup()
+
+# 6) Build compact violation table (only triggered rows w/ known standards)
+reg31_exceedances <- res %>%
+  filter(!is.na(type)) %>%                         # we have a rule
+  filter(!is.na(value)) %>%                        # numeric value present
+  filter(triggered != "None") %>%                  # only violations
+  transmute(
+    sample_id = sample_id,
+    collected_date = collected_date,
+    analyte = analyte,
+    value = value,
+    EPA_standard =
+      dplyr::case_when(
+        type == "range" & is.finite(epa_min) & is.finite(epa_max) ~
+          sprintf("%.2f–%.2f", epa_min, epa_max),
+        type == "max" & is.finite(epa_threshold) ~
+          sprintf("≤ %.3g", epa_threshold),
+        TRUE ~ NA_character_
+      ),
+    CDPHE_standard =
+      dplyr::case_when(
+        type == "range" & is.finite(cdphe_min) & is.finite(cdphe_max) ~
+          sprintf("%.2f–%.2f", cdphe_min, cdphe_max),
+        type == "max" & is.finite(cdphe_threshold) ~
+          sprintf("≤ %.3g", cdphe_threshold),
+        TRUE ~ NA_character_
+      ),
+    triggered,                                     # "EPA", "CDPHE", or "EPA & CDPHE"
+    why                                            # human-readable reason(s)
+  ) %>%
+  arrange(collected_date, analyte, desc(value))
+
+reg31_exceedances
+
+```
+
+
+
+
+
 # Interactive Box & Whisker Plot
 ```{r, warning=FALSE}
 create_boxplot <- function(df, selected_location) {
