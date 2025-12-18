@@ -36,7 +36,7 @@ knitr::opts_knit$set(root.dir = here::here())
 
 ```{r, include=FALSE}
 # packages
-package.list <- c('plotly','dplyr','tidyr','DT','ggplot2','lubridate','tools','stringr','tibble')
+package.list <- c('plotly','dplyr','tidyr','DT','ggplot2','lubridate','tools','stringr','tibble', 'tools')
 packageLoad <- function(packages){
   for (i in packages) {
     if (!require(i, character.only = TRUE)) {
@@ -145,7 +145,7 @@ event_labeller <- function(values) setNames(paste0(values, "\n", format(label_ma
 ```
 
 
-**Location Selected: <span style="color:#4CAF50">`r loc`</span>**
+# Location Selected: <span style="color:#4CAF50">`r loc`</span>
 
 ```{r, include=FALSE}
 # Export selected-site CSV
@@ -188,31 +188,44 @@ unique_treatments <- filtered_df %>%
 DT::datatable(unique_treatments, caption = "Unique Treatments, Event Counts, and Collection Dates (YYYY-MM-DD)")
 ```
 
-
+# Sample Standards and Exceedance Summary
 TODO: add table of reg 31 detections 
 ## use filtered_df, how do i display a table of just sample ID, collection date, and the analyte name, the value of that analyte, and the CDPHE regulations and EPA drinking water regulation for said analyte (should be two standards for that analyte), you don't want a giant data frame you want only the ones that do not meet the standards, and an extra column for which standard was triggered and why it is on the list, if it triggers both, then have both listed in that column (is one triggered, or both?) 
 Create a dictionary? with all of the regulation values 
 
-[EPA — National Primary Drinking Water Regulations](https://www.epa.gov/ground-water-and-drinking-water/national-primary-drinking-water-regulations)
-
-[EPA Nutrient Criteria Manual: Lakes & Reservoirs](https://www.epa.gov/sites/default/files/2018-10/documents/nutrient-criteria-manual-lakes-reservoirs.pdf)
 
 EPA analyte thresholds:
-pH: 6.5-8.5
-EC:
-Phosphorus, total orthophosphate:
-phosphorus, total: 0.0001 mg/L
-total dissolved solids (residue, filterable): 500 mg/L
-nitrogen, nitrate: 10 mg/L
-nitrogen, nitrite: 1 mg/L
-nitrogen, total kjeldahl:
-suspended solids (residue, non-filterable):
+| Analyte                                      | Threshold | Units |
+| -------------------------------------------- | --------- | ----- |
+| pH*                                          | 6.5–8.5   | —     |
+| EC                                           |           |       |
+| Phosphorus, total orthophosphate             |           |       |
+| phosphorus, total*                           | 0.0001    | mg/L  |
+| total dissolved solids**                     | 500       | mg/L  |
+| nitrogen, nitrate*                           | 10        | mg/L  |
+| nitrogen, nitrite*                           | 1         | mg/L  |
+| nitrogen, total kjeldahl                     |           |       |
+| suspended solids (residue, non-filterable)   |           |       |
+*[EPA — National Primary Drinking Water Regulations](https://www.epa.gov/ground-water-and-drinking-water/national-primary-drinking-water-regulations)
 
-CDPHE analyte thresholds:
-pH: 6.5-9
-nitrogen, nitrate: 10 mg/L
-nitrogen, nitrite: 1 mg/L
-Total phosphorus: .17 mg/L
+**[EPA Nutrient Criteria Manual: Lakes & Reservoirs](https://www.epa.gov/sites/default/files/2018-10/documents/nutrient-criteria-manual-lakes-reservoirs.pdf)
+
+
+[CDPHE analyte thresholds](https://cdphe.colorado.gov/environment/water-quality/clean-water/water-quality-standards):
+| Analyte           | Threshold | Units |
+| ----------------- | --------- | ----- |
+| pH                | 6.5–9     | —     |
+| nitrogen, nitrate | 10        | mg/L  |
+| nitrogen, nitrite | 1         | mg/L  |
+| Total phosphorus  | 0.17      | mg/L  |
+
+**AJ's TABLE TODO**
+Analyte	STD	max_value (mg_L)
+TP	cdphe - cold	0.11
+TP	cdphe - warm	0.17
+NO3	epa-drinking	0.1
+ph	cdphe-warm	9
+ph	epa-drinking	8.5
 
 
 
@@ -232,6 +245,7 @@ standards <- tibble::tribble(
   "EC",         "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_,   
   "TKN",        "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_    
 )
+
 
 # 2) Helper: normalize analyte names to keys in 'standards'
 map_analyte_to_key <- function(x) {
@@ -397,8 +411,6 @@ if (length(levels(as.factor(filtered_df$treatment.name))) > 1) {
 
 # Static Bar Plots (Per Event) — with Error Bars
 ```{r}
-library(ggplot2); library(dplyr); library(tools)
-
 create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title, x_axis_var) {
   tryCatch({
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
@@ -439,10 +451,20 @@ create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title
     bar_plot
   }, error = function(e) { message("Error in create_and_save_bar_plot_event: ", e$message); NULL })
 }
+```
 
-# Calls
+[N Plots](../site_selector_temporary_results/bar_N.jpg)
+```{r}
 bar_N    <- create_and_save_bar_plot_event(N_df, "./site_selector_temporary_results", "bar_N.jpg", "Forms of Nitrogen (per Event)", x_axis_var_name); bar_N
+```
+
+[P Plots](../site_selector_temporary_results/bar_P.jpg)
+```{r}
 bar_P    <- create_and_save_bar_plot_event(P_df, "./site_selector_temporary_results", "bar_P.jpg", "Forms of Phosphorus (per Event)", x_axis_var_name); bar_P
+```
+
+[Misc Plots](../site_selector_temporary_results/bar_Misc.jpg)
+```{r}
 bar_Misc <- create_and_save_bar_plot_event(Misc_df, "./site_selector_temporary_results", "bar_Misc.jpg", "Water Quality Analytes (per Event)", x_axis_var_name); bar_Misc
 ```
 

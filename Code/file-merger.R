@@ -279,7 +279,7 @@ AVRC Cowpea	  T3	Outflow	TBD	TBD
 AVRC Cowpea	  T4	Outflow	TBD	TBD	
 ", sep = '\t', header = TRUE, stringsAsFactors = FALSE)
 
-# Define Private Functions (i.e., do not call them directly)
+# ---- Helper Functions ----
 
 map_values_analyte <- function(text, dict) {
   # Ensure text is treated as a character string
@@ -718,7 +718,9 @@ dfTss <- function(tss_fp) {
     ) 
   return(df)
 }
+# ---- End of Helper Functions ----
 
+# ---- Main Functions ----
 executeFxns <- function(file_path, kelso=FALSE, geo_key) {
   # Conditionally use importData or importDataKelso based on kelso variable
   if (kelso) {
@@ -733,6 +735,7 @@ executeFxns <- function(file_path, kelso=FALSE, geo_key) {
     normalize_ec() %>%                     # <-- optional EC unit normalization
     addCoord(geo_key) %>%                  # add spatial data
     flagData() %>%                         # flag and QA/QC data
+    # TODO: Add epa cols fxn
     { select(., -all_of(
       c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID","LAB.ID.y","MATRIX","HOLD")
       [c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID","LAB.ID.y","MATRIX","HOLD") %in% names(.)]
