@@ -141,6 +141,11 @@ filtered_df <- filtered_df %>% dplyr::mutate(
   event_facet = factor(event.count, levels = unique(event.count[order(event_date)]))
 )
 label_map <- filtered_df %>% dplyr::select(event_facet, event_date) %>% dplyr::distinct()
+event_date_only_labeller <- function(values) {
+  dates <- label_map$event_date[match(values, label_map$event_facet)]
+  setNames(paste0("Event\nDate\n", format(dates, "%m-%d")), values)
+}
+
 event_labeller <- function(values) setNames(paste0(values, "\n", format(label_map$event_date[match(values, label_map$event_facet)], "%m-%d")), values)
 ```
 
@@ -388,7 +393,9 @@ create_boxplot <- function(df, selected_location) {
       geom_boxplot(position = position_dodge(0), na.rm = TRUE) +
       geom_jitter(width = 0.2, size = 1.5, alpha = 0.6, na.rm = TRUE) +
       facet_grid(analyte.abbr ~ event_facet, scales = "free_y", space = "free_x",
-                 labeller = labeller(event_facet = event_labeller)) +
+                 #labeller = labeller(event_facet = event_labeller)
+                 labeller = labeller(event_facet = event_date_only_labeller) # date-only label
+                 ) +
       theme_minimal() +
       labs(title = paste("Box-and-Whisker plots for Location:", selected_location),
            x = "Event Type", y = "Result", fill = "Event Type")
@@ -414,43 +421,97 @@ if (length(levels(as.factor(filtered_df$treatment.name))) > 1) {
 create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title, x_axis_var) {
   tryCatch({
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-    df <- df %>% dplyr::mutate(result = suppressWarnings(as.numeric(result))) %>% dplyr::filter(is.finite(result))
 
-    # summary stats per event facet, analyte, and x-axis (treatment/event.type)
+    df <- df %>%
+      dplyr::mutate(
+        result = suppressWarnings(as.numeric(result)),
+        analyte = as.character(analyte),
+        analyte.abbr = as.character(analyte.abbr),
+        units = as.character(units)
+      ) %>%
+      dplyr::filter(is.finite(result))
+
+    # Ensure "Inflow" appears first (if present)
+    if (x_axis_var %in% names(df)) {
+      df[[x_axis_var]] <- factor(
+        df[[x_axis_var]],
+        levels = c("Inflow", setdiff(unique(df[[x_axis_var]]), "Inflow"))
+      )
+    }
+
+    # ---- Build facet row label: analyte on first line, units on second line
+    df <- df %>%
+      dplyr::mutate(
+        analyte_name_for_plot = dplyr::if_else(
+          !is.na(analyte.abbr) & analyte.abbr != "",
+          analyte.abbr, analyte
+        ),
+        facet_var = paste0(analyte_name_for_plot, "\n(", units, ")")
+      )
+
+    # summary stats per event facet, analyte+units, and x-axis
     summary_df <- df %>%
-      dplyr::group_by(.data[[x_axis_var]], analyte.abbr, event_facet) %>%
-      dplyr::summarise(mean = mean(result, na.rm = TRUE),
-                       sd = sd(result, na.rm = TRUE),
-                       n = dplyr::n(),
-                       .groups = "drop")
+      dplyr::group_by(.data[[x_axis_var]], facet_var, event_facet) %>%
+      dplyr::summarise(
+        mean = mean(result, na.rm = TRUE),
+        sd   = sd(result, na.rm = TRUE),
+        n    = dplyr::n(),
+        .groups = "drop"
+      )
 
     # facet ordering & labels
     summary_df$event_facet <- factor(summary_df$event_facet, levels = levels(df$event_facet))
+    df$event_facet         <- factor(df$event_facet, levels = levels(df$event_facet))
 
     file_path_portrait  <- file.path(output_dir, file_name)
     file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
 
     bar_plot <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = .data[[x_axis_var]])) +
       geom_bar(stat = "identity", position = position_dodge(0), color = "black") +
-      geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
-                    width = 0.2, position = position_dodge(0)) +
+      geom_errorbar(
+        aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
+        width = 0.2, position = position_dodge(0)
+      ) +
       # raw points (jitter) in background
-      geom_jitter(data = df, aes(x = .data[[x_axis_var]], y = result), width = 0.2, alpha = 0.6,
-                  size = 1, show.legend = FALSE) +
-      facet_grid(analyte.abbr ~ event_facet, scales = "free_y", space = "free_x",
-                 labeller = labeller(event_facet = event_labeller)) +
+      geom_jitter(
+        data = df,
+        aes(x = .data[[x_axis_var]], y = result),
+        width = 0.2, alpha = 0.6, size = 1,
+        inherit.aes = FALSE,
+        show.legend = FALSE
+      ) +
+      facet_grid(
+        facet_var ~ event_facet,
+        scales = "free_y",
+        space = "free_x",
+        labeller = labeller(event_facet = event_date_only_labeller) # date-only label
+        #labeller = labeller(event_facet = event_labeller) # full label with event count
+      ) +
       theme_minimal() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-            strip.text  = element_text(size = 12),
-            legend.position = "bottom") +
-      labs(title = plot.title, x = "Event Type", y = "Mean Result", fill = "Event Type") +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        strip.text  = element_text(size = 12, lineheight = 1.05),
+        legend.position = "bottom"
+      ) +
+      labs(
+        title = plot.title,
+        x = "Event Type",
+        y = "Mean Result",
+        fill = "Event Type"
+      ) +
       scale_fill_brewer(palette = "Pastel1")
 
     ggsave(file_path_portrait,  bar_plot, width = 8.5, height = 11, units = "in")
     ggsave(file_path_landscape, bar_plot, width = 11, height = 8.5, units = "in")
+
     bar_plot
-  }, error = function(e) { message("Error in create_and_save_bar_plot_event: ", e$message); NULL })
+  }, error = function(e) {
+    message("Error in create_and_save_bar_plot_event: ", e$message)
+    NULL
+  })
 }
+
+
 ```
 
 [N Plots](../site_selector_temporary_results/bar_N.jpg)
