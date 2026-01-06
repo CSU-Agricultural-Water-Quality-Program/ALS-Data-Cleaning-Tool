@@ -473,55 +473,122 @@ bar_Misc <- create_and_save_bar_plot_event(Misc_df, "./site_selector_temporary_r
 create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, stratify_by_method = FALSE) {
   tryCatch({
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-    df <- df %>% dplyr::mutate(result = suppressWarnings(as.numeric(result))) %>% dplyr::filter(is.finite(result))
 
-    # Ensure "Inflow" (if present) is first in x-axis
+    df <- df %>%
+      dplyr::mutate(
+        result = suppressWarnings(as.numeric(result)),
+        analyte = as.character(analyte),
+        analyte.abbr = as.character(analyte.abbr),
+        units = as.character(units),
+        method.name = as.character(method.name)
+      ) %>%
+      dplyr::filter(is.finite(result))
+
+    # Ensure "Inflow" appears first (if present)
     if (x_axis_var %in% names(df)) {
-      df[[x_axis_var]] <- factor(df[[x_axis_var]], levels = c("Inflow", setdiff(unique(df[[x_axis_var]]), "Inflow")))
+      df[[x_axis_var]] <- factor(
+        df[[x_axis_var]],
+        levels = c("Inflow", setdiff(unique(df[[x_axis_var]]), "Inflow"))
+      )
     }
 
-    analyte_units <- df %>% dplyr::select(analyte.abbr, units) %>% dplyr::distinct()
+    # ---- Build a single, reliable facet label: "Analyte (units)"
+    # Prefer analyte.abbr if it exists, otherwise fall back to full analyte name.
+    df <- df %>%
+      dplyr::mutate(
+        analyte_name_for_plot = dplyr::if_else(!is.na(analyte.abbr) & analyte.abbr != "",
+                                              analyte.abbr, analyte),
+        facet_var = paste0(analyte_name_for_plot, " (", units, ")")
+      )
 
+    # Keep raw data version for point overlay
+    raw_df <- df
+
+    # Summaries (keep facet_var in the grouping so it cannot get “lost”)
     if (stratify_by_method) {
       summary_df <- df %>%
-        dplyr::group_by(.data[[x_axis_var]], analyte.abbr, method.name) %>%
-        dplyr::summarise(mean = mean(result, na.rm = TRUE), sd = sd(result, na.rm = TRUE), n = dplyr::n(), .groups = "drop")
+        dplyr::group_by(.data[[x_axis_var]], facet_var, method.name) %>%
+        dplyr::summarise(
+          mean = mean(result, na.rm = TRUE),
+          sd   = sd(result, na.rm = TRUE),
+          n    = dplyr::n(),
+          .groups = "drop"
+        )
+
       p <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = method.name)) +
         geom_bar(stat = "identity", position = position_dodge(width = 0.7), color = "black") +
-        geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
-                      width = 0.2, position = position_dodge(width = 0.7))
+        geom_errorbar(
+          aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
+          width = 0.2, position = position_dodge(width = 0.7)
+        ) +
+        # ---- RAW DATA POINTS (dodged by method) ----
+        geom_point(
+          data = raw_df,
+          aes(x = .data[[x_axis_var]], y = result, color = method.name),
+          position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.7),
+          alpha = 0.15,
+          size = 1.5,
+          inherit.aes = FALSE,
+          show.legend = FALSE
+        )
+
     } else {
       summary_df <- df %>%
-        dplyr::group_by(.data[[x_axis_var]], analyte.abbr) %>%
-        dplyr::summarise(mean = mean(result, na.rm = TRUE), sd = sd(result, na.rm = TRUE), n = dplyr::n(), .groups = "drop")
+        dplyr::group_by(.data[[x_axis_var]], facet_var) %>%
+        dplyr::summarise(
+          mean = mean(result, na.rm = TRUE),
+          sd   = sd(result, na.rm = TRUE),
+          n    = dplyr::n(),
+          .groups = "drop"
+        )
+
       p <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = .data[[x_axis_var]])) +
         geom_bar(stat = "identity", position = "dodge", color = "black") +
-        geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
-                      width = 0.2, position = position_dodge(width = 0.9))
+        geom_errorbar(
+          aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
+          width = 0.2, position = position_dodge(width = 0.9)
+        ) +
+        # ---- RAW DATA POINTS ----
+        geom_point(
+          data = raw_df,
+          aes(x = .data[[x_axis_var]], y = result),
+          position = position_jitter(width = 0.15),
+          alpha = 0.15,
+          size = 1.5,
+          inherit.aes = FALSE,
+          show.legend = FALSE
+        )
     }
 
-    # facet labels include units
-    facet_labels <- analyte_units %>%
-      dplyr::mutate(lab = paste0(analyte.abbr, " (", units, ")")) %>%
-      tibble::deframe()
-
     p <- p +
-      facet_wrap(~ analyte.abbr, scales = "free_y", labeller = as_labeller(facet_labels)) +
+      facet_wrap(~ facet_var, scales = "free_y") +
       theme_minimal() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
-            strip.text = element_text(size = 10),
-            legend.position = "bottom") +
-      labs(title = ifelse(stratify_by_method, "Annual Mean by Analyte (Stratified by Method)", "Annual Mean by Analyte"),
-           x = "Event Type", y = "Mean Result",
-           fill = ifelse(stratify_by_method, "Method", x_axis_var)) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text = element_text(size = 10),
+        legend.position = "bottom"
+      ) +
+      labs(
+        title = ifelse(stratify_by_method,
+                       "Annual Mean by Analyte (Stratified by Method)",
+                       "Annual Mean by Analyte"),
+        x = "Event Type",
+        y = "Mean Result",
+        fill = ifelse(stratify_by_method, "Method", x_axis_var)
+      ) +
       scale_fill_brewer(palette = "Pastel1") +
       coord_cartesian(ylim = c(0, NA))
 
     file_path <- file.path(output_dir, file_name)
     ggsave(file_path, p, width = 10, height = 8, units = "in")
+
     p
-  }, error = function(e) { message("Error in create_facet_bar_plot_annual: ", e$message); NULL })
+  }, error = function(e) {
+    message("Error in create_facet_bar_plot_annual: ", e$message)
+    NULL
+  })
 }
+
 
 facet_bar_without_method <- create_facet_bar_plot_annual(filtered_df, "./site_selector_temporary_results", "facet_bar_analytes_annual.jpg", x_axis_var_name, stratify_by_method = FALSE); facet_bar_without_method
 facet_bar_with_method    <- create_facet_bar_plot_annual(filtered_df, "./site_selector_temporary_results", "facet_bar_analytes_method_annual.jpg", x_axis_var_name, stratify_by_method = TRUE); facet_bar_with_method
