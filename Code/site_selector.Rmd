@@ -392,44 +392,133 @@ dt_summary_any <- datatable(
 dt_summary_any
 ```
 
-
-# Interactive Box & Whisker Plot
-```{r, warning=FALSE}
-create_boxplot <- function(df, selected_location) {
+```{r}
+create_boxplot_dropdown <- function(df, selected_location) {
   tryCatch({
-    analytes <- unique(df$analyte.abbr)
-    first_analyte <- analytes[1]
-    df_filtered <- df[df$analyte.abbr == first_analyte, ]
+    library(dplyr)
+    library(ggplot2)
+    library(plotly)
+    library(htmltools)
+    library(htmlwidgets)
 
-    p <- ggplot(df_filtered,
-                aes(x = treatment.name,
-                    y = as.numeric(result),
-                    fill = treatment.name)) +
-      geom_boxplot(position = position_dodge(0), na.rm = TRUE) +
-      geom_jitter(width = 0.2, size = 1.5, alpha = 0.6, na.rm = TRUE) +
-      facet_grid(
-        analyte.abbr ~ event_facet,
-        scales = "free_y",
-        space = "free_x",
-        labeller = labeller(event_facet = event_date_only_labeller)
+    # Clean
+    df <- df %>%
+      mutate(
+        result = suppressWarnings(as.numeric(result)),
+        analyte.abbr = as.character(analyte.abbr),
+        event_facet  = as.character(event_facet),
+        treatment.name = as.character(treatment.name)
+      ) %>%
+      filter(is.finite(result)) %>%
+      filter(!is.na(analyte.abbr), !is.na(event_facet), !is.na(treatment.name))
+
+    analytes <- sort(unique(df$analyte.abbr))
+    if (length(analytes) == 0) stop("No analytes found after filtering to finite numeric results.")
+
+    # Build one ggplotly per analyte (TRUE boxplots + jitter)
+    plot_tags <- lapply(seq_along(analytes), function(i) {
+      a <- analytes[i]
+      df_a <- df %>% filter(analyte.abbr == a)
+
+      g <- ggplot(
+        df_a,
+        aes(
+          x = treatment.name,
+          y = result,
+          fill = treatment.name
+        )
       ) +
-      theme_minimal() +
-      labs(
-        title = paste("Box-and-Whisker plots for Location:", selected_location),
-        x = "Event Type",
-        y = "Result",
-        fill = "Event Type"
-      )
+        geom_boxplot(position = position_dodge(0), na.rm = TRUE, outlier.shape = NA) +
+        geom_jitter(width = 0.2, size = 1.5, alpha = 0.6, na.rm = TRUE) +
+        facet_grid(
+          . ~ event_facet,
+          scales = "free_y",
+          space  = "free_x",
+          labeller = labeller(event_facet = event_date_only_labeller)
+        ) +
+        theme_minimal() +
+        labs(
+          title    = paste("Box-and-Whisker plots for Location:", selected_location),
+          subtitle = paste("Analyte:", a),
+          x = "Event Type",
+          y = "Result",
+          fill = "Event Type"
+        )
 
-    ggplotly(p, tooltip = c("y"))
+      p <- ggplotly(g, tooltip = c("y")) %>%
+        layout(yaxis = list(autorange = TRUE))  # ensure initial autorange
+
+      # Wrap each plot in a div we can show/hide
+      div(
+        id = paste0("plot_", i),
+        style = if (i == 1) "" else "display:none;",
+        p
+      )
+    })
+
+    # Dropdown (plain HTML select; works in Rmd HTML)
+    selector <- tags$label(
+      `for` = "analyte_select",
+      "Select analyte: ",
+      tags$select(
+        id = "analyte_select",
+        lapply(seq_along(analytes), function(i) tags$option(value = i, analytes[i]))
+      )
+    )
+
+    # JS: show the chosen plot, hide others, and force Plotly to autoscale
+    js <- sprintf(
+      "
+      function showPlot(idx){
+        var n = %d;
+        for (var i=1; i<=n; i++){
+          var el = document.getElementById('plot_' + i);
+          if (!el) continue;
+          el.style.display = (i === idx) ? '' : 'none';
+        }
+        // Force plotly to re-autorange after showing
+        setTimeout(function(){
+          var el = document.getElementById('plot_' + idx);
+          if (!el) return;
+          var gd = el.querySelector('.plotly-graph-div');
+          if (gd && window.Plotly){
+            Plotly.Plots.resize(gd);
+            Plotly.relayout(gd, {'yaxis.autorange': true});
+          }
+        }, 50);
+      }
+
+      document.addEventListener('change', function(e){
+        if (e.target && e.target.id === 'analyte_select'){
+          showPlot(parseInt(e.target.value));
+        }
+      });
+      ",
+      length(analytes)
+    )
+
+    tagList(
+      selector,
+      tags$script(HTML(js)),
+      plot_tags
+    )
+
   }, error = function(e) {
     cat("An error occurred:", conditionMessage(e), "\n")
     NULL
   })
 }
 
-create_boxplot(filtered_df, loc)
+create_boxplot_dropdown(filtered_df, loc)
 ```
+
+
+
+
+
+
+
+
 
 ```{r, fig.height=20, fig.width=12}
 # dynamic x-axis in static plots
