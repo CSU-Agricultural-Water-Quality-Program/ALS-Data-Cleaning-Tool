@@ -181,16 +181,20 @@ Misc_df <- filtered_df %>% dplyr::filter(analyte %in% analytes_plot3)
 # Events Captured
 ```{r}
 unique_treatments <- filtered_df %>%
-  dplyr::select(treatment.name, event.count, event_date) %>%
+  dplyr::select(treatment.name, event_date) %>%
   dplyr::distinct() %>%
-  dplyr::group_by(treatment.name, event.count) %>%
+  dplyr::group_by(treatment.name) %>%
   dplyr::summarise(
+    n_events = dplyr::n_distinct(event_date),
     collected = paste(sort(unique(format(event_date, "%Y-%m-%d"))), collapse = ", "),
     .groups = "drop"
   ) %>%
-  dplyr::arrange(treatment.name, event.count)
+  dplyr::arrange(treatment.name)
 
-DT::datatable(unique_treatments, caption = "Unique Treatments, Event Counts, and Collection Dates (YYYY-MM-DD)")
+DT::datatable(
+  unique_treatments,
+  caption = "Events Captured by Treatment: number of events and collection dates (YYYY-MM-DD)"
+)
 ```
 
 # Sample Standards
