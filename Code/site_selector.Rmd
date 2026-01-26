@@ -404,59 +404,83 @@ create_boxplot_dropdown <- function(df, selected_location) {
     # Clean
     df <- df %>%
       mutate(
-        result = suppressWarnings(as.numeric(result)),
-        analyte.abbr = as.character(analyte.abbr),
-        event_facet  = as.character(event_facet),
+        result         = suppressWarnings(as.numeric(result)),
+        analyte.abbr   = as.character(analyte.abbr),
         treatment.name = as.character(treatment.name)
       ) %>%
       filter(is.finite(result)) %>%
-      filter(!is.na(analyte.abbr), !is.na(event_facet), !is.na(treatment.name))
+      filter(!is.na(analyte.abbr), !is.na(treatment.name))
 
     analytes <- sort(unique(df$analyte.abbr))
     if (length(analytes) == 0) stop("No analytes found after filtering to finite numeric results.")
 
-    # Build one ggplotly per analyte (TRUE boxplots + jitter)
     plot_tags <- lapply(seq_along(analytes), function(i) {
       a <- analytes[i]
       df_a <- df %>% filter(analyte.abbr == a)
 
+      # Optional: enforce a consistent 4-treatment order if those exist
+      preferred_order <- c("Inflow", "CT", "ST", "MT")
+      if (all(preferred_order %in% unique(df_a$treatment.name))) {
+        df_a <- df_a %>% mutate(treatment.name = factor(treatment.name, levels = preferred_order))
+      } else {
+        df_a <- df_a %>% mutate(treatment.name = factor(treatment.name, levels = sort(unique(treatment.name))))
+      }
+
+      # Hover text column (safe for ggplot aes)
+      if ("collected_date" %in% names(df_a)) {
+        df_a <- df_a %>%
+          mutate(hover_text = paste0(
+            "Treatment: ", treatment.name,
+            "<br>Date: ", collected_date,
+            "<br>Result: ", result
+          ))
+      } else if ("collection_date" %in% names(df_a)) {
+        df_a <- df_a %>%
+          mutate(hover_text = paste0(
+            "Treatment: ", treatment.name,
+            "<br>Date: ", collection_date,
+            "<br>Result: ", result
+          ))
+      } else {
+        df_a <- df_a %>%
+          mutate(hover_text = paste0(
+            "Treatment: ", treatment.name,
+            "<br>Result: ", result
+          ))
+      }
+
       g <- ggplot(
         df_a,
         aes(
-          x = treatment.name,
-          y = result,
-          fill = treatment.name
+          x    = treatment.name,
+          y    = result,
+          fill = treatment.name,
+          text = hover_text
         )
       ) +
-        geom_boxplot(position = position_dodge(0), na.rm = TRUE, outlier.shape = NA) +
-        geom_jitter(width = 0.2, size = 1.5, alpha = 0.6, na.rm = TRUE) +
-        facet_grid(
-          . ~ event_facet,
-          scales = "free_y",
-          space  = "free_x",
-          labeller = labeller(event_facet = event_date_only_labeller)
-        ) +
+        geom_boxplot(na.rm = TRUE, outlier.shape = NA) +
+        geom_jitter(width = 0.2, size = 1.5, alpha = 0.35, na.rm = TRUE) +
         theme_minimal() +
         labs(
-          title    = paste("Box-and-Whisker plots for Location:", selected_location),
-          subtitle = paste("Analyte:", a),
-          x = "Event Type",
+          title    = paste0("Box-and-Whisker plots — ", selected_location),
+          subtitle = paste0("Analyte: ", a),
+          x = "Treatment",
           y = "Result",
-          fill = "Event Type"
+          fill = "Treatment"
         )
 
-      p <- ggplotly(g, tooltip = c("y")) %>%
-        layout(yaxis = list(autorange = TRUE))  # ensure initial autorange
+      p <- ggplotly(g, tooltip = "text") %>%
+        layout(yaxis = list(autorange = TRUE))
 
       # Wrap each plot in a div we can show/hide
       div(
-        id = paste0("plot_", i),
+        id = paste0("plotwrap_", i),
         style = if (i == 1) "" else "display:none;",
         p
       )
     })
 
-    # Dropdown (plain HTML select; works in Rmd HTML)
+    # Dropdown
     selector <- tags$label(
       `for` = "analyte_select",
       "Select analyte: ",
@@ -466,21 +490,31 @@ create_boxplot_dropdown <- function(df, selected_location) {
       )
     )
 
-    # JS: show the chosen plot, hide others, and force Plotly to autoscale
+    # Download button (uses onclick so it works reliably in knitted HTML)
+    download_btn <- tags$button(
+      id = "download_plot_btn",
+      type = "button",
+      style = "margin-left:12px;",
+      onclick = "downloadVisiblePlot();",
+      "Download PNG"
+    )
+
+    # JS: show/hide plots + autoscale + download visible plot
     js <- sprintf(
       "
       function showPlot(idx){
         var n = %d;
         for (var i=1; i<=n; i++){
-          var el = document.getElementById('plot_' + i);
-          if (!el) continue;
-          el.style.display = (i === idx) ? '' : 'none';
+          var wrap = document.getElementById('plotwrap_' + i);
+          if (!wrap) continue;
+          wrap.style.display = (i === idx) ? '' : 'none';
         }
-        // Force plotly to re-autorange after showing
         setTimeout(function(){
-          var el = document.getElementById('plot_' + idx);
-          if (!el) return;
-          var gd = el.querySelector('.plotly-graph-div');
+          var wrap = document.getElementById('plotwrap_' + idx);
+          if (!wrap) return;
+
+          // FIX: htmlwidgets plotly uses .js-plotly-plot
+          var gd = wrap.querySelector('.js-plotly-plot') || wrap.querySelector('.plotly');
           if (gd && window.Plotly){
             Plotly.Plots.resize(gd);
             Plotly.relayout(gd, {'yaxis.autorange': true});
@@ -493,12 +527,48 @@ create_boxplot_dropdown <- function(df, selected_location) {
           showPlot(parseInt(e.target.value));
         }
       });
+
+      // Download currently visible plot as PNG
+      window.downloadVisiblePlot = function(){
+        var n = %d;
+
+        // find visible wrapper
+        var visibleIdx = 1;
+        for (var i=1; i<=n; i++){
+          var wrap = document.getElementById('plotwrap_' + i);
+          if (wrap && wrap.style.display !== 'none'){
+            visibleIdx = i;
+            break;
+          }
+        }
+
+        var wrap = document.getElementById('plotwrap_' + visibleIdx);
+        if (!wrap || !window.Plotly) return;
+
+        // FIX: correct selector for plotly htmlwidgets
+        var gd = wrap.querySelector('.js-plotly-plot') || wrap.querySelector('.plotly');
+        if (!gd) return;
+
+        // use dropdown text as filename
+        var sel = document.getElementById('analyte_select');
+        var analyte = sel ? sel.options[sel.selectedIndex].text : ('analyte_' + visibleIdx);
+        var fname = 'boxplot_' + analyte.replace(/[^a-zA-Z0-9_-]/g,'_');
+
+        Plotly.downloadImage(gd, {
+          format: 'png',
+          filename: fname,
+          height: 700,
+          width: 1100,
+          scale: 2
+        });
+      };
       ",
+      length(analytes),
       length(analytes)
     )
 
     tagList(
-      selector,
+      tags$div(selector, download_btn),
       tags$script(HTML(js)),
       plot_tags
     )
@@ -509,16 +579,10 @@ create_boxplot_dropdown <- function(df, selected_location) {
   })
 }
 
+# usage
 create_boxplot_dropdown(filtered_df, loc)
+
 ```
-
-
-
-
-
-
-
-
 
 ```{r, fig.height=20, fig.width=12}
 # dynamic x-axis in static plots
@@ -531,27 +595,30 @@ if (length(levels(as.factor(filtered_df$treatment.name))) > 1) {
 
 # Static Bar Plots (Per Event)
 ```{r}
-# ---- Put this right after you define `label_map` (once per report) ----
 event_date_only_labeller <- function(values) {
   dates <- label_map$event_date[match(values, label_map$event_facet)]
   setNames(paste0("Event Date\n", format(dates, "%m-%d")), values)
 }
 
-# ---- Drop-in replacement for your plotting function ----
-create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title, x_axis_var) {
+# ============================================================
+# Plot function (same plot) but SAVE AS PNG (white background)
+# ============================================================
+create_and_save_bar_plot_event_png <- function(df, output_dir, file_name_png, plot.title, x_axis_var) {
   tryCatch({
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
-    df <- df %>%
-      dplyr::mutate(
-        result = suppressWarnings(as.numeric(result)),
-        analyte = as.character(analyte),
-        analyte.abbr = as.character(analyte.abbr),
-        units = as.character(units)
-      ) %>%
-      dplyr::filter(is.finite(result))
+    library(dplyr)
+    library(ggplot2)
 
-    # Ensure "Inflow" appears first (if present)
+    df <- df %>%
+      mutate(
+        result       = suppressWarnings(as.numeric(result)),
+        analyte      = as.character(analyte),
+        analyte.abbr = as.character(analyte.abbr),
+        units        = as.character(units)
+      ) %>%
+      filter(is.finite(result))
+
     if (x_axis_var %in% names(df)) {
       df[[x_axis_var]] <- factor(
         df[[x_axis_var]],
@@ -559,32 +626,28 @@ create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title
       )
     }
 
-    # ---- Build facet row label: analyte on first line, units on second line
     df <- df %>%
-      dplyr::mutate(
-        analyte_name_for_plot = dplyr::if_else(
+      mutate(
+        analyte_name_for_plot = if_else(
           !is.na(analyte.abbr) & analyte.abbr != "",
           analyte.abbr, analyte
         ),
         facet_var = paste0(analyte_name_for_plot, "\n(", units, ")")
       )
 
-    # summary stats per event facet, analyte+units, and x-axis
     summary_df <- df %>%
-      dplyr::group_by(.data[[x_axis_var]], facet_var, event_facet) %>%
-      dplyr::summarise(
+      group_by(.data[[x_axis_var]], facet_var, event_facet) %>%
+      summarise(
         mean = mean(result, na.rm = TRUE),
         sd   = sd(result, na.rm = TRUE),
-        n    = dplyr::n(),
+        n    = n(),
         .groups = "drop"
       )
 
-    # facet ordering & labels
     summary_df$event_facet <- factor(summary_df$event_facet, levels = levels(df$event_facet))
     df$event_facet         <- factor(df$event_facet, levels = levels(df$event_facet))
 
-    file_path_portrait  <- file.path(output_dir, file_name)
-    file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
+    file_path <- file.path(output_dir, file_name_png)
 
     bar_plot <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = .data[[x_axis_var]])) +
       geom_bar(stat = "identity", position = position_dodge(0), color = "black") +
@@ -592,7 +655,6 @@ create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title
         aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
         width = 0.2, position = position_dodge(0)
       ) +
-      # raw points (jitter) in background
       geom_jitter(
         data = df,
         aes(x = .data[[x_axis_var]], y = result),
@@ -603,11 +665,9 @@ create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title
       facet_grid(
         facet_var ~ event_facet,
         scales = "free_y",
-        space = "free_x",
-        labeller = labeller(event_facet = event_date_only_labeller) # date-only label
-        # labeller = labeller(event_facet = event_labeller) # full label with event count
+        space  = "free_x",
+        labeller = labeller(event_facet = event_date_only_labeller)
       ) +
-
       theme_minimal() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
@@ -622,31 +682,107 @@ create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title
       ) +
       scale_fill_brewer(palette = "Pastel1")
 
-    ggsave(file_path_portrait,  bar_plot, width = 8.5, height = 11, units = "in")
-    ggsave(file_path_landscape, bar_plot, width = 11, height = 8.5, units = "in")
+    # Save PNG using a robust device; force WHITE background
+    if (requireNamespace("ragg", quietly = TRUE)) {
+      ggsave(file_path, bar_plot,
+             width = 11, height = 8.5, units = "in",
+             device = ragg::agg_png, background = "white", res = 200)
+    } else {
+      ggsave(file_path, bar_plot,
+             width = 11, height = 8.5, units = "in",
+             device = "png", bg = "white", dpi = 200)
+    }
 
-    bar_plot
+    list(plot = bar_plot, png_path = file_path)
+
   }, error = function(e) {
-    message("Error in create_and_save_bar_plot_event: ", e$message)
+    message("Error in create_and_save_bar_plot_event_png: ", e$message)
     NULL
   })
 }
 
+# ============================================================
+# Embed saved PNG directly into HTML + working Download button
+# (no relative paths, no broken links)
+# ============================================================
+embed_png_with_download_btn <- function(png_path, download_name = "plot.png", img_width = "100%") {
+  library(htmltools)
 
+  # knitr::image_uri() returns a data URI like "data:image/png;base64,...."
+  # This avoids all path issues in knitted HTML.
+  if (!requireNamespace("knitr", quietly = TRUE)) {
+    stop("Package 'knitr' is required for embed_png_with_download_btn().")
+  }
+  uri <- knitr::image_uri(png_path)
+
+  wrap_id <- paste0("imgwrap_", sprintf("%06d", sample.int(999999, 1)))
+  btn_id  <- paste0("btn_", sprintf("%06d", sample.int(999999, 1)))
+  safe_name <- gsub("[^A-Za-z0-9._-]", "_", download_name)
+
+  js <- sprintf(
+    "
+    window.downloadEmbeddedPNG_%s = function(){
+      var img = document.querySelector('#%s img');
+      if(!img) return;
+
+      var a = document.createElement('a');
+      a.href = img.src;                 // data URI
+      a.download = '%s';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    ",
+    wrap_id, wrap_id, safe_name
+  )
+
+  tagList(
+    tags$div(
+      style = "margin: 8px 0 12px 0;",
+      tags$button(
+        id = btn_id,
+        type = "button",
+        onclick = sprintf("downloadEmbeddedPNG_%s();", wrap_id),
+        "Download PNG"
+      )
+    ),
+    tags$script(HTML(js)),
+    tags$div(
+      id = wrap_id,
+      tags$img(
+        src = uri,
+        style = paste0("width:", img_width, "; border: 1px solid #ddd; background:white;")
+      )
+    )
+  )
+}
 ```
 
 [N Plots](../site_selector_temporary_results/bar_N.jpg)
 ```{r}
-bar_N    <- create_and_save_bar_plot_event(N_df, "./site_selector_temporary_results", "bar_N.jpg", "Forms of Nitrogen (per Event)", x_axis_var_name); bar_N
+N_res <- create_and_save_bar_plot_event_png(
+  N_df, "./site_selector_temporary_results",
+  "bar_N.png", "Forms of Nitrogen (per Event)", x_axis_var_name
+)
+embed_png_with_download_btn(N_res$png_path, download_name = "bar_N.png")
 ```
+
 [P Plots](../site_selector_temporary_results/bar_P.jpg)
 ```{r}
-bar_P    <- create_and_save_bar_plot_event(P_df, "./site_selector_temporary_results", "bar_P.jpg", "Forms of Phosphorus (per Event)", x_axis_var_name); bar_P
+P_res <- create_and_save_bar_plot_event_png(
+  P_df, "./site_selector_temporary_results",
+  "bar_P.png", "Forms of Phosphorus (per Event)", x_axis_var_name
+)
+embed_png_with_download_btn(P_res$png_path, download_name = "bar_P.png")
 ```
 
 [Misc Plots](../site_selector_temporary_results/bar_Misc.jpg)
 ```{r}
-bar_Misc <- create_and_save_bar_plot_event(Misc_df, "./site_selector_temporary_results", "bar_Misc.jpg", "Water Quality Analytes (per Event)", x_axis_var_name); bar_Misc
+Misc_res <- create_and_save_bar_plot_event_png(
+  Misc_df, "./site_selector_temporary_results",
+  "bar_Misc.png", "Water Quality Analytes (per Event)", x_axis_var_name
+)
+embed_png_with_download_btn(Misc_res$png_path, download_name = "bar_Misc.png")
 ```
 
 # Annual Means by Analyte & Treatment 
