@@ -141,6 +141,11 @@ filtered_df <- filtered_df %>% dplyr::mutate(
   event_facet = factor(event.count, levels = unique(event.count[order(event_date)]))
 )
 label_map <- filtered_df %>% dplyr::select(event_facet, event_date) %>% dplyr::distinct()
+event_date_only_labeller <- function(values) {
+  dates <- label_map$event_date[match(values, label_map$event_facet)]
+  setNames(paste0("Event\nDate\n", format(dates, "%m-%d")), values)
+}
+
 event_labeller <- function(values) setNames(paste0(values, "\n", format(label_map$event_date[match(values, label_map$event_facet)], "%m-%d")), values)
 ```
 
@@ -176,76 +181,81 @@ Misc_df <- filtered_df %>% dplyr::filter(analyte %in% analytes_plot3)
 # Events Captured
 ```{r}
 unique_treatments <- filtered_df %>%
-  dplyr::select(treatment.name, event.count, event_date) %>%
+  dplyr::select(treatment.name, event_date) %>%
   dplyr::distinct() %>%
-  dplyr::group_by(treatment.name, event.count) %>%
+  dplyr::group_by(treatment.name) %>%
   dplyr::summarise(
+    n_events = dplyr::n_distinct(event_date),
     collected = paste(sort(unique(format(event_date, "%Y-%m-%d"))), collapse = ", "),
     .groups = "drop"
   ) %>%
-  dplyr::arrange(treatment.name, event.count)
+  dplyr::arrange(treatment.name)
 
-DT::datatable(unique_treatments, caption = "Unique Treatments, Event Counts, and Collection Dates (YYYY-MM-DD)")
+DT::datatable(
+  unique_treatments,
+  caption = "Events Captured by Treatment: number of events and collection dates (YYYY-MM-DD)"
+)
 ```
 
-# Sample Standards and Exceedance Summary
-TODO: add table of reg 31 detections 
-## use filtered_df, how do i display a table of just sample ID, collection date, and the analyte name, the value of that analyte, and the CDPHE regulations and EPA drinking water regulation for said analyte (should be two standards for that analyte), you don't want a giant data frame you want only the ones that do not meet the standards, and an extra column for which standard was triggered and why it is on the list, if it triggers both, then have both listed in that column (is one triggered, or both?) 
-Create a dictionary? with all of the regulation values 
-
-
+# Sample Standards
 EPA analyte thresholds:
+
 | Analyte                                      | Threshold | Units |
-| -------------------------------------------- | --------- | ----- |
+| :------------------------------------------- | :-------- | :---- |
 | pH*                                          | 6.5–8.5   | —     |
 | EC                                           |           |       |
 | Phosphorus, total orthophosphate             |           |       |
-| phosphorus, total*                           | 0.0001    | mg/L  |
-| total dissolved solids**                     | 500       | mg/L  |
-| nitrogen, nitrate*                           | 10        | mg/L  |
-| nitrogen, nitrite*                           | 1         | mg/L  |
-| nitrogen, total kjeldahl                     |           |       |
-| suspended solids (residue, non-filterable)   |           |       |
+| Phosphorus, total*                           | 0.0001    | mg/L  |
+| Total dissolved solids**                     | 500       | mg/L  |
+| Nitrogen, nitrate*                           | 10        | mg/L  |
+| Nitrogen, nitrite*                           | 1         | mg/L  |
+| Nitrogen, total kjeldahl                     |           |       |
+| Suspended solids (residue, non-filterable)   |           |       |
+
+
 *[EPA — National Primary Drinking Water Regulations](https://www.epa.gov/ground-water-and-drinking-water/national-primary-drinking-water-regulations)
 
 **[EPA Nutrient Criteria Manual: Lakes & Reservoirs](https://www.epa.gov/sites/default/files/2018-10/documents/nutrient-criteria-manual-lakes-reservoirs.pdf)
 
+CDPHE analyte thresholds:
 
-[CDPHE analyte thresholds](https://cdphe.colorado.gov/environment/water-quality/clean-water/water-quality-standards):
-| Analyte           | Threshold | Units |
-| ----------------- | --------- | ----- |
-| pH                | 6.5–9     | —     |
-| nitrogen, nitrate | 10        | mg/L  |
-| nitrogen, nitrite | 1         | mg/L  |
-| Total phosphorus  | 0.17      | mg/L  |
+| Analyte                                      | Threshold | Units |
+| :------------------------------------------- | :-------- | :---- |
+| pH (warm water)                              | 6.5–9     | —     |
+| Nitrogen, nitrate                            | 10        | mg/L  |
+| Nitrogen, nitrite                            | 1         | mg/L  |
+| Total phosphorus (warm water)                | 0.17      | mg/L  |   
+| Total phosphorus (cold water)                | 0.11      | mg/L  |
 
-**AJ's TABLE TODO**
-Analyte	STD	max_value (mg_L)
-TP	cdphe - cold	0.11
-TP	cdphe - warm	0.17
-NO3	epa-drinking	0.1
-ph	cdphe-warm	9
-ph	epa-drinking	8.5
+[CDPHE analyte thresholds](https://cdphe.colorado.gov/environment/water-quality/clean-water/water-quality-standards)  
 
-
-
+# Exceedance Summary
 ```{r}
 # Reg 31 exceedance table from filtered_df
 
 # Standards dictionary 
 standards <- tibble::tribble(
-  ~analyte_key, ~type,   ~epa_min, ~epa_max, ~epa_threshold, ~cdphe_min, ~cdphe_max, ~cdphe_threshold,
-  "pH",         "range",  6.5,       8.5,        NA_real_,       6.5,        9.0,          NA_real_,
-  "NO3",        "max",    NA_real_,  NA_real_,   10,             NA_real_,   NA_real_,     10,
-  "NO2",        "max",    NA_real_,  NA_real_,   1,              NA_real_,   NA_real_,     1,
-  "TP",         "max",    NA_real_,  NA_real_,   0.0001,         NA_real_,   NA_real_,     0.17,
-  "OP",         "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_,   
-  "TDS",        "max",    NA_real_,  NA_real_,   500,            NA_real_,   NA_real_,     NA_real_,
-  "TSS",        "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_,  
-  "EC",         "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_,   
-  "TKN",        "max",    NA_real_,  NA_real_,   NA_real_,       NA_real_,   NA_real_,     NA_real_    
+  ~analyte,      ~regulation,   ~threshold,  ~units,
+  "pH",            "EPA",          8.5,      "None",    
+  "pH",           "CDPHE",         9,        "None",  
+  "NO3",           "EPA",          10,       "mg/L",
+  "NO3",          "CDPHE",         10,       "mg/L",
+  "NO2",           "EPA",          1,        "mg/L",  
+  "NO2",          "CDPHE",         1,        "mg/L",
+  "TKN",           "EPA",          NA_real_, "mg/L",
+  "TKN",          "CDPHE",         NA_real_, "mg/L",
+  "TP",            "EPA",          0.0001,   "mg/L", 
+  "TP",           "CDPHE",         0.17,     "mg/L", 
+  "TP",           "CDPHE",         0.11,     "mg/L",
+  "OP",            "EPA",          NA_real_, "mg/L",
+  "OP",           "CDPHE",         NA_real_, "mg/L", 
+  "TDS",           "EPA",          500,      "mg/L",
+  "TDS",          "CDPHE",         NA_real_, "mg/L",
+  "TSS",           "EPA",          NA_real_, "mg/L",
+  "TSS",          "CDPHE",         NA_real_, "mg/L",
+  "EC",            "EPA",          NA_real_, "mg/L",
+  "EC",           "CDPHE",         NA_real_, "mg/L", 
 )
-
 
 # 2) Helper: normalize analyte names to keys in 'standards'
 map_analyte_to_key <- function(x) {
@@ -275,129 +285,303 @@ sample_id_col <- coalesce(
 filtered_df <- filtered_df %>%
   mutate(sample_id = sample_id_col)
 
-# 4) Prepare data & join standards
-df_std <- filtered_df %>%
+# 4) Prepare data & join standards (NEW: join to LONG standards)
+df_std_long <- filtered_df %>%
   mutate(
-    analyte_key = map_analyte_to_key(analyte),
-    value = suppressWarnings(as.numeric(result)),
-    collected_date = as.Date(collected)
+    analyte_key     = map_analyte_to_key(analyte),
+    value           = suppressWarnings(as.numeric(result)),
+    collected_date  = as.Date(collected)
   ) %>%
-  left_join(standards, by = "analyte_key")
+  left_join(
+    standards,
+    by = c("analyte_key" = "analyte"),
+    relationship = "many-to-many"   # <- add this
+  )
 
-# 5) Compute exceedances with clear messages
-exceed_logic <- function(val, type, e_min, e_max, e_thr, c_min, c_max, c_thr, ak) {
-  msgs <- character(0)
-  trig <- character(0)
 
-  if (is.na(val) || is.na(type)) return(list(triggered = NA_character_, why = NA_character_))
+# A small edit before computing exceedance
+df_std_long <- df_std_long %>%
+  rename(std_units = units.y, sample_units = units.x)
 
-  if (type == "range") {
-    # EPA range
-    if (is.finite(e_min) && is.finite(e_max)) {
-      if (val < e_min || val > e_max) {
-        trig <- c(trig, "EPA")
-        msgs <- c(msgs, sprintf("EPA %s outside %.2f–%.2f (value=%.3g)", ak, e_min, e_max, val))
-      }
-    }
-    # CDPHE range
-    if (is.finite(c_min) && is.finite(c_max)) {
-      if (val < c_min || val > c_max) {
-        trig <- c(trig, "CDPHE")
-        msgs <- c(msgs, sprintf("CDPHE %s outside %.2f–%.2f (value=%.3g)", ak, c_min, c_max, val))
-      }
-    }
-  } else if (type == "max") {
-    # EPA max
-    if (is.finite(e_thr) && val > e_thr) {
-      trig <- c(trig, "EPA")
-      msgs <- c(msgs, sprintf("EPA %s > %.3g (value=%.3g)", ak, e_thr, val))
-    }
-    # CDPHE max
-    if (is.finite(c_thr) && val > c_thr) {
-      trig <- c(trig, "CDPHE")
-      msgs <- c(msgs, sprintf("CDPHE %s > %.3g (value=%.3g)", ak, c_thr, val))
-    }
-  }
-
-  if (length(trig) == 0) {
-    list(triggered = "None", why = NA_character_)
-  } else {
-    list(triggered = paste(unique(trig), collapse = " & "),
-         why = paste(msgs, collapse = " | "))
-  }
-}
-
-res <- df_std %>%
-  rowwise() %>%
-  mutate(out = list(exceed_logic(
-    val = value, type = type,
-    e_min = epa_min, e_max = epa_max, e_thr = epa_threshold,
-    c_min = cdphe_min, c_max = cdphe_max, c_thr = cdphe_threshold,
-    ak = analyte_key
-  ))) %>%
-  unnest_wider(out) %>%
-  ungroup()
-
-# 6) Build compact violation table (only triggered rows w/ known standards)
-reg31_exceedances <- res %>%
-  filter(!is.na(type)) %>%                         # we have a rule
-  filter(!is.na(value)) %>%                        # numeric value present
-  filter(triggered != "None") %>%                  # only violations
-  transmute(
-    sample_id = sample_id,
-    collected_date = collected_date,
-    analyte = analyte,
-    value = value,
-    EPA_standard =
-      dplyr::case_when(
-        type == "range" & is.finite(epa_min) & is.finite(epa_max) ~
-          sprintf("%.2f–%.2f", epa_min, epa_max),
-        type == "max" & is.finite(epa_threshold) ~
-          sprintf("≤ %.3g", epa_threshold),
-        TRUE ~ NA_character_
+# 5) Compute exceedances (long-format threshold check)
+res_long <- df_std_long %>%
+  mutate(
+    exceeded = is.finite(threshold) & !is.na(value) & value > threshold,
+    why = dplyr::if_else(
+      exceeded,
+      sprintf(
+        "%s %s > %s %s (value=%.3g)",
+        regulation, analyte_key,
+        format(threshold, scientific = TRUE),
+        std_units, value
       ),
-    CDPHE_standard =
-      dplyr::case_when(
-        type == "range" & is.finite(cdphe_min) & is.finite(cdphe_max) ~
-          sprintf("%.2f–%.2f", cdphe_min, cdphe_max),
-        type == "max" & is.finite(cdphe_threshold) ~
-          sprintf("≤ %.3g", cdphe_threshold),
-        TRUE ~ NA_character_
-      ),
-    triggered,                                     # "EPA", "CDPHE", or "EPA & CDPHE"
-    why                                            # human-readable reason(s)
+      NA_character_
+    )
+  )
+
+# Collapse back to one row per original sample/analyte (like before),
+# combining EPA/CDPHE triggers into "EPA & CDPHE"
+res <- res_long %>%
+  group_by(across(setdiff(names(res_long), c("regulation","threshold","units","exceeded","why")))) %>%
+  summarise(
+    triggered = {
+      regs <- regulation[exceeded %in% TRUE]
+      if (length(regs) == 0) "None" else paste(sort(unique(regs)), collapse = " & ")
+    },
+    why = {
+      msgs <- why[exceeded %in% TRUE & !is.na(why)]
+      if (length(msgs) == 0) NA_character_ else paste(msgs, collapse = " | ")
+    },
+    .groups = "drop"
+  )
+
+# 6) Summary table (ONLY within-analyte percent)
+n_total <- nrow(res)
+
+summary_any <- res %>%
+  mutate(exceeded_any = !is.na(triggered) & triggered != "None") %>%
+  group_by(analyte_key) %>%
+  summarise(
+    count = sum(exceeded_any, na.rm = TRUE),
+    pct_within_analyte = 100 * count / n(),
+    .groups = "drop"
   ) %>%
-  arrange(collected_date, analyte, desc(value))
+  arrange(desc(count), analyte_key)
 
-reg31_exceedances
+# -----------------------------
+# Pretty summary table (DT)
+# -----------------------------
+summary_any_dt <- summary_any %>%
+  mutate(
+    pct_within_analyte = round(pct_within_analyte, 2)
+  ) %>%
+  select(analyte_key, count, pct_within_analyte)
 
+dt_summary_any <- datatable(
+  summary_any_dt,
+  rownames = FALSE,
+  extensions = c("Buttons", "FixedHeader"),
+  options = list(
+    dom = "Bfrtip",
+    buttons = c("copy", "csv", "excel"),
+    pageLength = 25,
+    lengthMenu = list(c(10, 25, 50, 100),
+                      c("10", "25", "50", "100")),
+    autoWidth = FALSE,
+    fixedHeader = TRUE,
+    order = list(list(1, "desc")),
+    class = "stripe hover compact",
+    scrollX = TRUE,
+    columnDefs = list(
+      list(className = "dt-center", targets = "_all")
+    ),
+    headerCallback = JS(
+      "function(thead, data, start, end, display) {",
+      "  $(thead).find('th').css({'text-align': 'center'});",
+      "}"
+    )
+  ),
+  caption = htmltools::tags$caption(
+    style = "caption-side: top; text-align: center; font-weight: bold;",
+    "Reg 31 exceedance summary by analyte"
+  )
+) %>%
+  formatRound("pct_within_analyte", 2) %>%
+  formatStyle("count", fontWeight = "bold")
+
+dt_summary_any
 ```
 
-
-
-
-
-# Interactive Box & Whisker Plot
-```{r, warning=FALSE}
-create_boxplot <- function(df, selected_location) {
+```{r}
+create_boxplot_dropdown <- function(df, selected_location) {
   tryCatch({
-    analytes <- unique(df$analyte.abbr)
-    first_analyte <- analytes[1]
-    df_filtered <- df[df$analyte.abbr == first_analyte, ]
-    p <- ggplot(df_filtered, aes(x = treatment.name, y = as.numeric(result), fill = treatment.name)) +
-      geom_boxplot(position = position_dodge(0), na.rm = TRUE) +
-      geom_jitter(width = 0.2, size = 1.5, alpha = 0.6, na.rm = TRUE) +
-      facet_grid(analyte.abbr ~ event_facet, scales = "free_y", space = "free_x",
-                 labeller = labeller(event_facet = event_labeller)) +
-      theme_minimal() +
-      labs(title = paste("Box-and-Whisker plots for Location:", selected_location),
-           x = "Event Type", y = "Result", fill = "Event Type")
-    ggplotly(p, tooltip = c("y"))
+    library(dplyr)
+    library(ggplot2)
+    library(plotly)
+    library(htmltools)
+    library(htmlwidgets)
+
+    # Clean
+    df <- df %>%
+      mutate(
+        result         = suppressWarnings(as.numeric(result)),
+        analyte.abbr   = as.character(analyte.abbr),
+        treatment.name = as.character(treatment.name)
+      ) %>%
+      filter(is.finite(result)) %>%
+      filter(!is.na(analyte.abbr), !is.na(treatment.name))
+
+    analytes <- sort(unique(df$analyte.abbr))
+    if (length(analytes) == 0) stop("No analytes found after filtering to finite numeric results.")
+
+    plot_tags <- lapply(seq_along(analytes), function(i) {
+      a <- analytes[i]
+      df_a <- df %>% filter(analyte.abbr == a)
+
+      # Optional: enforce a consistent 4-treatment order if those exist
+      preferred_order <- c("Inflow", "CT", "ST", "MT")
+      if (all(preferred_order %in% unique(df_a$treatment.name))) {
+        df_a <- df_a %>% mutate(treatment.name = factor(treatment.name, levels = preferred_order))
+      } else {
+        df_a <- df_a %>% mutate(treatment.name = factor(treatment.name, levels = sort(unique(treatment.name))))
+      }
+
+      # Hover text column (safe for ggplot aes)
+      if ("collected_date" %in% names(df_a)) {
+        df_a <- df_a %>%
+          mutate(hover_text = paste0(
+            "Treatment: ", treatment.name,
+            "<br>Date: ", collected_date,
+            "<br>Result: ", result
+          ))
+      } else if ("collection_date" %in% names(df_a)) {
+        df_a <- df_a %>%
+          mutate(hover_text = paste0(
+            "Treatment: ", treatment.name,
+            "<br>Date: ", collection_date,
+            "<br>Result: ", result
+          ))
+      } else {
+        df_a <- df_a %>%
+          mutate(hover_text = paste0(
+            "Treatment: ", treatment.name,
+            "<br>Result: ", result
+          ))
+      }
+
+      g <- ggplot(
+        df_a,
+        aes(
+          x    = treatment.name,
+          y    = result,
+          fill = treatment.name,
+          text = hover_text
+        )
+      ) +
+        geom_boxplot(na.rm = TRUE, outlier.shape = NA) +
+        geom_jitter(width = 0.2, size = 1.5, alpha = 0.35, na.rm = TRUE) +
+        theme_minimal() +
+        labs(
+          title    = paste0("Box-and-Whisker plots — ", selected_location),
+          subtitle = paste0("Analyte: ", a),
+          x = "Treatment",
+          y = "Result",
+          fill = "Treatment"
+        )
+
+      p <- ggplotly(g, tooltip = "text") %>%
+        layout(yaxis = list(autorange = TRUE))
+
+      # Wrap each plot in a div we can show/hide
+      div(
+        id = paste0("plotwrap_", i),
+        style = if (i == 1) "" else "display:none;",
+        p
+      )
+    })
+
+    # Dropdown
+    selector <- tags$label(
+      `for` = "analyte_select",
+      "Select analyte: ",
+      tags$select(
+        id = "analyte_select",
+        lapply(seq_along(analytes), function(i) tags$option(value = i, analytes[i]))
+      )
+    )
+
+    # Download button (uses onclick so it works reliably in knitted HTML)
+    download_btn <- tags$button(
+      id = "download_plot_btn",
+      type = "button",
+      style = "margin-left:12px;",
+      onclick = "downloadVisiblePlot();",
+      "Download PNG"
+    )
+
+    # JS: show/hide plots + autoscale + download visible plot
+    js <- sprintf(
+      "
+      function showPlot(idx){
+        var n = %d;
+        for (var i=1; i<=n; i++){
+          var wrap = document.getElementById('plotwrap_' + i);
+          if (!wrap) continue;
+          wrap.style.display = (i === idx) ? '' : 'none';
+        }
+        setTimeout(function(){
+          var wrap = document.getElementById('plotwrap_' + idx);
+          if (!wrap) return;
+
+          // FIX: htmlwidgets plotly uses .js-plotly-plot
+          var gd = wrap.querySelector('.js-plotly-plot') || wrap.querySelector('.plotly');
+          if (gd && window.Plotly){
+            Plotly.Plots.resize(gd);
+            Plotly.relayout(gd, {'yaxis.autorange': true});
+          }
+        }, 50);
+      }
+
+      document.addEventListener('change', function(e){
+        if (e.target && e.target.id === 'analyte_select'){
+          showPlot(parseInt(e.target.value));
+        }
+      });
+
+      // Download currently visible plot as PNG
+      window.downloadVisiblePlot = function(){
+        var n = %d;
+
+        // find visible wrapper
+        var visibleIdx = 1;
+        for (var i=1; i<=n; i++){
+          var wrap = document.getElementById('plotwrap_' + i);
+          if (wrap && wrap.style.display !== 'none'){
+            visibleIdx = i;
+            break;
+          }
+        }
+
+        var wrap = document.getElementById('plotwrap_' + visibleIdx);
+        if (!wrap || !window.Plotly) return;
+
+        // FIX: correct selector for plotly htmlwidgets
+        var gd = wrap.querySelector('.js-plotly-plot') || wrap.querySelector('.plotly');
+        if (!gd) return;
+
+        // use dropdown text as filename
+        var sel = document.getElementById('analyte_select');
+        var analyte = sel ? sel.options[sel.selectedIndex].text : ('analyte_' + visibleIdx);
+        var fname = 'boxplot_' + analyte.replace(/[^a-zA-Z0-9_-]/g,'_');
+
+        Plotly.downloadImage(gd, {
+          format: 'png',
+          filename: fname,
+          height: 700,
+          width: 1100,
+          scale: 2
+        });
+      };
+      ",
+      length(analytes),
+      length(analytes)
+    )
+
+    tagList(
+      tags$div(selector, download_btn),
+      tags$script(HTML(js)),
+      plot_tags
+    )
+
   }, error = function(e) {
-    cat("An error occurred:", conditionMessage(e), "\n"); NULL
+    cat("An error occurred:", conditionMessage(e), "\n")
+    NULL
   })
 }
-create_boxplot(filtered_df, loc)
+
+# usage
+create_boxplot_dropdown(filtered_df, loc)
+
 ```
 
 ```{r, fig.height=20, fig.width=12}
@@ -409,122 +593,341 @@ if (length(levels(as.factor(filtered_df$treatment.name))) > 1) {
 }
 ```
 
-# Static Bar Plots (Per Event) — with Error Bars
+# Static Bar Plots (Per Event)
 ```{r}
-create_and_save_bar_plot_event <- function(df, output_dir, file_name, plot.title, x_axis_var) {
+event_date_only_labeller <- function(values) {
+  dates <- label_map$event_date[match(values, label_map$event_facet)]
+  setNames(paste0("Event Date\n", format(dates, "%m-%d")), values)
+}
+
+# ============================================================
+# Plot function (same plot) but SAVE AS PNG (white background)
+# ============================================================
+create_and_save_bar_plot_event_png <- function(df, output_dir, file_name_png, plot.title, x_axis_var) {
   tryCatch({
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-    df <- df %>% dplyr::mutate(result = suppressWarnings(as.numeric(result))) %>% dplyr::filter(is.finite(result))
 
-    # summary stats per event facet, analyte, and x-axis (treatment/event.type)
+    library(dplyr)
+    library(ggplot2)
+
+    df <- df %>%
+      mutate(
+        result       = suppressWarnings(as.numeric(result)),
+        analyte      = as.character(analyte),
+        analyte.abbr = as.character(analyte.abbr),
+        units        = as.character(units)
+      ) %>%
+      filter(is.finite(result))
+
+    if (x_axis_var %in% names(df)) {
+      df[[x_axis_var]] <- factor(
+        df[[x_axis_var]],
+        levels = c("Inflow", setdiff(unique(df[[x_axis_var]]), "Inflow"))
+      )
+    }
+
+    df <- df %>%
+      mutate(
+        analyte_name_for_plot = if_else(
+          !is.na(analyte.abbr) & analyte.abbr != "",
+          analyte.abbr, analyte
+        ),
+        facet_var = paste0(analyte_name_for_plot, "\n(", units, ")")
+      )
+
     summary_df <- df %>%
-      dplyr::group_by(.data[[x_axis_var]], analyte.abbr, event_facet) %>%
-      dplyr::summarise(mean = mean(result, na.rm = TRUE),
-                       sd = sd(result, na.rm = TRUE),
-                       n = dplyr::n(),
-                       .groups = "drop")
+      group_by(.data[[x_axis_var]], facet_var, event_facet) %>%
+      summarise(
+        mean = mean(result, na.rm = TRUE),
+        sd   = sd(result, na.rm = TRUE),
+        n    = n(),
+        .groups = "drop"
+      )
 
-    # facet ordering & labels
     summary_df$event_facet <- factor(summary_df$event_facet, levels = levels(df$event_facet))
+    df$event_facet         <- factor(df$event_facet, levels = levels(df$event_facet))
 
-    file_path_portrait  <- file.path(output_dir, file_name)
-    file_path_landscape <- file.path(output_dir, paste0(tools::file_path_sans_ext(file_name), "_landscape.jpg"))
+    file_path <- file.path(output_dir, file_name_png)
 
     bar_plot <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = .data[[x_axis_var]])) +
       geom_bar(stat = "identity", position = position_dodge(0), color = "black") +
-      geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
-                    width = 0.2, position = position_dodge(0)) +
-      # raw points (jitter) in background
-      geom_jitter(data = df, aes(x = .data[[x_axis_var]], y = result), width = 0.2, alpha = 0.6,
-                  size = 1, show.legend = FALSE) +
-      facet_grid(analyte.abbr ~ event_facet, scales = "free_y", space = "free_x",
-                 labeller = labeller(event_facet = event_labeller)) +
+      geom_errorbar(
+        aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
+        width = 0.2, position = position_dodge(0)
+      ) +
+      geom_jitter(
+        data = df,
+        aes(x = .data[[x_axis_var]], y = result),
+        width = 0.2, alpha = 0.6, size = 1,
+        inherit.aes = FALSE,
+        show.legend = FALSE
+      ) +
+      facet_grid(
+        facet_var ~ event_facet,
+        scales = "free_y",
+        space  = "free_x",
+        labeller = labeller(event_facet = event_date_only_labeller)
+      ) +
       theme_minimal() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-            strip.text  = element_text(size = 12),
-            legend.position = "bottom") +
-      labs(title = plot.title, x = "Event Type", y = "Mean Result", fill = "Event Type") +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        strip.text  = element_text(size = 12, lineheight = 1.05),
+        legend.position = "bottom"
+      ) +
+      labs(
+        title = plot.title,
+        x = "Event Type",
+        y = "Mean Result",
+        fill = "Event Type"
+      ) +
       scale_fill_brewer(palette = "Pastel1")
 
-    ggsave(file_path_portrait,  bar_plot, width = 8.5, height = 11, units = "in")
-    ggsave(file_path_landscape, bar_plot, width = 11, height = 8.5, units = "in")
-    bar_plot
-  }, error = function(e) { message("Error in create_and_save_bar_plot_event: ", e$message); NULL })
+    # Save PNG using a robust device; force WHITE background
+    if (requireNamespace("ragg", quietly = TRUE)) {
+      ggsave(file_path, bar_plot,
+             width = 11, height = 8.5, units = "in",
+             device = ragg::agg_png, background = "white", res = 200)
+    } else {
+      ggsave(file_path, bar_plot,
+             width = 11, height = 8.5, units = "in",
+             device = "png", bg = "white", dpi = 200)
+    }
+
+    list(plot = bar_plot, png_path = file_path)
+
+  }, error = function(e) {
+    message("Error in create_and_save_bar_plot_event_png: ", e$message)
+    NULL
+  })
+}
+
+# ============================================================
+# Embed saved PNG directly into HTML + working Download button
+# (no relative paths, no broken links)
+# ============================================================
+embed_png_with_download_btn <- function(png_path, download_name = "plot.png", img_width = "100%") {
+  library(htmltools)
+
+  # knitr::image_uri() returns a data URI like "data:image/png;base64,...."
+  # This avoids all path issues in knitted HTML.
+  if (!requireNamespace("knitr", quietly = TRUE)) {
+    stop("Package 'knitr' is required for embed_png_with_download_btn().")
+  }
+  uri <- knitr::image_uri(png_path)
+
+  wrap_id <- paste0("imgwrap_", sprintf("%06d", sample.int(999999, 1)))
+  btn_id  <- paste0("btn_", sprintf("%06d", sample.int(999999, 1)))
+  safe_name <- gsub("[^A-Za-z0-9._-]", "_", download_name)
+
+  js <- sprintf(
+    "
+    window.downloadEmbeddedPNG_%s = function(){
+      var img = document.querySelector('#%s img');
+      if(!img) return;
+
+      var a = document.createElement('a');
+      a.href = img.src;                 // data URI
+      a.download = '%s';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    ",
+    wrap_id, wrap_id, safe_name
+  )
+
+  tagList(
+    tags$div(
+      style = "margin: 8px 0 12px 0;",
+      tags$button(
+        id = btn_id,
+        type = "button",
+        onclick = sprintf("downloadEmbeddedPNG_%s();", wrap_id),
+        "Download PNG"
+      )
+    ),
+    tags$script(HTML(js)),
+    tags$div(
+      id = wrap_id,
+      tags$img(
+        src = uri,
+        style = paste0("width:", img_width, "; border: 1px solid #ddd; background:white;")
+      )
+    )
+  )
 }
 ```
 
 [N Plots](../site_selector_temporary_results/bar_N.jpg)
 ```{r}
-bar_N    <- create_and_save_bar_plot_event(N_df, "./site_selector_temporary_results", "bar_N.jpg", "Forms of Nitrogen (per Event)", x_axis_var_name); bar_N
+N_res <- create_and_save_bar_plot_event_png(
+  N_df, "./site_selector_temporary_results",
+  "bar_N.png", "Forms of Nitrogen (per Event)", x_axis_var_name
+)
+embed_png_with_download_btn(N_res$png_path, download_name = "bar_N.png")
 ```
 
 [P Plots](../site_selector_temporary_results/bar_P.jpg)
 ```{r}
-bar_P    <- create_and_save_bar_plot_event(P_df, "./site_selector_temporary_results", "bar_P.jpg", "Forms of Phosphorus (per Event)", x_axis_var_name); bar_P
+P_res <- create_and_save_bar_plot_event_png(
+  P_df, "./site_selector_temporary_results",
+  "bar_P.png", "Forms of Phosphorus (per Event)", x_axis_var_name
+)
+embed_png_with_download_btn(P_res$png_path, download_name = "bar_P.png")
 ```
 
 [Misc Plots](../site_selector_temporary_results/bar_Misc.jpg)
 ```{r}
-bar_Misc <- create_and_save_bar_plot_event(Misc_df, "./site_selector_temporary_results", "bar_Misc.jpg", "Water Quality Analytes (per Event)", x_axis_var_name); bar_Misc
+Misc_res <- create_and_save_bar_plot_event_png(
+  Misc_df, "./site_selector_temporary_results",
+  "bar_Misc.png", "Water Quality Analytes (per Event)", x_axis_var_name
+)
+embed_png_with_download_btn(Misc_res$png_path, download_name = "bar_Misc.png")
 ```
 
-# Annual Means by Analyte & Treatment (Error Bars)
+# Annual Means by Analyte & Treatment 
 ```{r}
 create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, stratify_by_method = FALSE) {
   tryCatch({
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
-    df <- df %>% dplyr::mutate(result = suppressWarnings(as.numeric(result))) %>% dplyr::filter(is.finite(result))
 
-    # Ensure "Inflow" (if present) is first in x-axis
+    # Clean + coerce types once
+    df <- df %>%
+      dplyr::mutate(
+        result       = suppressWarnings(as.numeric(result)),
+        analyte      = as.character(analyte),
+        analyte.abbr = as.character(analyte.abbr),
+        units        = as.character(units),
+        method.name  = as.character(method.name)
+      ) %>%
+      dplyr::filter(is.finite(result))
+
+    # Ensure "Inflow" appears first (if present)
     if (x_axis_var %in% names(df)) {
-      df[[x_axis_var]] <- factor(df[[x_axis_var]], levels = c("Inflow", setdiff(unique(df[[x_axis_var]]), "Inflow")))
+      df[[x_axis_var]] <- factor(
+        df[[x_axis_var]],
+        levels = c("Inflow", setdiff(unique(df[[x_axis_var]]), "Inflow"))
+      )
     }
 
-    analyte_units <- df %>% dplyr::select(analyte.abbr, units) %>% dplyr::distinct()
+    # ---- Build a single, reliable facet label: "Analyte (units)"
+    # Prefer analyte.abbr if it exists, otherwise fall back to full analyte name.
+    df <- df %>%
+      dplyr::mutate(
+        analyte_name_for_plot = dplyr::if_else(
+          !is.na(analyte.abbr) & analyte.abbr != "",
+          analyte.abbr,
+          analyte
+        ),
+        facet_var = paste0(analyte_name_for_plot, " (", units, ")")
+      )
 
+    # Keep raw data version for point overlay
+    raw_df <- df
+
+    # Summaries (keep facet_var in the grouping so it cannot get “lost”)
     if (stratify_by_method) {
       summary_df <- df %>%
-        dplyr::group_by(.data[[x_axis_var]], analyte.abbr, method.name) %>%
-        dplyr::summarise(mean = mean(result, na.rm = TRUE), sd = sd(result, na.rm = TRUE), n = dplyr::n(), .groups = "drop")
+        dplyr::group_by(.data[[x_axis_var]], facet_var, method.name) %>%
+        dplyr::summarise(
+          mean = mean(result, na.rm = TRUE),
+          sd   = sd(result, na.rm = TRUE),
+          n    = dplyr::n(),
+          .groups = "drop"
+        )
+
       p <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = method.name)) +
         geom_bar(stat = "identity", position = position_dodge(width = 0.7), color = "black") +
-        geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
-                      width = 0.2, position = position_dodge(width = 0.7))
+        geom_errorbar(
+          aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
+          width = 0.2, position = position_dodge(width = 0.7)
+        ) +
+        # ---- RAW DATA POINTS (dodged by method) ----
+        geom_point(
+          data = raw_df,
+          aes(x = .data[[x_axis_var]], y = result, color = method.name),
+          position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.7),
+          alpha = 0.06,
+          size = 1.6,
+          inherit.aes = FALSE,
+          show.legend = FALSE
+        )
+
     } else {
       summary_df <- df %>%
-        dplyr::group_by(.data[[x_axis_var]], analyte.abbr) %>%
-        dplyr::summarise(mean = mean(result, na.rm = TRUE), sd = sd(result, na.rm = TRUE), n = dplyr::n(), .groups = "drop")
+        dplyr::group_by(.data[[x_axis_var]], facet_var) %>%
+        dplyr::summarise(
+          mean = mean(result, na.rm = TRUE),
+          sd   = sd(result, na.rm = TRUE),
+          n    = dplyr::n(),
+          .groups = "drop"
+        )
+
       p <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = .data[[x_axis_var]])) +
         geom_bar(stat = "identity", position = "dodge", color = "black") +
-        geom_errorbar(aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
-                      width = 0.2, position = position_dodge(width = 0.9))
+        geom_errorbar(
+          aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
+          width = 0.2, position = position_dodge(width = 0.9)
+        ) +
+        # ---- RAW DATA POINTS ----
+        geom_point(
+          data = raw_df,
+          aes(x = .data[[x_axis_var]], y = result),
+          position = position_jitter(width = 0.15, height = 0),
+          alpha = 0.06,
+          size = 1.6,
+          inherit.aes = FALSE,
+          show.legend = FALSE
+        )
     }
 
-    # facet labels include units
-    facet_labels <- analyte_units %>%
-      dplyr::mutate(lab = paste0(analyte.abbr, " (", units, ")")) %>%
-      tibble::deframe()
-
     p <- p +
-      facet_wrap(~ analyte.abbr, scales = "free_y", labeller = as_labeller(facet_labels)) +
+      facet_wrap(~ facet_var, scales = "free_y") +
       theme_minimal() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
-            strip.text = element_text(size = 10),
-            legend.position = "bottom") +
-      labs(title = ifelse(stratify_by_method, "Annual Mean by Analyte (Stratified by Method)", "Annual Mean by Analyte"),
-           x = "Event Type", y = "Mean Result",
-           fill = ifelse(stratify_by_method, "Method", x_axis_var)) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text  = element_text(size = 11, face = "bold"),
+        legend.position = "bottom"
+      ) +
+      labs(
+        title = ifelse(
+          stratify_by_method,
+          "Annual Mean by Analyte (Stratified by Method)",
+          "Annual Mean by Analyte"
+        ),
+        x = "Event Type",
+        y = "Mean Result",
+        fill = ifelse(stratify_by_method, "Method", x_axis_var)
+      ) +
       scale_fill_brewer(palette = "Pastel1") +
       coord_cartesian(ylim = c(0, NA))
 
     file_path <- file.path(output_dir, file_name)
     ggsave(file_path, p, width = 10, height = 8, units = "in")
+
     p
-  }, error = function(e) { message("Error in create_facet_bar_plot_annual: ", e$message); NULL })
+  }, error = function(e) {
+    message("Error in create_facet_bar_plot_annual: ", e$message)
+    NULL
+  })
 }
 
-facet_bar_without_method <- create_facet_bar_plot_annual(filtered_df, "./site_selector_temporary_results", "facet_bar_analytes_annual.jpg", x_axis_var_name, stratify_by_method = FALSE); facet_bar_without_method
-facet_bar_with_method    <- create_facet_bar_plot_annual(filtered_df, "./site_selector_temporary_results", "facet_bar_analytes_method_annual.jpg", x_axis_var_name, stratify_by_method = TRUE); facet_bar_with_method
+# ---- calls (as requested) ----
+facet_bar_without_method <- create_facet_bar_plot_annual(
+  filtered_df,
+  "./site_selector_temporary_results",
+  "facet_bar_analytes_annual.jpg",
+  x_axis_var_name,
+  stratify_by_method = FALSE
+); facet_bar_without_method
+
+facet_bar_with_method <- create_facet_bar_plot_annual(
+  filtered_df,
+  "./site_selector_temporary_results",
+  "facet_bar_analytes_method_annual.jpg",
+  x_axis_var_name,
+  stratify_by_method = TRUE
+); facet_bar_with_method
 ```
 
 # Raw Data
@@ -534,4 +937,84 @@ DT::datatable(
     dplyr::mutate(collected = collected_disp) %>%
     dplyr::select(-collected_disp, -collected_local)
 )
+```
+
+# Samples that Exceed Regulation 31 Standards
+```{r}
+reg31_exceedances <- res_long %>%
+  # only actual violations (threshold exists AND exceeded == TRUE)
+  filter(exceeded %in% TRUE) %>%
+  transmute(
+    sample_id,
+    collected_date,
+    analyte = analyte,          # original analyte label from filtered_df
+    analyte_key,
+    value,
+    regulation,
+    standard = sprintf("≤ %.3g", threshold),
+    why
+  ) %>%
+  # make EPA/CDPHE into separate columns like before
+  pivot_wider(
+    names_from  = regulation,
+    values_from = standard,
+    names_glue  = "{regulation}_standard"
+  ) %>%
+  # bring back the combined trigger label ("EPA", "CDPHE", "EPA & CDPHE")
+  left_join(
+    res %>% select(sample_id, collected_date, analyte_key, value, triggered),
+    by = c("sample_id", "collected_date", "analyte_key", "value")
+  ) %>%
+  # keep the columns in your original order
+  transmute(
+    sample_id,
+    collected_date,
+    analyte,
+    value,
+    EPA_standard = EPA_standard,
+    CDPHE_standard = CDPHE_standard,
+    triggered,
+    why
+  ) %>%
+  arrange(collected_date, analyte, desc(value))
+
+# -----------------------------
+# Pretty exceedance samples table (DT)
+# -----------------------------
+reg31_exceedances_dt <- reg31_exceedances %>%
+  mutate(
+    value = round(value, 4)
+  )
+
+dt_reg31_exceedances <- datatable(
+  reg31_exceedances_dt,
+  rownames = FALSE,
+  extensions = c("Buttons", "FixedHeader"),
+  options = list(
+    dom = "Bfrtip",
+    buttons = c("copy", "csv", "excel"),
+    pageLength = 25,
+    autoWidth = TRUE,
+    fixedHeader = TRUE,
+    order = list(list(1, "asc")),  # collected_date
+    class = "stripe hover compact",
+    scrollX = TRUE
+  ),
+  filter = "top",
+  caption = htmltools::tags$caption(
+    style = "caption-side: top; text-align: left; font-weight: bold;",
+    "Reg 31 exceedance samples"
+  )
+) %>%
+  formatStyle(
+    "triggered",
+    fontWeight = "bold"
+  ) %>%
+  formatStyle(
+    "why",
+    whiteSpace = "normal",
+    lineHeight = "120%"
+  )
+
+dt_reg31_exceedances
 ```
