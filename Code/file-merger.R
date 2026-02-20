@@ -204,6 +204,7 @@ analyteAbbr.dict <- list(
   "EC25"  = c("Specific Conductance", "ELECTRICAL CONDUCTIVITY")
 )
 
+# TODO: Add EPA dicts here for all necesary columns
 
 
 # copy/paste excel data below to create geodata dataframe (i.e., separated by tabs, \t)
@@ -718,6 +719,9 @@ dfTss <- function(tss_fp) {
     ) 
   return(df)
 }
+
+# ---------------- TODO: ADD EPA COLUMN MAPPING HERE ----------------
+
 # ---- End of Helper Functions ----
 
 # ---- Main Functions ----
