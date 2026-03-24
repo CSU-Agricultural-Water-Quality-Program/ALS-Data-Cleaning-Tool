@@ -204,7 +204,150 @@ analyteAbbr.dict <- list(
   "EC25"  = c("Specific Conductance", "ELECTRICAL CONDUCTIVITY")
 )
 
-# TODO: Add EPA dicts here for all necesary columns
+
+# EPA Sample Collection Equipment Name
+
+sampleMethod.dict <- list(
+  "Pump/Peristaltic" = c("ISCO", "Low-Cost Sampler"),
+  "Water Bottle"     = "Grab Sample"
+)
+
+
+# EPA Characteristic Name
+
+analyteType.dict <- c(
+  "Phosphorus, Total Orthophosphate (as P)" = "Orthophosphate",
+  "Phosphorus, Total (As P)" = "Total Phosphorus, mixed forms",
+  "Total Dissolved Solids (Residue, Filterable)" = "Total dissolved solids",
+  "Nitrogen, Nitrate (As N)" = "Nitrate",
+  "Nitrogen, Nitrite  (As N)" = "Nitrite",
+  "Nitrogen, Total Kjeldahl" = "Total Kjeldahl nitrogen",
+  "pH" = "pH",
+  "Suspended Solids (Residue, Non-Filterable)" = "Total suspended solids",
+  "Specific Conductance" = "Specific Conductance"
+)
+
+# EPA Method Speciation
+
+methodSpeciation.dict <- list(
+  "as P" = c(
+    "Phosphorus, Total Orthophosphate (as P)",
+    "Phosphorus, Total (As P)"
+  ),
+  "as N" = c(
+    "Nitrogen, Nitrate (As N)",
+    "Nitrogen, Nitrite  (As N)",
+    "Nitrogen, Total Kjeldahl"
+  )
+)
+
+
+# EPA Result Condition Value is computed in add_epa_columns
+
+# EPA Result Value
+
+resultValue.dict <- list(
+  "Result Value" = "result"
+)
+
+
+# EPA Result Unit
+
+resultUnit.dict <- list(
+  "mg/l"     = "mg/L",
+  "None"     = "pH",
+  "mmho/cm"  = "dS/cm*100"
+)
+
+
+# EPA Result Sample Fraction
+
+resultSampleFraction.dict <- list(
+  "Filtered, lab" = c(
+    "Iron",
+    "Selenium",
+    "Nitrogen, Total Kjeldahl",
+    "Nitrogen, Nitrite  (As N)",
+    "Nitrogen, Nitrate (As N)",
+    "Phosphorus, Total Orthophosphate (as P)",
+    "Phosphorus, Total (As P)",
+    "Total Dissolved Solids (Residue, Filterable)"
+  )
+)
+
+
+# EPA Result Value Type
+
+resultValueType.dict <- list(
+  "Result Value Type" = "Actual"
+)
+
+
+# EPA Result Analytical Method ID
+
+resultAnalyticalMethod.dict <- list(
+  "200.8"      = c("Iron", "Selenium"),
+  "4500-NH3 D" = "Nitrogen, Total Kjeldahl",
+  "300"        = c("Nitrogen, Nitrate (As N)", "Nitrogen, Nitrite  (As N)"),
+  "4500-P-E"   = c("Phosphorus, Total Orthophosphate (as P)", "Phosphorus, Total (As P)"),
+  "150.1"      = "pH",
+  "120.1"      = "Specific Conductance",
+  "160.2"      = "Suspended Solids (Residue, Non-Filterable)",
+  "160.1"      = "Total Dissolved Solids (Residue, Filterable)"
+)
+
+
+# EPA Result Analytical Method Context
+
+resultAnalyticalMethodContext.dict <- list(
+  "USEPA" = c(
+    "Iron",
+    "Nitrogen, Nitrite  (As N)",
+    "Nitrogen, Nitrate (As N)",
+    "pH",
+    "Selenium",
+    "Specific Conductance",
+    "Suspended Solids (Residue, Non-Filterable)",
+    "Total Dissolved Solids (Residue, Filterable)"
+  ),
+  "APHA" = c(
+    "Nitrogen, Total Kjeldahl",
+    "Phosphorus, Total Orthophosphate (as P)",
+    "Phosphorus, Total (As P)"
+  )
+)
+
+
+# EPA Result Detection/Quantification Limit Type
+
+limitType.dict <- list(
+  "Result Detection/Quantification Limit Type" = "Lower Reporting Limit"
+)
+
+
+# EPA Result Detection/Quantification Limit Measure
+
+limitMeasure.dict <- list(
+  "200"   = "Iron",
+  "0.5"   = "Nitrogen, Total Kjeldahl",
+  "0.1"   = c("Nitrogen, Nitrite  (As N)", "Nitrogen, Nitrate (As N)", "pH"),
+  "0.05"  = c("Phosphorus, Total Orthophosphate (as P)", "Phosphorus, Total (As P)"),
+  "1"     = "Selenium",
+  "0.005" = "Specific Conductance",
+  "2.5"   = "Suspended Solids (Residue, Non-Filterable)",
+  "10"    = "Total Dissolved Solids (Residue, Filterable)"
+)
+
+# EPA Result Detection/Quantification Limit Unit 
+
+limitUnit.dict <- list(
+  "ug/l" = c("Iron", "Selenium"),
+  "mg/l" = c("Nitrogen, Nitrite  (As N)", "Nitrogen, Nitrate (As N)", "Nitrogen, Total Kjeldahl", 
+             "Phosphorus, Total Orthophosphate (as P)", "Suspended Solids (Residue, Non-Filterable)",
+             "Total Dissolved Solids (Residue, Filterable)", "Phosphorus, Total (As P)"),
+  "None" = "pH",
+  "mmhos/cm" = "Specific conductance" 
+)
 
 
 # copy/paste excel data below to create geodata dataframe (i.e., separated by tabs, \t)
@@ -302,21 +445,23 @@ map_values_analyte <- function(text, dict) {
 }
 
 map_values <- function(text, dict) {
-  # Ensure text is treated as a character string
-  text <- as.character(text)
   
-  # Loop through each key in the dictionary
-  for (key in names(dict)) {
-    # Check each value associated with the current key
-    for (value in dict[[key]]) {
-      # Use grepl with word boundaries to match whole words
-      if (grepl(paste0("\\b", value, "\\b"), text)) {
-        return(key)  # Return the key if a match is found
+  sapply(text, function(t) {
+    
+    for (key in names(dict)) {
+      for (value in dict[[key]]) {
+        
+        if (grepl(paste0("\\b", value, "\\b"), t)) {
+          return(key)
+        }
+        
       }
     }
-  }
+    
+    return(NA)
+    
+  })
   
-  return(NA)  # Return NA if no match is found
 }
 
 standardize_als_column_names <- function(df) {
@@ -722,11 +867,142 @@ dfTss <- function(tss_fp) {
 
 # ---------------- TODO: ADD EPA COLUMN MAPPING HERE ----------------
 
+# Generic dictionary mapper
+dict_map <- function(x, dict) {
+  
+  from <- unlist(dict)
+  to   <- rep(names(dict), lengths(dict))
+  
+  mapvalues(
+    x,
+    from = from,
+    to = to,
+    warn_missing = FALSE
+  )
+}
+
+
+
+add_epa_columns <- function(df) {
+  
+  df %>%
+    mutate(
+      # Map Sample Collection Equipment Name from method.name
+      `Sample Collection Equipment Name` =
+        map_values(method.name, sampleMethod.dict),
+      
+      # Map Characteristic Name from ANALYTE
+      `Characteristic Name` = analyteType.dict[ANALYTE],
+      
+      # Map Method Speciation from ANALYTE
+      `Method Speciation` = {
+        
+        from_vals <- unlist(methodSpeciation.dict)
+        to_vals   <- rep(names(methodSpeciation.dict), lengths(methodSpeciation.dict))
+        
+        spec <- plyr::mapvalues(
+          ANALYTE,
+          from = from_vals,
+          to   = to_vals,
+          warn_missing = FALSE
+        )
+        
+        spec[!ANALYTE %in% from_vals] <- ""
+        
+        spec
+      },
+      
+      # Result Condition Value based on non.detect
+      `Result Condition Value` = ifelse(RESULT > 0,
+                                        "Present Above Quantification Limit",
+                                        "Not Detected"),
+      
+      # Copy RESULT column into Result Value
+      `Result Value` = RESULT,
+      
+      # Map Result Unit from UNITS
+      `Result Unit` =
+        map_values(UNITS, resultUnit.dict),
+      
+      # Map Result Sample Fraction from ANALYTE
+      `Result Sample Fraction` = {
+        vals <- plyr::mapvalues(
+          ANALYTE,
+          from = unlist(resultSampleFraction.dict),
+          to   = rep(names(resultSampleFraction.dict), lengths(resultSampleFraction.dict)),
+          warn_missing = FALSE
+        )
+        vals[!ANALYTE %in% unlist(resultSampleFraction.dict)] <- ""
+        vals
+      },
+      
+      # Result Value Type is constant
+      `Result Value Type` = "Actual",
+      
+      # Map Result Analytical Method ID from ANALYTE
+      `Result Analytical Method ID` =
+        map_values(ANALYTE, resultAnalyticalMethod.dict),
+      
+      # Map Result Analytical Method Context from ANALYTE
+      `Result Analytical Method ID` = {
+        # Flatten the dictionary: for each analyte, assign the corresponding method ID
+        from_vals <- unlist(resultAnalyticalMethod.dict)          # analytes
+        to_vals   <- rep(names(resultAnalyticalMethod.dict),      # method IDs
+                         lengths(resultAnalyticalMethod.dict))  
+        plyr::mapvalues(
+          ANALYTE,
+          from = from_vals,
+          to   = to_vals,
+          warn_missing = FALSE
+        )
+      },
+      
+      # Result Detection/Quantification Limit Type is constant
+      `Result Detection/Quantification Limit Type` = "Lower Reporting Limit",
+      
+      # Map Result Detection/Quantification Limit Measure from ANALYTE
+      `Result Detection/Quantification Limit Measure` = {
+        from_vals <- unlist(limitMeasure.dict)                         # analytes
+        to_vals   <- rep(names(limitMeasure.dict), lengths(limitMeasure.dict))  # numeric limits
+        
+        vals <- plyr::mapvalues(
+          ANALYTE,
+          from = from_vals,
+          to   = to_vals,
+          warn_missing = FALSE
+        )
+        
+        # Replace NA for analytes not listed with empty string
+        vals[!ANALYTE %in% from_vals] <- ""
+        
+        vals
+      },
+      # Map Result Limit Unit from ANALYTE
+      `Result Limit Unit` = {
+        from_vals <- unlist(limitUnit.dict)                         # analytes
+        to_vals   <- rep(names(limitUnit.dict), lengths(limitUnit.dict))  # units
+        
+        vals <- plyr::mapvalues(
+          ANALYTE,
+          from = from_vals,
+          to   = to_vals,
+          warn_missing = FALSE
+        )
+        
+        # Replace anything not in the dictionary with empty string
+        vals[!ANALYTE %in% from_vals] <- ""
+        
+        vals
+      }
+    )
+}
+
 # ---- End of Helper Functions ----
 
 # ---- Main Functions ----
-executeFxns <- function(file_path, kelso=FALSE, geo_key) {
-  # Conditionally use importData or importDataKelso based on kelso variable
+executeFxns <- function(file_path, kelso = FALSE, geo_key) {
+  
+  # Conditionally use importData or importDataKelso
   if (kelso) {
     df <- importDataKelso(file_path)
   } else {
@@ -736,13 +1012,15 @@ executeFxns <- function(file_path, kelso=FALSE, geo_key) {
   df <- df %>%
     cleanData(file_path = file_path) %>%   # clean ALS/Kelso format
     processData() %>%                      # create new columns using IDs
-    normalize_ec() %>%                     # <-- optional EC unit normalization
+    normalize_ec() %>%                     # optional EC normalization
     addCoord(geo_key) %>%                  # add spatial data
-    flagData() %>%                         # flag and QA/QC data
-    # TODO: Add epa cols fxn
+    flagData() %>%                         # QA/QC flags
+    add_epa_columns() %>%                  # ADD EPA COLUMNS HERE
     { select(., -all_of(
-      c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID","LAB.ID.y","MATRIX","HOLD")
-      [c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID","LAB.ID.y","MATRIX","HOLD") %in% names(.)]
+      c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID",
+        "LAB.ID.y","MATRIX","HOLD")
+      [c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID",
+         "LAB.ID.y","MATRIX","HOLD") %in% names(.)]
     )) }
   
   return(df)
@@ -882,3 +1160,4 @@ returnAllFiles <- function(d = directory, tss_fp = tss_file_path, export = TRUE)
   }
   return(df)
 }
+
