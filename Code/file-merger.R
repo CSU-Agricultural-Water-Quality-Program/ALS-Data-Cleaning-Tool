@@ -883,7 +883,7 @@ dict_map <- function(x, dict) {
 
 
 
-add_epa_columns <- function(df) {
+add_epa_columns <- function(df, input_type) {
   
   df %>%
     mutate(
@@ -1015,7 +1015,7 @@ executeFxns <- function(file_path, kelso = FALSE, geo_key) {
     normalize_ec() %>%                     # optional EC normalization
     addCoord(geo_key) %>%                  # add spatial data
     flagData() %>%                         # QA/QC flags
-    add_epa_columns() %>%                  # ADD EPA COLUMNS HERE
+    add_epa_columns() %>% #input_type="ALS") %>%                  # ADD EPA COLUMNS HERE
     { select(., -all_of(
       c("REPORT.BASIS","PERCENT.MOISTURE","PERCENT.SOLID",
         "LAB.ID.y","MATRIX","HOLD")
@@ -1107,6 +1107,9 @@ mergeFiles <- function(directory, tss_fp) {
     warning("⚠️ TSS file not found or path is NULL: ", tss_fp)
     df_tss <- data.frame()
   }
+  
+  # add epa cols to TSS df
+  # df_tss <- add_epa_columns(df_tss, input_type='tss')
   
   # Merge TSS data with the combined data
   df <- bind_rows(df_merge, df_tss) %>%
