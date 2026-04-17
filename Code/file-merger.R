@@ -862,6 +862,7 @@ dfTss <- function(tss_fp) {
       treatment.name = as.character(treatment.name),
       event.count = as.character(event.count)
     ) 
+  #TODO: add EPA columns here using add_epa_columns() if possible; may need to adjust that function to work with TSS data since it relies on method.name and we don't have that in TSS data (or do we? maybe we can map from METHOD column instead?)
   return(df)
 }
 
@@ -883,118 +884,124 @@ dict_map <- function(x, dict) {
 
 
 
-add_epa_columns <- function(df, input_type) {
+add_epa_columns <- function(df, input_type, input_name = "data", verbose = TRUE) {
   
-  df %>%
-    mutate(
-      # Map Sample Collection Equipment Name from method.name
+  issues_found <- FALSE
+  
+  # Helper for named-vector dictionaries
+  map_named <- function(x, dict, name = "", default = "") {
+    out <- unname(dict[as.character(x)])
+    na_idx <- is.na(out)
+    
+    if (any(na_idx)) {
+      issues_found <<- TRUE
+      
+      if (verbose) {
+        n_total <- length(x)
+        n_unmapped <- sum(na_idx)
+        n_mapped <- n_total - n_unmapped
+        
+        message(sprintf(
+          "[%s] %s mapping incomplete: %d/%d mapped (%.1f%%)",
+          input_name, name, n_mapped, n_total, 100 * n_mapped / n_total
+        ))
+        
+        examples <- unique(x[na_idx])[1:min(5, n_unmapped)]
+        message(sprintf(
+          "[%s] %s unmapped examples: %s",
+          input_name, name, paste(examples, collapse = ", ")
+        ))
+      }
+    }
+    
+    out[na_idx] <- default
+    out
+  }
+  
+  # Helper for list dictionaries
+  map_list <- function(x, dict, name = "", default = "") {
+    from_vals <- unlist(dict, use.names = FALSE)
+    to_vals <- rep(names(dict), lengths(dict))
+    
+    matched_idx <- match(as.character(x), from_vals)
+    out <- to_vals[matched_idx]
+    na_idx <- is.na(matched_idx)
+    
+    if (any(na_idx)) {
+      issues_found <<- TRUE
+      
+      if (verbose) {
+        n_total <- length(x)
+        n_unmapped <- sum(na_idx)
+        n_mapped <- n_total - n_unmapped
+        
+        message(sprintf(
+          "[%s] %s mapping incomplete: %d/%d mapped (%.1f%%)",
+          input_name, name, n_mapped, n_total, 100 * n_mapped / n_total
+        ))
+        
+        examples <- unique(x[na_idx])[1:min(5, n_unmapped)]
+        message(sprintf(
+          "[%s] %s unmapped examples: %s",
+          input_name, name, paste(examples, collapse = ", ")
+        ))
+      }
+    }
+    
+    out[na_idx] <- default
+    out
+  }
+  
+  df_out <- df %>%
+    dplyr::mutate(
       `Sample Collection Equipment Name` =
-        map_values(method.name, sampleMethod.dict),
+        map_named(method.name, sampleMethod.dict, "Sample Collection Equipment Name"),
       
-      # Map Characteristic Name from ANALYTE
-      `Characteristic Name` = analyteType.dict[ANALYTE],
+      `Characteristic Name` =
+        map_named(ANALYTE, analyteType.dict, "Characteristic Name"),
       
-      # Map Method Speciation from ANALYTE
-      `Method Speciation` = {
-        
-        from_vals <- unlist(methodSpeciation.dict)
-        to_vals   <- rep(names(methodSpeciation.dict), lengths(methodSpeciation.dict))
-        
-        spec <- plyr::mapvalues(
-          ANALYTE,
-          from = from_vals,
-          to   = to_vals,
-          warn_missing = FALSE
-        )
-        
-        spec[!ANALYTE %in% from_vals] <- ""
-        
-        spec
-      },
+      `Method Speciation` =
+        map_list(ANALYTE, methodSpeciation.dict, "Method Speciation"),
       
-      # Result Condition Value based on non.detect
-      `Result Condition Value` = ifelse(RESULT > 0,
-                                        "Present Above Quantification Limit",
-                                        "Not Detected"),
+      `Result Condition Value` = dplyr::if_else(
+        RESULT > 0,
+        "Present Above Quantification Limit",
+        "Not Detected"
+      ),
       
-      # Copy RESULT column into Result Value
       `Result Value` = RESULT,
       
-      # Map Result Unit from UNITS
       `Result Unit` =
-        map_values(UNITS, resultUnit.dict),
+        map_named(UNITS, resultUnit.dict, "Result Unit"),
       
-      # Map Result Sample Fraction from ANALYTE
-      `Result Sample Fraction` = {
-        vals <- plyr::mapvalues(
-          ANALYTE,
-          from = unlist(resultSampleFraction.dict),
-          to   = rep(names(resultSampleFraction.dict), lengths(resultSampleFraction.dict)),
-          warn_missing = FALSE
-        )
-        vals[!ANALYTE %in% unlist(resultSampleFraction.dict)] <- ""
-        vals
-      },
+      `Result Sample Fraction` =
+        map_list(ANALYTE, resultSampleFraction.dict, "Result Sample Fraction"),
       
-      # Result Value Type is constant
       `Result Value Type` = "Actual",
       
-      # Map Result Analytical Method ID from ANALYTE
       `Result Analytical Method ID` =
-        map_values(ANALYTE, resultAnalyticalMethod.dict),
+        map_list(ANALYTE, resultAnalyticalMethod.dict, "Result Analytical Method ID"),
       
-      # Map Result Analytical Method Context from ANALYTE
-      `Result Analytical Method ID` = {
-        # Flatten the dictionary: for each analyte, assign the corresponding method ID
-        from_vals <- unlist(resultAnalyticalMethod.dict)          # analytes
-        to_vals   <- rep(names(resultAnalyticalMethod.dict),      # method IDs
-                         lengths(resultAnalyticalMethod.dict))  
-        plyr::mapvalues(
-          ANALYTE,
-          from = from_vals,
-          to   = to_vals,
-          warn_missing = FALSE
-        )
-      },
+      `Result Detection/Quantification Limit Type` =
+        "Lower Reporting Limit",
       
-      # Result Detection/Quantification Limit Type is constant
-      `Result Detection/Quantification Limit Type` = "Lower Reporting Limit",
+      `Result Detection/Quantification Limit Measure` =
+        map_list(ANALYTE, limitMeasure.dict, "Result Detection/Quantification Limit Measure"),
       
-      # Map Result Detection/Quantification Limit Measure from ANALYTE
-      `Result Detection/Quantification Limit Measure` = {
-        from_vals <- unlist(limitMeasure.dict)                         # analytes
-        to_vals   <- rep(names(limitMeasure.dict), lengths(limitMeasure.dict))  # numeric limits
-        
-        vals <- plyr::mapvalues(
-          ANALYTE,
-          from = from_vals,
-          to   = to_vals,
-          warn_missing = FALSE
-        )
-        
-        # Replace NA for analytes not listed with empty string
-        vals[!ANALYTE %in% from_vals] <- ""
-        
-        vals
-      },
-      # Map Result Limit Unit from ANALYTE
-      `Result Limit Unit` = {
-        from_vals <- unlist(limitUnit.dict)                         # analytes
-        to_vals   <- rep(names(limitUnit.dict), lengths(limitUnit.dict))  # units
-        
-        vals <- plyr::mapvalues(
-          ANALYTE,
-          from = from_vals,
-          to   = to_vals,
-          warn_missing = FALSE
-        )
-        
-        # Replace anything not in the dictionary with empty string
-        vals[!ANALYTE %in% from_vals] <- ""
-        
-        vals
-      }
+      `Result Limit Unit` =
+        map_list(ANALYTE, limitUnit.dict, "Result Limit Unit")
     )
+  
+  # Final summary message
+  if (verbose) {
+    if (issues_found) {
+      message(sprintf("[%s] EPA column mapping completed WITH WARNINGS.", input_name))
+    } else {
+      message(sprintf("[%s] EPA columns successfully added (100%% mapping).", input_name))
+    }
+  }
+  
+  return(df_out)
 }
 
 # ---- End of Helper Functions ----
