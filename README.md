@@ -4,15 +4,20 @@ A coding tool developed in R to take water analysis results exported from the [A
 
 __Created By:__
 
-**A.J. Brown**  
+[**A.J. Brown**](https://sites.google.com/view/ansleyjbrown)  
 *Agricultural Data Scientist*  
 CSU Agricultural Water Quality Program  
 [Ansley.Brown@colostate.edu](mailto:Ansley.Brown@colostate.edu)
 
 and
 
-**Molly "Caz" Bell**  
-*Former AWQP Student Research Assitant*  
+[**Abigail Coney**](https://github.com/orgs/CSU-Agricultural-Water-Quality-Program/people/tinyconey1)  
+*Active Undergraduate Research Assistant*
+
+**Molly "Caz" Bell**, [**Lauryn Howlett**](https://www.linkedin.com/in/laurynhowlett/)  
+**Former AWQP Student Research Assitants*  
+
+
 
 ---
 ## Table of Contents
