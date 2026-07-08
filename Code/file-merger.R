@@ -890,6 +890,13 @@ add_epa_columns <- function(df, input_type, input_name = "data", verbose = TRUE)
   
   # Helper for named-vector dictionaries
   map_named <- function(x, dict, name = "", default = "") {
+    if (is.list(dict)) {
+      stop(sprintf(
+        "%s must use map_list(); map_named() only accepts an atomic named vector.",
+        name
+      ), call. = FALSE)
+    }
+
     out <- unname(dict[as.character(x)])
     na_idx <- is.na(out)
     
@@ -955,7 +962,7 @@ add_epa_columns <- function(df, input_type, input_name = "data", verbose = TRUE)
   df_out <- df %>%
     dplyr::mutate(
       `Sample Collection Equipment Name` =
-        map_named(method.name, sampleMethod.dict, "Sample Collection Equipment Name"),
+        map_list(method.name, sampleMethod.dict, "Sample Collection Equipment Name"),
       
       `Characteristic Name` =
         map_named(ANALYTE, analyteType.dict, "Characteristic Name"),
@@ -972,7 +979,7 @@ add_epa_columns <- function(df, input_type, input_name = "data", verbose = TRUE)
       `Result Value` = RESULT,
       
       `Result Unit` =
-        map_named(UNITS, resultUnit.dict, "Result Unit"),
+        map_list(UNITS, resultUnit.dict, "Result Unit"),
       
       `Result Sample Fraction` =
         map_list(ANALYTE, resultSampleFraction.dict, "Result Sample Fraction"),
