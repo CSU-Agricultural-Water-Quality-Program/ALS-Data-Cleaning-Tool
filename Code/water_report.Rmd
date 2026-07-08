@@ -1,392 +1,483 @@
 ---
-title: "Water Report"
-author: "Molly 'Caz' Bell and A.J. Brown using R version 4.2.2"
-date: "`r Sys.Date()`"
+title: "Water Sampling Status Report"
+author: "Author: A.J. Brown, Agricultural Data Scientist"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
   html_document:
     output_dir: "Report"
-    toc: yes
+    toc: true
+    toc_depth: 1
     toc_float:
-      collapsed: yes
-      smooth_scroll: no
+      collapsed: true
+      smooth_scroll: true
+    code_folding: hide
+    df_print: paged
 ---
 
+<div style="text-align:center; margin: 8px auto 24px auto;">
+  <a href="https://agsci.colostate.edu/waterquality/" target="_blank" rel="noopener noreferrer">
+    <img src="https://agsci.colostate.edu/waterquality/wp-content/uploads/sites/160/2024/05/AWQP_horizontalhighres-1280x435.png"
+         alt="Colorado State University Agriculture Water Quality Program"
+         style="width: min(100%, 720px); height: auto;">
+  </a>
+</div>
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(toc = TRUE, echo = FALSE, warning = FALSE, message = FALSE)
-# set working dir
-knitr::opts_knit$set(root.dir = here::here())
-
+```{css, echo=FALSE}
+.main-container { max-width: 96% !important; width: 96% !important; }
+.tocify { width: 250px; }
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; margin: 18px 0; }
+.status-card { border: 1px solid #d8dee4; border-radius: 6px; padding: 12px 16px; background: #f8fafc; }
+.status-value { font-size: 1.8em; font-weight: 600; color: #1f5d42; }
+.status-label { color: #4b5563; }
+.dataTables_wrapper { overflow-x: auto; }
+.tab-content { padding-top: 16px; }
+.site-selector-callout {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 20px;
+  margin: 14px 0 20px 0;
+  border: 2px solid #1f6f4a;
+  border-radius: 8px;
+  background: #eef8f2;
+}
+.site-selector-callout .selector-label {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #174c35;
+}
+.site-selector-callout .btn {
+  min-width: 250px;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+}
+.site-selector-callout .dropdown-menu {
+  max-height: 360px;
+  overflow-y: auto;
+  min-width: 320px;
+}
+.site-plot-container {
+  min-height: 740px;
+  margin-top: 20px;
+  margin-bottom: 36px;
+  clear: both;
+}
+.site-plot-container .plotly.html-widget {
+  height: 700px !important;
+}
 ```
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,
+                      fig.width = 11, fig.height = 6)
+knitr::opts_knit$set(root.dir = here::here())
 
-
-# Introduction
-
-This report details data collected from 2024-01-01 to `r Sys.Date()` by the Colorado State University (CSU) Agriculture Water Quality Program (AWQP). For more information, please contact AJ Brown at [Ansley.Brown\@colostate.edu](mailto:Ansley.Brown@colostate.edu){.email} or visit the CSU AWQP Website at <https://waterquality.colostate.edu>.
-
-
-
-# Notes
-
--	All “0” values reported are non-detects (ND) reported by ALS
--	Total suspended solids (TSS), Electrical Conductivity (EC), and pH are performed by AWQP staff at CSU, whereas all other analytes are reported by ALS Laboratories
--	Methods used to derive each analyte can be found in the Raw Data table in the “method” column
-
-
-
-```{r, include=FALSE}
-package.list <- c("ggplot2",
-                  "dplyr",
-                  "DT",
-                  "plotly",
-                  "here"
-)
-packageLoad <- function(packages){
-  for (i in packages) {
-    if (!require(i, character.only = TRUE)) {
-      install.packages(i)
-      library(i, character.only = TRUE)
+package.list <- c("dplyr", "tidyr", "stringr", "DT", "plotly", "here", "htmltools")
+packageLoad <- function(packages) {
+  for (package in packages) {
+    if (!require(package, character.only = TRUE)) {
+      install.packages(package, repos = "https://cloud.r-project.org")
+      library(package, character.only = TRUE)
     }
   }
 }
 packageLoad(package.list)
-```
 
-```{r, include=FALSE}
-#clean data source
-source("./Code/file-merger.R", local = knitr::knit_global())
-```
+setwd(here::here())
+source(here::here("Code", "file-merger.R"), local = knitr::knit_global())
+dat <- returnAllFiles(d = directory, export = TRUE)
+names(dat) <- tolower(names(dat))
 
-```{r, include=FALSE}
-# import data
-dat <- returnAllFiles(d = directory, export = TRUE) 
-#make everything lowercase
-colnames(dat) <- tolower(names(dat))
-```
+required_columns <- c("sample.id", "analyte", "result", "units", "collected",
+                      "location.name", "treatment.name", "event.type")
+missing_columns <- setdiff(required_columns, names(dat))
+if (length(missing_columns) > 0) {
+  stop("Water report is missing required columns: ", paste(missing_columns, collapse = ", "))
+}
 
-# Water Analytes Present and Methods Used for Determination:
-```{r}
-unique_analyte_method <- dat %>%
-  select(analyte, method) %>%
-  distinct(analyte, method) %>%
-  arrange(analyte)
+dat <- dat %>%
+  mutate(
+    across(c(sample.id, analyte, units, location.name, treatment.name, event.type),
+           ~ na_if(stringr::str_squish(as.character(.x)), "")),
+    collected_date = as.Date(collected),
+    is_duplicate = stringr::str_detect(sample.id, "-D$"),
+    primary_sample_id = stringr::str_remove(sample.id, "-D$")
+  )
 
-# Print the table
-datatable(unique_analyte_method, 
-          caption = "Unique Analytes and Corresponding Methods")
+sample_inventory <- dat %>%
+  distinct(sample.id, primary_sample_id, is_duplicate, location.name,
+           treatment.name, event.type, collected_date)
 
-```
+pair_status <- sample_inventory %>%
+  filter(!is.na(primary_sample_id)) %>%
+  group_by(primary_sample_id) %>%
+  summarise(
+    has_primary = any(!is_duplicate),
+    has_duplicate = any(is_duplicate),
+    .groups = "drop"
+  )
 
+report_years <- sort(unique(format(dat$collected_date[!is.na(dat$collected_date)], "%Y")))
+priority_year <- max(as.integer(report_years), na.rm = TRUE)
+date_min <- suppressWarnings(min(dat$collected_date, na.rm = TRUE))
+date_max <- suppressWarnings(max(dat$collected_date, na.rm = TRUE))
 
-# Sites
+dt_options <- list(
+  pageLength = 15,
+  scrollX = TRUE,
+  autoWidth = TRUE,
+  dom = "Bfrtip",
+  buttons = c("copy", "csv", "excel")
+)
 
-Year to date sample count:
+site_plot <- function(site_data) {
+  plot_data <- site_data %>%
+    filter(!is.na(analyte), !is.na(result), !is.na(collected_date)) %>%
+    mutate(treatment_plot = coalesce(treatment.name, "[Missing treatment]"))
 
-```{r}
-total_unique_sample_ids <- dat %>% 
-  distinct(sample.id) %>% 
-  nrow()
+  analytes <- sort(unique(plot_data$analyte))
+  if (length(analytes) == 0) return(htmltools::p("No plottable results for this site."))
 
-# Print the result
-print(total_unique_sample_ids)
-```
+  treatments <- sort(unique(plot_data$treatment_plot))
+  treatment_colors <- setNames(grDevices::hcl.colors(length(treatments), "Dark 3"), treatments)
+  p <- plotly::plot_ly(height = 700)
+  trace_analytes <- character(0)
 
-Without duplicates:
-
-```{r}
-# Filter out rows with sample.id containing "-D"
-filtered_df <- dat %>%
-  filter(!grepl("-D", sample.id, fixed = TRUE))
-
-# Count the number of unique sample.id values after filtering
-total_unique_sample_ids_excluding_D <- filtered_df %>%
-  distinct(sample.id) %>%
-  nrow()
-
-# Print the result
-print(total_unique_sample_ids_excluding_D)
-```
-
-
-```{r}
-#create data table based on counts
-counts <- dat %>% 
-  group_by(location.name, analyte) %>% 
-  summarise(count = n())
-DT::datatable(counts, options = list(pageLength = length(counts$location.name)))
-```
-
-
-```{r}
-make_scatter_plots <- function(dataframe) {
-  
-  dataframe <- ungroup(dataframe)
-  # Get unique analytes and sort them in alphabetical order
-  analytes <- sort(unique(dataframe$analyte))
-  
-  # Define custom colors for event types
-  event_colors <- c("Inflow" = "#E69F00", "Outflow" = "#56B4E9", "Point Sample" = "#009E73")
-  
-  for (i in 1:length(analytes)) {
-    # Subset data for the current analyte
-    subset_analyte <- subset(dataframe, analyte == analytes[i])
-    
-    # Check if there are no results for the current analyte
-     if (nrow(subset_analyte) == 0) {
-      next  # Skip creating the plot for this analyte
-    }
-    
-    # Get unique units for the current analyte
-    units <- unique(subset_analyte$units)
-  
-      # Create scatter plot for the current analyte with custom colors
-      plot <- ggplot(subset_analyte, aes(x =  format(collected, "%m/%d/%Y"), y = result, color = event.type)) +
-        geom_point() + 
-        scale_color_manual(values = event_colors) +  # Set custom colors for event types
-        labs(x = "Date", y = paste0("Result (", units, ")"), title = paste(analytes[i], "Results")) +
-        theme_bw()
-      
-      # Print the plot
-      print(plot)
-      
-  
-      
-      # Add a new line after each plot
-      cat("\n")
+  for (analyte_value in analytes) {
+    analyte_data <- plot_data %>% filter(analyte == analyte_value)
+    for (treatment_value in sort(unique(analyte_data$treatment_plot))) {
+      trace_data <- analyte_data %>% filter(treatment_plot == treatment_value)
+      p <- plotly::add_markers(
+        p, data = trace_data,
+        x = ~collected_date, y = ~result,
+        name = treatment_value,
+        legendgroup = treatment_value,
+        marker = list(color = treatment_colors[[treatment_value]], size = 8),
+        text = ~paste0(
+          "Sample ID: ", sample.id,
+          "<br>Treatment: ", treatment_plot,
+          "<br>Event type: ", coalesce(event.type, "[Missing]"),
+          "<br>Date: ", collected_date,
+          "<br>Result: ", result, " ", coalesce(units, "")
+        ),
+        hoverinfo = "text",
+        visible = identical(analyte_value, analytes[[1]])
+      )
+      trace_analytes <- c(trace_analytes, analyte_value)
     }
   }
 
+  units_by_analyte <- vapply(analytes, function(a) {
+    values <- sort(unique(na.omit(plot_data$units[plot_data$analyte == a])))
+    if (length(values) == 0) "" else paste(values, collapse = ", ")
+  }, character(1))
 
+  buttons <- lapply(seq_along(analytes), function(i) {
+    analyte_value <- analytes[[i]]
+    y_title <- if (nzchar(units_by_analyte[[i]])) {
+      paste0("Result (", units_by_analyte[[i]], ")")
+    } else {
+      "Result"
+    }
+    list(
+      method = "update",
+      args = list(
+        list(visible = trace_analytes == analyte_value),
+        list(title = analyte_value, yaxis = list(title = y_title))
+      ),
+      label = analyte_value
+    )
+  })
+
+  initial_y_title <- if (nzchar(units_by_analyte[[1]])) {
+    paste0("Result (", units_by_analyte[[1]], ")")
+  } else {
+    "Result"
+  }
+
+  plotly::layout(
+    p,
+    title = analytes[[1]],
+    xaxis = list(title = "Collection date"),
+    yaxis = list(title = initial_y_title),
+    hovermode = "closest",
+    legend = list(orientation = "h", y = -0.2),
+    margin = list(t = 100, b = 110),
+    updatemenus = list(list(
+      type = "dropdown", buttons = buttons,
+      x = 0, xanchor = "left", y = 1.16, yanchor = "top",
+      direction = "down", showactive = TRUE
+    ))
+  )
+}
 ```
 
-## ARDEC 2200
+# Overview
 
-```{r}
-#filter to site
-ARDEC2200 <- dat %>% 
-  filter(location.name == "ARDEC ")
+This report covers collection dates from `r format(date_min, '%Y-%m-%d')` through
+`r format(date_max, '%Y-%m-%d')`. Counts are calculated from distinct sample IDs,
+not analyte result rows. A duplicate is an ID ending in `-D`; its primary ID is
+the same ID with only that terminal suffix removed.
 
-
-# Call the scatter plot function for the site
-make_scatter_plots(ARDEC2200)
+```{r overview-cards, results='asis'}
+overview <- list(
+  "Sites" = n_distinct(na.omit(sample_inventory$location.name)),
+  "Collection events" = n_distinct(na.omit(sample_inventory$collected_date)),
+  "All sample IDs" = n_distinct(na.omit(sample_inventory$sample.id)),
+  "Primary sample IDs" = n_distinct(na.omit(sample_inventory$sample.id[!sample_inventory$is_duplicate])),
+  "Duplicate IDs" = n_distinct(na.omit(sample_inventory$sample.id[sample_inventory$is_duplicate])),
+  "Matched duplicate pairs" = sum(pair_status$has_primary & pair_status$has_duplicate)
+)
+cat('<div class="status-grid">')
+for (label in names(overview)) {
+  cat(sprintf('<div class="status-card"><div class="status-value">%s</div><div class="status-label">%s</div></div>',
+              format(overview[[label]], big.mark = ","), label))
+}
+cat('</div>')
 ```
 
-## AVRC STAR
+Primary IDs without a matched duplicate: **`r sum(pair_status$has_primary & !pair_status$has_duplicate)`**.
+This is informational; a duplicate is not expected for every primary sample.
 
-```{r}
+# Sampling priorities
 
-AVRC <- dat %>% 
-  filter(location.name == "AVRC STAR")
+The AWQP growing-season target is at least **three sampling events per
+location–treatment pair**. The table below highlights observed pairs that have
+not yet reached that target in **`r priority_year`**. An event is one distinct
+collection date, so duplicate bottles and multiple analyte results do not
+inflate this count.
 
-make_scatter_plots(AVRC)
+<div class="alert alert-warning" role="alert">
+<strong>Before scheduling additional field collection:</strong> Check ongoing
+analysis in the <a href="https://webtrieveus.alsenviro.com/Login.aspx"
+target="_blank" rel="noopener noreferrer">ALS Webtrieve portal</a>. Recently
+submitted samples may still be under analysis and therefore absent from this
+report's completed ALS results.
+</div>
+
+```{r sampling-priorities}
+sampling_target <- 3L
+
+priority_table <- sample_inventory %>%
+  filter(
+    !is.na(collected_date),
+    as.integer(format(collected_date, "%Y")) == priority_year,
+    !is.na(location.name),
+    !is.na(treatment.name),
+    !location.name %in% c("Lab Blank", "Method Blank", "Lab Control Sample"),
+    !event.type %in% c("Lab Blank", "Method Blank", "Lab Control Sample")
+  ) %>%
+  group_by(location.name, treatment.name) %>%
+  summarise(
+    samples_collected = n_distinct(collected_date),
+    samples_still_needed = pmax(sampling_target - samples_collected, 0L),
+    collection_dates = paste(
+      sort(unique(format(collected_date, "%Y-%m-%d"))),
+      collapse = ", "
+    ),
+    .groups = "drop"
+  ) %>%
+  filter(samples_collected < sampling_target) %>%
+  arrange(desc(samples_still_needed), location.name, treatment.name)
+
+if (nrow(priority_table) == 0) {
+  htmltools::div(
+    class = "alert alert-success",
+    paste("All observed location–treatment pairs have at least", sampling_target,
+          "sampling events in", priority_year, ".")
+  )
+} else {
+  DT::datatable(
+    priority_table,
+    rownames = FALSE,
+    filter = "top",
+    caption = paste(
+      "Location–treatment pairs below the",
+      sampling_target,
+      "event target for",
+      priority_year
+    ),
+    extensions = "Buttons",
+    options = modifyList(
+      dt_options,
+      list(
+        pageLength = 25,
+        order = list(list(2, "desc"), list(0, "asc")),
+        columnDefs = list(list(className = "dt-center", targets = c(2, 3)))
+      )
+    )
+  ) %>%
+    DT::formatStyle(
+      "samples_still_needed",
+      backgroundColor = DT::styleInterval(c(1, 2), c("#fff3cd", "#f8d7da", "#dc3545")),
+      color = DT::styleInterval(2, c("#212529", "#ffffff")),
+      fontWeight = "bold"
+    )
+}
 ```
 
-## Barley
+This table can only evaluate location–treatment pairs represented by at least
+one sample in the current report. Planned pairs with **zero** samples require a
+separate sampling-plan reference and will not appear here.
 
-```{r}
+# Sampling coverage
 
-Barley <- dat %>% 
-  filter(location.name == "Barley")
+An event is a distinct collection date for a location/treatment combination.
+The bottle columns separately show distinct primary and duplicate sample IDs.
 
-make_scatter_plots(Barley)
+```{r coverage-table}
+coverage <- sample_inventory %>%
+  mutate(
+    location.name = coalesce(location.name, "[Missing location]"),
+    treatment.name = coalesce(treatment.name, "[Missing treatment]")
+  ) %>%
+  group_by(location.name, treatment.name) %>%
+  summarise(
+    events = n_distinct(collected_date, na.rm = TRUE),
+    primary_sample_ids = n_distinct(sample.id[!is_duplicate], na.rm = TRUE),
+    duplicate_ids = n_distinct(sample.id[is_duplicate], na.rm = TRUE),
+    collection_dates = paste(sort(unique(format(collected_date[!is.na(collected_date)], "%Y-%m-%d"))), collapse = ", "),
+    .groups = "drop"
+  ) %>%
+  arrange(location.name, treatment.name)
+
+DT::datatable(
+  coverage,
+  rownames = FALSE,
+  filter = "top",
+  caption = "Sampling coverage by location and treatment",
+  extensions = "Buttons",
+  options = dt_options
+)
 ```
 
-## Below Stagecoach Dam
+# Explore WQ data
 
-```{r}
+Use the site dropdown to show its treatment/event summary and results. Within
+each plot, use the analyte dropdown above the graph. Points are colored by
+treatment.
 
-BelowStage <- dat %>% 
-  filter(location.name == "Below Stagecoach Dam")
+```{r site-panels}
+sites <- sort(unique(na.omit(dat$location.name)))
+site_menu <- vector("list", length(sites))
+site_panels <- vector("list", length(sites))
 
+for (i in seq_along(sites)) {
+  site <- sites[[i]]
+  site_data <- dat %>% filter(location.name == site)
+  site_coverage <- coverage %>% filter(location.name == site) %>% select(-location.name)
+  panel_id <- paste0("water-site-", i)
 
-# Call the scatter plot function with your dataframe
-make_scatter_plots(BelowStage)
+  site_menu[[i]] <- htmltools::tags$li(
+    htmltools::tags$a(href = paste0("#", panel_id), `data-toggle` = "tab", site)
+  )
+  site_panels[[i]] <- htmltools::tags$div(
+    id = panel_id,
+    class = paste("tab-pane", if (i == 1) "active" else ""),
+    htmltools::tags$h3(site),
+    DT::datatable(
+    site_coverage,
+    rownames = FALSE,
+    caption = paste("Sampling status:", site),
+    options = list(dom = "t", scrollX = TRUE)
+    ),
+    htmltools::tags$div(
+      class = "site-plot-container",
+      site_plot(site_data)
+    )
+  )
+}
+
+htmltools::tagList(
+  htmltools::tags$div(
+    class = "site-selector-callout",
+    htmltools::tags$p(class = "selector-label", "Select a site to view its sampling status and water-quality results:"),
+    htmltools::tags$div(
+      class = "dropdown",
+      htmltools::tags$button(
+        class = "btn btn-success btn-lg dropdown-toggle",
+        type = "button", `data-toggle` = "dropdown", `aria-haspopup` = "true",
+        `aria-expanded` = "false",
+        "Choose a site to explore ", htmltools::tags$span(class = "caret")
+      ),
+      htmltools::tags$ul(class = "dropdown-menu", site_menu)
+    )
+  ),
+  htmltools::tags$div(class = "tab-content", site_panels)
+)
 ```
 
-## Berthoud
+# Analytes present
 
-```{r}
-Berthoud <- dat %>% 
-  filter(location.name == "Berthoud")
+```{r analyte-summary}
+analyte_summary <- dat %>%
+  filter(!is.na(analyte)) %>%
+  group_by(analyte) %>%
+  summarise(
+    methods = paste(sort(unique(na.omit(method))), collapse = "; "),
+    sample_ids = n_distinct(sample.id),
+    primary_sample_ids = n_distinct(sample.id[!is_duplicate]),
+    result_rows = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(analyte)
 
-
-make_scatter_plots(Berthoud)
+DT::datatable(
+  analyte_summary,
+  rownames = FALSE,
+  filter = "top",
+  caption = "Analytes, methods, and overall counts",
+  extensions = "Buttons",
+  options = dt_options
+)
 ```
 
-## Big Hollow
+# Quality control
 
-```{r}
-BigHollow <- dat %>% 
-  filter(location.name == "Big Hollow")
+The QC table is sample-level and flags missing or unmapped fields needed by this
+report. Use the CSV or Excel button to export the currently filtered error report.
 
+```{r qc-report}
+qc_source <- dat %>%
+  distinct(sample.id, location.name, treatment.name, event.type, collected_date,
+           analyte, method)
 
-make_scatter_plots(BigHollow)
+qc_report <- bind_rows(
+  qc_source %>% filter(is.na(sample.id)) %>% mutate(issue = "Missing sample ID"),
+  qc_source %>% filter(is.na(location.name)) %>% mutate(issue = "Missing/unmapped location"),
+  qc_source %>% filter(is.na(treatment.name)) %>% mutate(issue = "Missing/unmapped treatment"),
+  qc_source %>% filter(is.na(collected_date)) %>% mutate(issue = "Missing/unparseable collection date"),
+  qc_source %>% filter(is.na(analyte)) %>% mutate(issue = "Missing analyte"),
+  qc_source %>% filter(is.na(method)) %>% mutate(issue = "Missing method")
+) %>%
+  group_by(sample.id, location.name, treatment.name, event.type, collected_date, analyte) %>%
+  summarise(issue = paste(sort(unique(issue)), collapse = "; "), .groups = "drop") %>%
+  arrange(issue, sample.id)
+
+if (nrow(qc_report) == 0) {
+  htmltools::div(class = "alert alert-success", "No missing or unmapped required fields were found.")
+} else {
+  DT::datatable(
+    qc_report,
+    rownames = FALSE,
+    filter = "top",
+    caption = paste(nrow(qc_report), "sample/analyte records require review"),
+    extensions = "Buttons",
+    options = dt_options
+  )
+}
 ```
 
-## Boulder Lake
+# Raw data
 
-```{r}
-BoulderLake <- dat %>% 
-  filter(location.name == "Boulder Lake")
-
-
-make_scatter_plots(BoulderLake)
+```{r raw-data}
+DT::datatable(
+  dat,
+  rownames = FALSE,
+  filter = "top",
+  extensions = "Buttons",
+  options = modifyList(dt_options, list(pageLength = 25))
+)
 ```
-
-## Fruita A
-```{r}
-fa <- dat %>% 
-  filter(location.name == "Fruita A")
-
-
-make_scatter_plots(fa)
-```
-
-## Fruita B
-```{r}
-fb <- dat %>% 
-  filter(location.name == "Fruita B")
-
-
-make_scatter_plots(fb)
-```
-
-## Fruita NT
-```{r}
-fnt <- dat %>% 
-  filter(location.name == "Fruita NT")
-
-
-make_scatter_plots(fnt)
-```
-
-## Fruita W
-```{r}
-fw <- dat %>% 
-  filter(location.name == "Fruita W")
-
-
-make_scatter_plots(fw)
-```
-
-## Gunnison
-
-```{r}
-Gunnison <- dat %>% 
-  filter(location.name == "Gunnison")
-
-
-make_scatter_plots(Gunnison)
-```
-
-## Kerbel
-
-```{r}
-Kerbel <- dat %>% 
-  filter(location.name == "Kerbel")
-
-
-make_scatter_plots(Kerbel)
-```
-
-## Legacy
-
-```{r}
-Legacy <- dat %>% 
-  filter(location.name == "Legacy")
-
-
-make_scatter_plots(Legacy)
-```
-
-## Molina
-
-```{r}
-Molina <- dat %>% 
-  filter(location.name == "Molina")
-
-
-make_scatter_plots(Molina)
-```
-
-## Morrison Creek
-
-```{r}
-MorrisonCreek <- dat %>% 
-  filter(location.name == "Morrison Creek")
-
-
-make_scatter_plots(MorrisonCreek)
-```
-
-## Stage Coach Above
-
-```{r}
-SCA <- dat %>% 
-  filter(location.name == "Stage Coach Above")
-
-
-make_scatter_plots(SCA)
-```
-
-## Stage Coach In
-
-```{r}
-SCI <- dat %>% 
-  filter(location.name == "Stage Coach In")
-
-
-make_scatter_plots(SCI)
-```
-
-## Stagecoach
-
-```{r}
-Stagecoach <- dat %>% 
-  filter(location.name == "Stagecoach")
-
-
-make_scatter_plots(Stagecoach)
-```
-
-## Todds Ranch
-
-```{r}
-TR <- dat %>% 
-  filter(location.name == "Todds Ranch")
-
-
-make_scatter_plots(TR)
-```
-
-## Upper Yampa
-
-```{r}
-UY <- dat %>% 
-  filter(location.name == "Upper Yampa")
-
-
-make_scatter_plots(UY)
-```
-
-## Yellow Jacket
-
-```{r}
-YJ <- dat %>% 
-  filter(location.name == "Yellow Jacket")
-
-
-make_scatter_plots(YJ)
-```
-
-# Raw Data
-
-```{r}
-datatable(dat)
-```
-
-
-
-
-

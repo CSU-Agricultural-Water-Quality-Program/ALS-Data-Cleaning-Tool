@@ -63,85 +63,105 @@ source('./Code/config.R')
 # Dictionaries for interpreting sample ID codes
 # Add to these at needed for new locations, treatments, methods, etc.
 location.dict <- list(
-  "ARDEC" = "A2", #TODO: fix 2200 labeling in process data fxn; 2200 is removed
-  "ARDEC South - Conv" = "ASC",
-  "ARDEC South - Org" = "ASO",
+  # Keep the numeric-free label until processData() no longer strips digits.
+  "ARDEC" = "A2",
+  "Kerbel" = c("K", "KBI", "INF", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2"),
+  "Upper Yampa" = c("UYM", "PZN", "PZS"),
+  "Legacy" = "LG",
   "AVRC STAR" = c("AV", "AVST1", "AVST2", "AVCT1", "AVCT2"),
+  "AVRC Cowpea" = c("COW", "T1", "T2", "T3", "T4"),
   "Barley" = "BAR",
-  "Berthoud" = "BT",
-  "Big Hollow" = "HOL",
+  "Berthoud" = c("BT", "RVA", "RVB", "RVMID", "PZE", "PZW", "TDR", "TDL"),
+  "Big Hollow" = c("HOL", "CON", "UP", "DOWN", "MID"),
   "Boulder Lake" = "BOL",
   "Gunnison" = "GU",
-  "Kerbel" = c("K", "KBI", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2", "INF"),
-  "Legacy" = "LG",
   "Molina" = "MOL",
-  "Stagecoach" = c("SC", "SB", "SCA", "SB-SCA", "SCI", "SB-SCI", "SCO", "SB-SCO", "MOR", "SB-MOR", "TR", "SB-TR"),
-  # "Morrison Creek" = c("MOR","SB-MOR"),
-  # "Stage Coach Above" = c("SCA","SB-SCA"),
-  # "Stage Coach In" = c("SCI", "SB-SCI"),
-  # "Stage Coach Dam Outflow" = c("SCO","SB-SCO"),
-  # "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
-  "Upper Yampa" = "UYM",
-  "Yellow Jacket " = "YJ",
-  "Fruita W" = c("W1", "W2", "FW", "FW1", "FW2"),
-  "Fruita B" = c("FB", "FBR", "F-BR", "F-B", "BR"),
   "Fruita NT" = "FNT",
+  "Fruita W" = c("FW", "W1", "FW1", "W2", "FW2"),
+  "Fruita B" = c("FB", "FBR", "F_BR", "F-BR", "F-B", "BR"),
+  "Fruita F" = c("FF", "F1", "FF1", "F2", "FF2", "F3", "FF3", "F4", "FF4"),
+  "Fruita C" = c("FC", "C1", "FC1", "C2", "FC2"),
   "Fruita A" = c("FA", "FALF", "F-ALF", "ALF"),
-  "Fruita C" = c("FC", "FC1", "FC2", "C1", "C2"),
-  "Fruita F" = c("FF", "FF1", "FF2", "FF3", "FF4", "F1", "F2", "F3", "F4"),
-  "AVRC Cowpea" = c("COW", "T1", "T2", "T3", "T4"),
-  "North Sand Creek" = c("NSC", "J", "G", "F"),
+  "Stagecoach" = c("SC", "SCISC", "SB", "SCI", "SB-SCI", "SCA", "SB-SCA",
+                     "SCO", "SB-SCO", "TR", "SB-TR", "MOR", "SB-MOR"),
+  "North Hunt Creek" = c("NHC", "ROAD", "CULV", "BURN", "ELVHUN", "ELVYAM", "ELVCON", "KAR"),
+  "Jay Whaley Ranch" = c("JY", "JYN", "SEEP"),
+  "Yampa 2" = c("YTWO", "Y2"),
+  "Yellow Jacket" = "YJ",
   "Lab Blank" = "BK",
+  "ARDEC South - Conv" = "ASC",
+  "ARDEC South - Org" = "ASO",
+  "North Sand Creek" = c("NSC", "J", "G", "F"),
+  "Knott Livestock" = c("TY", "OAK", "TROUT", "UPPER"),
+  "CEAP Boxelder" = c("CPBE", "IN1", "IN2", "BEE", "CP2", "CP1", "CP5", "CP4", "CP3"),
   "Method Blank" = "Method Blank",
   "Lab Control Sample" = "Lab Control Sample"
 )
 
 trt.dict <- list(
-  #note that leaving AVRC and Kerbel as CT/MT/ST breaks the GPS coordinate locator b/c it needs the block# in the trt name to find it (e.g., CT2)
-  #I've opted to let this be the case for now, but it could be fixed by adding the block# to the treatment.name here if needed.
-  "ST" = c("ST1", "AVST1", "ST2", "AVST2"),
-  "CT" = c("CT1", "AVCT1", "CT2", "AVCT2"),
+  "ST" = c("ST1", "ST2", "AVST1", "AVST2"),
+  "CT" = c("CT1", "CT2", "AVCT1", "AVCT2"),
   "MT" = c("MT1", "MT2"),
   "River A" = "RVA",
   "River B" = "RVB",
   "River Middle" = "RVMID",
   "Piezometer East" = "PZE",
   "Piezometer West" = "PZW",
-  "Piezometer North" = "PZN",
-  "Piezometer South" = "PZS",
   "Tile Drainage River" = "TDR",
   "Tile Drainage Lake" = "TDL",
   "Confluence" = "CON",
   "Upstream of Bridge" = "UP",
   "Downstream of Bridge" = "DOWN",
   "Middle at Bridge" = "MID",
+  "Piezometer North" = "PZN",
+  "Piezometer South" = "PZS",
+  "Fertilizer Treatment 1" = c("F1", "FF1"),
+  "Fertilizer Treatment 2" = c("F2", "FF2"),
+  "Fertilizer Treatment 3" = c("F3", "FF3"),
+  "Fertilizer Treatment 4" = c("F4", "FF4"),
+  "W1" = c("W1", "FW1"),
+  "W2" = c("W2", "FW2"),
+  "Cowpea Treatment 1" = "T1",
+  "Cowpea Treatment 2" = "T2",
+  "Cowpea Treatment 3" = "T3",
+  "Cowpea Treatment 4" = "T4",
+  "C1" = c("C1", "FC1"),
+  "C2" = c("C2", "FC2"),
+  "Stagecoach ISCO" = c("SCISC", "SC", "SB"),
+  "Stagecoach In" = c("SCI", "SB-SCI"),
+  "Stagecoach Above" = c("SCA", "SB-SCA"),
+  "Stagecoach Dam Outflow" = c("SCO", "SB-SCO"),
+  "The Ranch" = c("TR", "SB-TR"),
+  "Morrison Creek" = c("MOR", "SB-MOR"),
+  "NHC West (Peters County Road)" = "ROAD",
+  "NHC East (Ira Culvert)" = "CULV",
+  "NHC Right After Burn Scar" = "BURN",
+  "NHC Elvis Hunt Creek" = c("ELVHUN", "ELV"),
+  "Elvis Yampa River Pre-Confluence" = "ELVYAM",
+  "Elvis Yampa River Post-Confluence" = "ELVCON",
+  "Carrie VLE Ranch Inflow" = "KAR",
+  "Jay Whaley Ranch Inflow" = "JYN",
+  "Jay Whaley Seepage Face" = "SEEP",
+  "NSC Site J" = "J",
+  "NSC Site G" = "G",
+  "NSC Site F" = "F",
   "Arapahoe Natl. Forest" = "ANF",
   "Willow Creek" = "WC",
   "Duck Pond" = "DP",
   "Upper willow at @ culvert (swale)" = "CUL",
   "Fish Pond" = "FP",
   "Fire 2" = "FR2",
-  "Stagecoach ISCO" = c("SC", "SB"),
-  "Morrison Creek" = c("MOR","SB-MOR"),
-  "Stagecoach Above" = c("SCA","SB-SCA"),
-  "Stagecoach In" = c("SCI", "SB-SCI"),
-  "Stagecoach Dam Outflow" = c("SCO","SB-SCO"),
-  "The Ranch" = c("TR","SB-TR"), # Formerly, "Todd's Ranch"
-  "W1" = c("W1", "FW1"),
-  "W2" = c("W2", "FW2"),
-  "C1" = c("C1", "FC1"),
-  "C2" = c("C2", "FC2"),
-  "Fertilizer Treatment 1" =c("F1", "FF1"),
-  "Fertilizer Treatment 2" =c("F2", "FF2"),
-  "Fertilizer Treatment 3" =c("F3", "FF3"),
-  "Fertilizer Treatment 4" =c("F4", "FF4"),
-  "Cowpea Treatment 1" = c("T1"),
-  "Cowpea Treatment 2" = c("T2"),
-  "Cowpea Treatment 3" = c("T3"),
-  "Cowpea Treatment 4" = c("T4"),
-  "NSC Site J" = c("J"),
-  "NSC Site G" = c("G"),
-  "NSC Site F" = c("F")
+  "Oak Creek" = "OAK",
+  "Trout Creek Out" = "TROUT",
+  "Trout Creek Upper" = c("UPPER", "PPER"),
+  "ARDEC Inflow 1 North" = "IN1",
+  "ARDEC Inflow 2 South" = "IN2",
+  "ARDEC Bee Pivot Retention Pond" = "BEE",
+  "ARDEC Boxelder Downstream WWTP" = "CP2",
+  "ARDEC County Rd 58 in Parshall flume" = "CP1",
+  "ARDEC Boxelder Confluence at CR 58" = "CP5",
+  "ARDEC Canal Near 6400 Pivot South of CR 58" = "CP4",
+  "Boxelder Creek by ARDEC 2200 after Larimer Ditch" = "CP3"
 )
 
 method.dict <- list(
@@ -670,23 +690,67 @@ cleanData <- function(df, file_path = NULL) {
 }
 
 # TODO: add the calculation of total N and Mineral P here
+validate_dictionary <- function(dict, dictionary_name) {
+  entries <- tibble::tibble(
+    key = rep(names(dict), lengths(dict)),
+    code = unname(unlist(dict, use.names = FALSE))
+  ) %>%
+    dplyr::mutate(normalized_code = toupper(trimws(code)))
+
+  conflicts <- entries %>%
+    dplyr::distinct(key, normalized_code) %>%
+    dplyr::count(normalized_code, name = "key_count") %>%
+    dplyr::filter(key_count > 1)
+
+  if (nrow(conflicts) > 0) {
+    conflict_details <- entries %>%
+      dplyr::filter(normalized_code %in% conflicts$normalized_code) %>%
+      dplyr::distinct(key, code) %>%
+      dplyr::arrange(code, key)
+    stop(
+      dictionary_name, " assigns the same code to multiple labels:\n",
+      paste0("  ", conflict_details$code, " -> ", conflict_details$key, collapse = "\n"),
+      call. = FALSE
+    )
+  }
+  invisible(dict)
+}
+
+escape_regex <- function(x) {
+  gsub("([][{}()+*^$|\\\\?.])", "\\\\\\1", x)
+}
+
 dict_to_regex <- function(dict) {
   tibble::tibble(
     key = names(dict),
-    rx  = purrr::map_chr(dict, ~ paste0("\\b(", paste(sort(.x, decreasing = TRUE), collapse="|"), ")\\b"))
+    rx = purrr::map_chr(dict, function(codes) {
+      codes <- codes[order(nchar(codes), decreasing = TRUE)]
+      paste0(
+        "(?<![A-Za-z0-9])(",
+        paste(escape_regex(codes), collapse = "|"),
+        ")(?![A-Za-z0-9])"
+      )
+    })
   )
 }
 
 map_by_regex <- function(x, rx_tbl) {
   out <- rep(NA_character_, length(x))
+  best_match_length <- rep(-1L, length(x))
   for (i in seq_len(nrow(rx_tbl))) {
-    hits <- stringr::str_detect(x, rx_tbl$rx[i])
-    out[is.na(out) & hits] <- rx_tbl$key[i]
+    matched_code <- stringr::str_extract(x, rx_tbl$rx[i])
+    match_length <- nchar(matched_code)
+    hits <- !is.na(matched_code) & match_length > best_match_length
+    out[hits] <- rx_tbl$key[i]
+    best_match_length[hits] <- match_length[hits]
   }
   out
 }
 
 # --- ADD once (after dicts are defined) so they’re in scope globally ---
+validate_dictionary(location.dict, "location.dict")
+validate_dictionary(trt.dict, "trt.dict")
+
 .location_rx <- dict_to_regex(location.dict)
 .method_rx   <- dict_to_regex(method.dict)
 .event_rx    <- dict_to_regex(eventType.dict)
@@ -705,20 +769,7 @@ processData <- function(df) {
       treatment.name = dplyr::if_else(is.na(treatment.name), event.type, treatment.name),
       event.type     = dplyr::coalesce(event.type, "Point Sample")
     ) %>%
-    mutate(
-      across(c(location.name, method.name, event.type),
-             ~ gsub("[0-9]", "", .)),
-      treatment.name = dplyr::if_else(
-        stringr::str_detect(treatment.name, "[0-9][0-9]$"),
-        substr(treatment.name, 1, nchar(treatment.name) - 1),
-        treatment.name
-      ),
-      treatment.name = dplyr::if_else(
-        stringr::str_detect(treatment.name, "Inflow"),
-        "Inflow", treatment.name
-      ),
-      event.count = as.factor(event.count)
-    )
+    mutate(event.count = as.factor(event.count))
 }
 
 # TODO: fix and start using the flag data function
