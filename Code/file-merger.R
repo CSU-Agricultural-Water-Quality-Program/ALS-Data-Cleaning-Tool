@@ -1206,7 +1206,7 @@ returnSingleFile <- function(path = file_path, export = FALSE) {
     # Get the current date in YYYY-MM-DD format
     currentDate <- format(Sys.Date(), "%Y-%m-%d")
     # Create a file name with the current date
-    fileName <- paste0("./Report/single_file_", currentDate, ".csv")
+    fileName <- file.path(report_dir, paste0("single_file_", currentDate, ".csv"))
     # Export the file with the new file name
     write.csv(df, file = fileName, row.names = FALSE)
   }
@@ -1222,7 +1222,7 @@ returnAllFiles <- function(d = directory, tss_fp = tss_file_path, export = TRUE)
     # Get the current date in YYYY-MM-DD format
     currentDate <- format(Sys.Date(), "%Y-%m-%d")
     # Create a file name with the current date
-    fileName <- paste0("./Report/all_files_", currentDate, ".csv")
+    fileName <- file.path(report_dir, paste0("all_files_", currentDate, ".csv"))
     # Export the file with the new file name
     write.csv(df, file = fileName, row.names = FALSE)
   }

@@ -37,12 +37,10 @@ and
     * a folder containing example data to use in script execution ([please see data disclosure statement](#data-disclosure-statement-for-als-data-cleaning-tool)).
 * **figures**
     * a folder containing the AWQP logo for use in this README.
-* **Report**
-    * a folder containing the resulting HMTL report that result from execution of the "water_report.Rmd" script.
-    * *Please note* that this is not where the HTML report is generated, but rather where it was moved after generation. It is currently generated in the Code folder, which is an ongoing bug to be addressed at a later time.
+* **YTD Water Report**
+    * contains the YTD HTML report and merged CSV export produced by `water_report.Rmd`.
 * **site_selector_temporary_results**
-    * a folder containing the resulting HMTL report and CSV file that result from execution of the "site_selector.Rmd" script.
-    * *Please note* that this is not where the HTML report is generated, but rather where it was moved after generation. It is currently generated in the Code folder, which is an ongoing bug to be addressed at a later time. **The CSV**, however, *is* generated in this folder upon execution.
+    * contains the site-specific HTML report, CSV export, and temporary plot files produced by `site_selector.Rmd`.
 * **TSS**
     * a separate folder where an excel file exists containing example total suspended solids, electrical conductivity, and pH data is stored in the format congruent with what AWQP staff use in-house.  It is in a separate folder because this mimics the true deployment of this code outside of the github repo.
 * **ALS_Data_Cleaning_Tool.Rproj**
@@ -107,7 +105,6 @@ classDef out fill:#C8C372, stroke:#333, stroke-width:2px, color:#000000
 
 ## <u>Some Helpful Troubleshooting Notes</u>
 
-* Currently, the output HTML reports get generated in the /Code folder and need to be moved manually to other locations (in this case "Reports" or "site_selector_temporary_results").
 
 * ALS exports data as ".xls" file format in name only.  The actual result files are in ".htm" format.  The sample metadata, however is actually in ".xls" format, as found on the "samples" tab.
 

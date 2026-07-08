@@ -46,9 +46,11 @@ create_directory_if_not_exists <- function(directory_path) {
 
 directory <- "./Confidential Data/2026"
 tss_file_path <- './Confidential TSS/2026/TSS_Master_2026.xlsx'
+report_dir <- file.path('.', "YTD Water Report")
 
 create_directory_if_not_exists(directory)
 create_directory_if_not_exists(dirname(tss_file_path))
+create_directory_if_not_exists(report_dir)
 
 # Getting the directory name for TSS file path
 tss_directory <- dirname(tss_file_path)

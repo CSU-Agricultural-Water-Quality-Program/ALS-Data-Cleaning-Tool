@@ -2,14 +2,28 @@
 title: "Site selector data visualization tool"
 author: "Molly 'Caz' Bell and A.J. Brown using R version 4.2.2"
 date: "`r Sys.Date()`"
+knit: (function(input_file, encoding) {
+    rmarkdown::render(
+      input_file,
+      encoding = encoding,
+      output_dir = file.path(dirname(input_file), "..", "site_selector_temporary_results")
+    )
+  })
 output: 
   html_document:
-    output_dir: "site_selector_temporary_results"
     toc: yes
     toc_float:
       collapsed: no
       smooth_scroll: no
 ---
+
+<div style="text-align:center; margin: 8px auto 24px auto;">
+  <a href="https://agsci.colostate.edu/waterquality/" target="_blank" rel="noopener noreferrer">
+    <img src="https://agsci.colostate.edu/waterquality/wp-content/uploads/sites/160/2024/05/AWQP_horizontalhighres-1280x435.png"
+         alt="Colorado State University Agriculture Water Quality Program"
+         style="width: min(100%, 720px); height: auto;">
+  </a>
+</div>
 
 # Introduction and Metadata
 The following is an interactive data report containing water quality data from 

@@ -2,9 +2,15 @@
 title: "Water Sampling Status Report"
 author: "Author: A.J. Brown, Agricultural Data Scientist"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
+knit: (function(input_file, encoding) {
+    rmarkdown::render(
+      input_file,
+      encoding = encoding,
+      output_dir = file.path(dirname(input_file), "..", "YTD Water Report")
+    )
+  })
 output:
   html_document:
-    output_dir: "Report"
     toc: true
     toc_depth: 1
     toc_float:

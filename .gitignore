@@ -1,7 +1,8 @@
 # Private files
 Code/site_selector.html
 Code/water_report.html
-Report/*all_files*
+/YTD Water Report/*
+!/YTD Water Report/.gitkeep
 
 # Private Data folders
 Confidential Data
