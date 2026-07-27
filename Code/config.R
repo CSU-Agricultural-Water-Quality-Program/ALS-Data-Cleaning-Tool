@@ -44,8 +44,14 @@ create_directory_if_not_exists <- function(directory_path) {
 # directory <- "./Confidential Data/2025"
 # tss_file_path <- './Confidential TSS/2025/TSS_Master_2025.xlsx'
 
-directory <- "./Confidential Data/2026"
-tss_file_path <- './Confidential TSS/2026/TSS_Master_2026.xlsx'
+# directory <- "./Confidential Data/2026"
+# tss_file_path <- './Confidential TSS/2026/TSS_Master_2026.xlsx'
+
+directory <- "./Confidential Data/FY25"
+tss_file_path <- './Confidential TSS/FY25/TSS_Master_2025-2026.xlsx'
+
+
+
 report_dir <- file.path('.', "YTD Water Report")
 
 create_directory_if_not_exists(directory)
