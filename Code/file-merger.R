@@ -61,14 +61,15 @@ source('./Code/config.R')
 
 
 # Dictionaries for interpreting sample ID codes
-# Add to these at needed for new locations, treatments, methods, etc.
+# Generated from the AWQP Label Editor.
+# Paste this text over the existing dictionaries in the ALS Data Cleaning Tool.
+# Keep ARDEC numeric-free until the R parser can safely handle ARDEC 2200.
 location.dict <- list(
-  # Keep the numeric-free label until processData() no longer strips digits.
-  "ARDEC" = "A2",
+  "ARDEC 2200" = "A2",
   "Kerbel" = c("K", "KBI", "INF", "ST1", "ST2", "CT1", "CT2", "MT1", "MT2"),
   "Upper Yampa" = c("UYM", "PZN", "PZS"),
   "Legacy" = "LG",
-  "AVRC STAR" = c("AV", "AVST1", "AVST2", "AVCT1", "AVCT2"),
+  "AVRC Star" = c("AV", "AVST1", "AVST2", "AVCT1", "AVCT2"),
   "AVRC Cowpea" = c("COW", "T1", "T2", "T3", "T4"),
   "Barley" = "BAR",
   "Berthoud" = c("BT", "RVA", "RVB", "RVMID", "PZE", "PZW", "TDR", "TDL"),
@@ -82,22 +83,22 @@ location.dict <- list(
   "Fruita F" = c("FF", "F1", "FF1", "F2", "FF2", "F3", "FF3", "F4", "FF4"),
   "Fruita C" = c("FC", "C1", "FC1", "C2", "FC2"),
   "Fruita A" = c("FA", "FALF", "F-ALF", "ALF"),
-  "Stagecoach" = c("SC", "SCISC", "SB", "SCI", "SB-SCI", "SCA", "SB-SCA",
-                     "SCO", "SB-SCO", "TR", "SB-TR", "MOR", "SB-MOR"),
+  "Stagecoach" = c("SC", "SCISC", "SB", "SCI", "SB-SCI", "SCA", "SB-SCA", "SCO", "SB-SCO", "TR", "SB-TR", "MOR", "SB-MOR"),
   "North Hunt Creek" = c("NHC", "ROAD", "CULV", "BURN", "ELVHUN", "ELVYAM", "ELVCON", "KAR"),
   "Jay Whaley Ranch" = c("JY", "JYN", "SEEP"),
-  "Yampa 2" = c("YTWO", "Y2"),
+  "Yampa 2" = "YTWO",
   "Yellow Jacket" = "YJ",
   "Lab Blank" = "BK",
   "ARDEC South - Conv" = "ASC",
   "ARDEC South - Org" = "ASO",
   "North Sand Creek" = c("NSC", "J", "G", "F"),
   "Knott Livestock" = c("TY", "OAK", "TROUT", "UPPER"),
-  "CEAP Boxelder" = c("CPBE", "IN1", "IN2", "BEE", "CP2", "CP1", "CP5", "CP4", "CP3"),
+  "CEAP Boxelder" = c("CPBE", "IN1", "IN2", "BEE", "CP2", "CP1", "CP5", "CP4", "CP3", "CP6"),
   "Method Blank" = "Method Blank",
   "Lab Control Sample" = "Lab Control Sample"
 )
 
+# Kerbel and AVRC STAR share analytical treatment groups even though their sample-code tokens differ.
 trt.dict <- list(
   "ST" = c("ST1", "ST2", "AVST1", "AVST2"),
   "CT" = c("CT1", "CT2", "AVCT1", "AVCT2"),
@@ -136,7 +137,7 @@ trt.dict <- list(
   "NHC West (Peters County Road)" = "ROAD",
   "NHC East (Ira Culvert)" = "CULV",
   "NHC Right After Burn Scar" = "BURN",
-  "NHC Elvis Hunt Creek" = c("ELVHUN", "ELV"),
+  "NHC Elvis Hunt Creek" = "ELVHUN",
   "Elvis Yampa River Pre-Confluence" = "ELVYAM",
   "Elvis Yampa River Post-Confluence" = "ELVCON",
   "Carrie VLE Ranch Inflow" = "KAR",
@@ -153,7 +154,7 @@ trt.dict <- list(
   "Fire 2" = "FR2",
   "Oak Creek" = "OAK",
   "Trout Creek Out" = "TROUT",
-  "Trout Creek Upper" = c("UPPER", "PPER"),
+  "Trout Creek Upper" = "UPPER",
   "ARDEC Inflow 1 North" = "IN1",
   "ARDEC Inflow 2 South" = "IN2",
   "ARDEC Bee Pivot Retention Pond" = "BEE",
@@ -161,7 +162,8 @@ trt.dict <- list(
   "ARDEC County Rd 58 in Parshall flume" = "CP1",
   "ARDEC Boxelder Confluence at CR 58" = "CP5",
   "ARDEC Canal Near 6400 Pivot South of CR 58" = "CP4",
-  "Boxelder Creek by ARDEC 2200 after Larimer Ditch" = "CP3"
+  "Boxelder Creek by ARDEC 2200 after Larimer Ditch" = "CP3",
+  "ARDEC Weber Field Baby Sampler" = "CP6"
 )
 
 method.dict <- list(

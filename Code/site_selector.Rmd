@@ -71,36 +71,49 @@ colnames(dat) <- tolower(names(dat))
 
 ```{r, include=FALSE}
 # ---- Site list (toggle exactly ONE 'loc' line) ----
-# loc <- 'ARDEC'                     
-# loc <- 'AVRC STAR'
+# loc <- 'ARDEC 2200'
+# loc <- 'Kerbel'
+# loc <- 'Upper Yampa'
+# loc <- 'Legacy'
+# loc <- 'AVRC Star'
 # loc <- 'AVRC Cowpea'
 # loc <- 'Barley'
 # loc <- 'Berthoud'
 # loc <- 'Big Hollow'
 # loc <- 'Boulder Lake'
-# loc <- 'Below Stagecoach Dam'
-# loc <- 'Fruita A'
-# loc <- 'Fruita B'
+# loc <- 'Gunnison'
+# loc <- 'Molina'
 # loc <- 'Fruita NT'
 # loc <- 'Fruita W'
-# loc <- 'Fruita C'
+# loc <- 'Fruita B'
 # loc <- 'Fruita F'
-# loc <- 'Gunnison'
-loc <- 'Kerbel'                      
-# loc <- 'Legacy'
-# loc <- 'Molina'
+# loc <- 'Fruita C'
+# loc <- 'Fruita A'
 # loc <- 'Stagecoach'
-# loc <- 'The Ranch'
-# loc <- 'Upper Yampa'
+# loc <- 'North Hunt Creek'
+# loc <- 'Jay Whaley Ranch'
+# loc <- 'Yampa 2'
 # loc <- 'Yellow Jacket'
+# loc <- 'Lab Blank'
+# loc <- 'ARDEC South - Conv'
+# loc <- 'ARDEC South - Org'
 # loc <- 'North Sand Creek'
+# loc <- 'Knott Livestock'
+loc <- 'CEAP Boxelder'
+# loc <- 'Method Blank'
+# loc <- 'Lab Control Sample'
 
 all_sites <- c(
-  'ARDEC','AVRC STAR','AVRC Cowpea','Barley','Berthoud','Big Hollow','Boulder Lake',
-  'Below Stagecoach Dam','Fruita A','Fruita B','Fruita NT','Fruita W','Fruita C','Fruita F',
-  'Gunnison','Kerbel','Legacy','Molina','Stagecoach','The Ranch','Upper Yampa',
-  'Yellow Jacket','North Sand Creek'
+  'ARDEC 2200', 'Kerbel', 'Upper Yampa', 'Legacy', 'AVRC Star',
+  'AVRC Cowpea', 'Barley', 'Berthoud', 'Big Hollow', 'Boulder Lake',
+  'Gunnison', 'Molina', 'Fruita NT', 'Fruita W', 'Fruita B',
+  'Fruita F', 'Fruita C', 'Fruita A', 'Stagecoach',
+  'North Hunt Creek', 'Jay Whaley Ranch', 'Yampa 2', 'Yellow Jacket',
+  'Lab Blank', 'ARDEC South - Conv', 'ARDEC South - Org',
+  'North Sand Creek', 'Knott Livestock', 'CEAP Boxelder',
+  'Method Blank', 'Lab Control Sample'
 )
+
 if (!exists("loc")) stop("Please set 'loc' to one of the known sites.")
 if (!loc %in% all_sites) stop(paste("Unknown 'loc':", loc))
 ```
