@@ -31,7 +31,8 @@ and
 * **Code**
     * **config.R** - an R script where data file paths are declared for use in the other scripts.  This is the only script that needs to be edited by the user to run the code locally.
     * **file-merger.R** - a script that takes the raw files from ALS, cleans the data, and exports as a dataframe and/or CSV file for other uses
-    * **site_selector.Rmd** - a markdown script that produces an HTML report with interactive data visualization and optional data export for a specific research site location as chosen by the user
+    * **site_selector.Rmd** - a markdown script that batch-produces dated folders of site-specific HTML reports, plots, and CSV exports; it can also render one selected site for quick inspection
+    * **render_site_selector.R** - the rendering helper used by `site_selector.Rmd` to discover sites in the current data and keep each site's batch outputs together
     * **water_report.Rmd** - a markdown script that produces a summary of all water quality data for all sites on a YTD basis
 * **Data**
     * a folder containing example data to use in script execution ([please see data disclosure statement](#data-disclosure-statement-for-als-data-cleaning-tool)).
@@ -40,7 +41,8 @@ and
 * **YTD Water Report**
     * contains the YTD HTML report and merged CSV export produced by `water_report.Rmd`.
 * **site_selector_temporary_results**
-    * contains the site-specific HTML report, CSV export, and temporary plot files produced by `site_selector.Rmd`.
+    * contains site-specific outputs produced by `site_selector.Rmd`. By default, knitting the report creates one `<location>_YYYY-MM-DD` folder per research site plus a dated batch-summary CSV. Each site folder contains that site's HTML report, CSV export, and plot files.
+    * for a quick single-site run, set `site_selector_run_all_sites <- FALSE` at the top of `render_site_selector.R`, uncomment exactly one `site_selector_single_site` line, and knit `site_selector.Rmd`. Single-site output retains the shared-folder behavior used previously.
 * **TSS**
     * a separate folder where an excel file exists containing example total suspended solids, electrical conductivity, and pH data is stored in the format congruent with what AWQP staff use in-house.  It is in a separate folder because this mimics the true deployment of this code outside of the github repo.
 * **ALS_Data_Cleaning_Tool.Rproj**
@@ -139,7 +141,7 @@ classDef out fill:#C8C372, stroke:#333, stroke-width:2px, color:#000000
 * site_selector
     * Set the plotly plots to start at the correct y range
     * Fix scatter plotly plot points for Point Sample on the violin plot
-    * Potentially create a way to run the functions for multiple sites
+    * ~~Create a way to run the functions for multiple sites~~
     * Add histograms and correlations to scatterplot matrix
     * ~~Put analyte labels outside of the scatterplot matrix and shorten their names with a analyte dict.~~
     * ~~Fix mutate error in scatterplot matrix~~

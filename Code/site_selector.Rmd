@@ -1,14 +1,24 @@
 ---
 title: "Site selector data visualization tool"
-author: "Molly 'Caz' Bell and A.J. Brown using R version 4.2.2"
+author: "Molly 'Caz' Bell, A.J. Brown, and Abigail Coney using R version 4.2.2"
 date: "`r Sys.Date()`"
 knit: (function(input_file, encoding) {
-    rmarkdown::render(
-      input_file,
+    source(
+      file.path(dirname(input_file), "render_site_selector.R"),
+      local = TRUE
+    );
+    render_site_selector(
+      input_file = input_file,
       encoding = encoding,
-      output_dir = file.path(dirname(input_file), "..", "site_selector_temporary_results")
+      run_all_sites = site_selector_run_all_sites,
+      single_site = site_selector_single_site
     )
   })
+params:
+  location: null
+  output_dir: null
+  data_rds: null
+  run_date: null
 output: 
   html_document:
     toc: yes
@@ -16,6 +26,8 @@ output:
       collapsed: no
       smooth_scroll: no
 ---
+
+<!-- Batch/single-site run settings are at the top of Code/render_site_selector.R. -->
 
 <div style="text-align:center; margin: 8px auto 24px auto;">
   <a href="https://agsci.colostate.edu/waterquality/" target="_blank" rel="noopener noreferrer">
@@ -63,59 +75,41 @@ packageLoad(package.list)
 ```
 
 ```{r, include=FALSE}
-# Data build
-source('./Code/file-merger.R')
-dat <- returnAllFiles(d = directory, export = FALSE)
+# Data build. Batch rendering builds this once and passes it to every report.
+if (!is.null(params$data_rds) && file.exists(params$data_rds)) {
+  dat <- readRDS(params$data_rds)
+} else {
+  source('./Code/file-merger.R')
+  dat <- returnAllFiles(d = directory, export = FALSE)
+}
 colnames(dat) <- tolower(names(dat))
 ```
 
 ```{r, include=FALSE}
-# ---- Site list (toggle exactly ONE 'loc' line) ----
-# loc <- 'ARDEC 2200'
-# loc <- 'Kerbel'
-# loc <- 'Upper Yampa'
-# loc <- 'Legacy'
-# loc <- 'AVRC Star'
-# loc <- 'AVRC Cowpea'
-# loc <- 'Barley'
-# loc <- 'Berthoud'
-# loc <- 'Big Hollow'
-# loc <- 'Boulder Lake'
-# loc <- 'Gunnison'
-# loc <- 'Molina'
-# loc <- 'Fruita NT'
-# loc <- 'Fruita W'
-# loc <- 'Fruita B'
-# loc <- 'Fruita F'
-# loc <- 'Fruita C'
-# loc <- 'Fruita A'
-# loc <- 'Stagecoach'
-# loc <- 'North Hunt Creek'
-# loc <- 'Jay Whaley Ranch'
-# loc <- 'Yampa 2'
-# loc <- 'Yellow Jacket'
-# loc <- 'Lab Blank'
-# loc <- 'ARDEC South - Conv'
-# loc <- 'ARDEC South - Org'
-# loc <- 'North Sand Creek'
-# loc <- 'Knott Livestock'
-loc <- 'CEAP Boxelder'
-# loc <- 'Method Blank'
-# loc <- 'Lab Control Sample'
+# The Knit button supplies this parameter in batch or single-site mode.
+if (is.null(params$location) || !nzchar(params$location)) {
+  stop(
+    "The site-selector batch driver did not run, so no site was supplied. ",
+    "Use the Knit button in RStudio or run Code/render_site_selector.R as documented."
+  )
+}
 
-all_sites <- c(
-  'ARDEC 2200', 'Kerbel', 'Upper Yampa', 'Legacy', 'AVRC Star',
-  'AVRC Cowpea', 'Barley', 'Berthoud', 'Big Hollow', 'Boulder Lake',
-  'Gunnison', 'Molina', 'Fruita NT', 'Fruita W', 'Fruita B',
-  'Fruita F', 'Fruita C', 'Fruita A', 'Stagecoach',
-  'North Hunt Creek', 'Jay Whaley Ranch', 'Yampa 2', 'Yellow Jacket',
-  'Lab Blank', 'ARDEC South - Conv', 'ARDEC South - Org',
-  'North Sand Creek', 'Knott Livestock', 'CEAP Boxelder',
-  'Method Blank', 'Lab Control Sample'
-)
+loc <- params$location
+report_run_date <- if (is.null(params$run_date)) {
+  format(Sys.Date(), "%Y-%m-%d")
+} else {
+  as.character(params$run_date)
+}
+report_output_dir <- if (is.null(params$output_dir)) {
+  file.path(here::here(), "site_selector_temporary_results")
+} else {
+  params$output_dir
+}
+dir.create(report_output_dir, recursive = TRUE, showWarnings = FALSE)
 
-if (!exists("loc")) stop("Please set 'loc' to one of the known sites.")
-if (!loc %in% all_sites) stop(paste("Unknown 'loc':", loc))
+if (!loc %in% unique(as.character(dat$location.name))) {
+  stop(paste("The selected site is not present in the current data:", loc))
+}
 ```
 
 ```{r, include=FALSE}
@@ -154,7 +148,12 @@ filter_dataframe <- function(df, selected_location, include_blanks = FALSE) {
   filtered_df
 }
 
-filtered_df <- filter_dataframe(dat, loc, include_blanks = FALSE)
+qa_locations <- c("Lab Blank", "Method Blank", "Lab Control Sample")
+filtered_df <- filter_dataframe(dat, loc, include_blanks = loc %in% qa_locations)
+
+if (!nrow(filtered_df)) {
+  stop(paste("No rows remain after filtering the data for:", loc))
+}
 
 # Canonical event date (one per event), facet label
 event_lookup <- filtered_df %>%
@@ -183,9 +182,11 @@ event_labeller <- function(values) setNames(paste0(values, "\n", format(label_ma
 # Export selected-site CSV
 csv_data <- function(df, location_name) {
   location_data <- df %>% dplyr::filter(location.name == location_name)
-  folder_name <- "site_selector_temporary_results"
-  if (!file.exists(folder_name)) dir.create(folder_name)
-  file_name <- paste0(folder_name, "/", location_name, "_data_", format(Sys.Date(), "%Y-%m-%d"), ".csv")
+  safe_location_name <- gsub('[<>:"/\\\\|?*]', "-", location_name)
+  file_name <- file.path(
+    report_output_dir,
+    paste0(safe_location_name, "_data_", report_run_date, ".csv")
+  )
   write.csv(location_data, file = file_name, row.names = FALSE)
   return(file_name)
 }
@@ -785,28 +786,28 @@ embed_png_with_download_btn <- function(png_path, download_name = "plot.png", im
 }
 ```
 
-[N Plots](../site_selector_temporary_results/bar_N.jpg)
+### N Plots
 ```{r}
 N_res <- create_and_save_bar_plot_event_png(
-  N_df, "./site_selector_temporary_results",
+  N_df, report_output_dir,
   "bar_N.png", "Forms of Nitrogen (per Event)", x_axis_var_name
 )
 embed_png_with_download_btn(N_res$png_path, download_name = "bar_N.png")
 ```
 
-[P Plots](../site_selector_temporary_results/bar_P.jpg)
+### P Plots
 ```{r}
 P_res <- create_and_save_bar_plot_event_png(
-  P_df, "./site_selector_temporary_results",
+  P_df, report_output_dir,
   "bar_P.png", "Forms of Phosphorus (per Event)", x_axis_var_name
 )
 embed_png_with_download_btn(P_res$png_path, download_name = "bar_P.png")
 ```
 
-[Misc Plots](../site_selector_temporary_results/bar_Misc.jpg)
+### Misc Plots
 ```{r}
 Misc_res <- create_and_save_bar_plot_event_png(
-  Misc_df, "./site_selector_temporary_results",
+  Misc_df, report_output_dir,
   "bar_Misc.png", "Water Quality Analytes (per Event)", x_axis_var_name
 )
 embed_png_with_download_btn(Misc_res$png_path, download_name = "bar_Misc.png")
@@ -942,7 +943,7 @@ create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, 
 # ---- calls (as requested) ----
 facet_bar_without_method <- create_facet_bar_plot_annual(
   filtered_df,
-  "./site_selector_temporary_results",
+  report_output_dir,
   "facet_bar_analytes_annual.jpg",
   x_axis_var_name,
   stratify_by_method = FALSE
@@ -950,7 +951,7 @@ facet_bar_without_method <- create_facet_bar_plot_annual(
 
 facet_bar_with_method <- create_facet_bar_plot_annual(
   filtered_df,
-  "./site_selector_temporary_results",
+  report_output_dir,
   "facet_bar_analytes_method_annual.jpg",
   x_axis_var_name,
   stratify_by_method = TRUE
@@ -968,6 +969,15 @@ DT::datatable(
 
 # Samples that Exceed Regulation 31 Standards
 ```{r}
+ensure_regulation_standard_columns <- function(df) {
+  for (column_name in c("EPA_standard", "CDPHE_standard")) {
+    if (!column_name %in% names(df)) {
+      df[[column_name]] <- NA_character_
+    }
+  }
+  df
+}
+
 reg31_exceedances <- res_long %>%
   # only actual violations (threshold exists AND exceeded == TRUE)
   filter(exceeded %in% TRUE) %>%
@@ -987,6 +997,9 @@ reg31_exceedances <- res_long %>%
     values_from = standard,
     names_glue  = "{regulation}_standard"
   ) %>%
+  # Some sites only exceed one regulator's thresholds. Keep both output
+  # columns so the common report layout still renders for those sites.
+  ensure_regulation_standard_columns() %>%
   # bring back the combined trigger label ("EPA", "CDPHE", "EPA & CDPHE")
   left_join(
     res %>% select(sample_id, collected_date, analyte_key, value, triggered),

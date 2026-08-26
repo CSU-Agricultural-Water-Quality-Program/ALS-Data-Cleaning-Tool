@@ -12,7 +12,7 @@ knit: (function(input_file, encoding) {
 output:
   html_document:
     toc: true
-    toc_depth: 1
+    toc_depth: 2
     toc_float:
       collapsed: true
       smooth_scroll: true
@@ -103,20 +103,56 @@ if (length(missing_columns) > 0) {
   stop("Water report is missing required columns: ", paste(missing_columns, collapse = ", "))
 }
 
+safe_as_date <- function(x) {
+  if (inherits(x, "Date")) return(x)
+  if (inherits(x, c("POSIXct", "POSIXlt"))) return(as.Date(x))
+
+  date_text <- stringr::str_squish(as.character(x))
+  date_text[is.na(x) | date_text == ""] <- NA_character_
+  parsed <- rep(as.Date(NA), length(date_text))
+  accepted_formats <- c(
+    "%Y-%m-%d %H:%M:%S", "%Y-%m-%d",
+    "%m/%d/%Y %H:%M:%S", "%m/%d/%Y",
+    "%m/%d/%y %H:%M:%S", "%m/%d/%y"
+  )
+
+  for (date_format in accepted_formats) {
+    pending <- is.na(parsed) & !is.na(date_text)
+    if (!any(pending)) break
+    parsed[pending] <- suppressWarnings(
+      as.Date(date_text[pending], format = date_format)
+    )
+  }
+  parsed
+}
+
+lab_qc_labels <- c("Lab Blank", "Method Blank", "Lab Control Sample")
+
 dat <- dat %>%
   mutate(
     across(c(sample.id, analyte, units, location.name, treatment.name, event.type),
            ~ na_if(stringr::str_squish(as.character(.x)), "")),
-    collected_date = as.Date(collected),
-    is_duplicate = stringr::str_detect(sample.id, "-D$"),
-    primary_sample_id = stringr::str_remove(sample.id, "-D$")
+    collected_date = safe_as_date(collected),
+    is_duplicate = coalesce(stringr::str_detect(sample.id, "-D$"), FALSE),
+    primary_sample_id = stringr::str_remove(sample.id, "-D$"),
+    is_lab_qc =
+      coalesce(stringr::str_detect(sample.id, regex("^BK(?:-|$)", ignore_case = TRUE)), FALSE) |
+      location.name %in% lab_qc_labels |
+      treatment.name %in% lab_qc_labels |
+      event.type %in% lab_qc_labels
   )
 
 sample_inventory <- dat %>%
   distinct(sample.id, primary_sample_id, is_duplicate, location.name,
-           treatment.name, event.type, collected_date)
+           treatment.name, event.type, collected_date, is_lab_qc)
 
-pair_status <- sample_inventory %>%
+actual_sample_inventory <- sample_inventory %>%
+  filter(!is_lab_qc)
+
+actual_samples <- dat %>%
+  filter(!is_lab_qc)
+
+pair_status <- actual_sample_inventory %>%
   filter(!is.na(primary_sample_id)) %>%
   group_by(primary_sample_id) %>%
   summarise(
@@ -125,10 +161,24 @@ pair_status <- sample_inventory %>%
     .groups = "drop"
   )
 
-report_years <- sort(unique(format(dat$collected_date[!is.na(dat$collected_date)], "%Y")))
-priority_year <- max(as.integer(report_years), na.rm = TRUE)
-date_min <- suppressWarnings(min(dat$collected_date, na.rm = TRUE))
-date_max <- suppressWarnings(max(dat$collected_date, na.rm = TRUE))
+valid_collection_dates <- actual_sample_inventory$collected_date[
+  !is.na(actual_sample_inventory$collected_date)
+]
+if (length(valid_collection_dates) > 0) {
+  report_years <- sort(unique(format(valid_collection_dates, "%Y")))
+  priority_year <- max(as.integer(report_years), na.rm = TRUE)
+  date_min <- min(valid_collection_dates)
+  date_max <- max(valid_collection_dates)
+  date_range_text <- paste(
+    format(date_min, "%Y-%m-%d"), "through", format(date_max, "%Y-%m-%d")
+  )
+} else {
+  report_years <- character(0)
+  priority_year <- as.integer(format(Sys.Date(), "%Y"))
+  date_min <- as.Date(NA)
+  date_max <- as.Date(NA)
+  date_range_text <- "[No valid collection dates available]"
+}
 
 dt_options <- list(
   pageLength = 15,
@@ -222,19 +272,22 @@ site_plot <- function(site_data) {
 
 # Overview
 
-This report covers collection dates from `r format(date_min, '%Y-%m-%d')` through
-`r format(date_max, '%Y-%m-%d')`. Counts are calculated from distinct sample IDs,
-not analyte result rows. A duplicate is an ID ending in `-D`; its primary ID is
-the same ID with only that terminal suffix removed.
+This report covers collection dates from `r date_range_text`. Counts are
+calculated from distinct sample IDs, not analyte result rows. Laboratory blanks,
+method blanks, and laboratory control samples are excluded from all actual-sample
+counts and summaries, but remain available in the quality-control and raw-data
+sections. A duplicate is an ID ending in `-D`; its primary ID is the same ID with
+only that terminal suffix removed.
 
 ```{r overview-cards, results='asis'}
 overview <- list(
-  "Sites" = n_distinct(na.omit(sample_inventory$location.name)),
-  "Collection events" = n_distinct(na.omit(sample_inventory$collected_date)),
-  "All sample IDs" = n_distinct(na.omit(sample_inventory$sample.id)),
-  "Primary sample IDs" = n_distinct(na.omit(sample_inventory$sample.id[!sample_inventory$is_duplicate])),
-  "Duplicate IDs" = n_distinct(na.omit(sample_inventory$sample.id[sample_inventory$is_duplicate])),
-  "Matched duplicate pairs" = sum(pair_status$has_primary & pair_status$has_duplicate)
+  "Sites" = n_distinct(na.omit(actual_sample_inventory$location.name)),
+  "Collection events" = n_distinct(na.omit(actual_sample_inventory$collected_date)),
+  "Actual sample IDs" = n_distinct(na.omit(actual_sample_inventory$sample.id)),
+  "Primary sample IDs" = n_distinct(na.omit(actual_sample_inventory$sample.id[!actual_sample_inventory$is_duplicate])),
+  "Duplicate IDs" = n_distinct(na.omit(actual_sample_inventory$sample.id[actual_sample_inventory$is_duplicate])),
+  "Matched duplicate pairs" = sum(pair_status$has_primary & pair_status$has_duplicate),
+  "Lab QC IDs excluded" = n_distinct(na.omit(sample_inventory$sample.id[sample_inventory$is_lab_qc]))
 )
 cat('<div class="status-grid">')
 for (label in names(overview)) {
@@ -268,12 +321,11 @@ sampling_target <- 3L
 
 priority_table <- sample_inventory %>%
   filter(
+    !is_lab_qc,
     !is.na(collected_date),
     as.integer(format(collected_date, "%Y")) == priority_year,
     !is.na(location.name),
-    !is.na(treatment.name),
-    !location.name %in% c("Lab Blank", "Method Blank", "Lab Control Sample"),
-    !event.type %in% c("Lab Blank", "Method Blank", "Lab Control Sample")
+    !is.na(treatment.name)
   ) %>%
   group_by(location.name, treatment.name) %>%
   summarise(
@@ -288,7 +340,12 @@ priority_table <- sample_inventory %>%
   filter(samples_collected < sampling_target) %>%
   arrange(desc(samples_still_needed), location.name, treatment.name)
 
-if (nrow(priority_table) == 0) {
+if (length(valid_collection_dates) == 0) {
+  htmltools::div(
+    class = "alert alert-warning",
+    "Sampling priorities could not be calculated because no valid collection dates were found."
+  )
+} else if (nrow(priority_table) == 0) {
   htmltools::div(
     class = "alert alert-success",
     paste("All observed location–treatment pairs have at least", sampling_target,
@@ -334,7 +391,7 @@ An event is a distinct collection date for a location/treatment combination.
 The bottle columns separately show distinct primary and duplicate sample IDs.
 
 ```{r coverage-table}
-coverage <- sample_inventory %>%
+coverage <- actual_sample_inventory %>%
   mutate(
     location.name = coalesce(location.name, "[Missing location]"),
     treatment.name = coalesce(treatment.name, "[Missing treatment]")
@@ -366,13 +423,13 @@ each plot, use the analyte dropdown above the graph. Points are colored by
 treatment.
 
 ```{r site-panels}
-sites <- sort(unique(na.omit(dat$location.name)))
+sites <- sort(unique(na.omit(actual_samples$location.name)))
 site_menu <- vector("list", length(sites))
 site_panels <- vector("list", length(sites))
 
 for (i in seq_along(sites)) {
   site <- sites[[i]]
-  site_data <- dat %>% filter(location.name == site)
+  site_data <- actual_samples %>% filter(location.name == site)
   site_coverage <- coverage %>% filter(location.name == site) %>% select(-location.name)
   panel_id <- paste0("water-site-", i)
 
@@ -418,7 +475,7 @@ htmltools::tagList(
 # Analytes present
 
 ```{r analyte-summary}
-analyte_summary <- dat %>%
+analyte_summary <- actual_samples %>%
   filter(!is.na(analyte)) %>%
   group_by(analyte) %>%
   summarise(
@@ -442,8 +499,11 @@ DT::datatable(
 
 # Quality control
 
-The QC table is sample-level and flags missing or unmapped fields needed by this
-report. Use the CSV or Excel button to export the currently filtered error report.
+## Missing or unmapped fields
+
+This table flags missing or unmapped fields needed by the report. Use the CSV or
+Excel button to export the currently filtered error report. Laboratory QC records
+are retained here so problems in those records remain visible.
 
 ```{r qc-report}
 qc_source <- dat %>%
@@ -482,6 +542,147 @@ if (nrow(qc_report) == 0) {
     options = dt_options
   )
 }
+```
+
+## Duplicate pairings
+
+This developer-facing table has one row per normalized, non-laboratory-QC sample
+ID. It pairs each primary ID with the corresponding terminal-`-D` ID when one is
+present. A missing duplicate is informational because a duplicate is not expected
+for every primary sample. Use the column filters or the Copy, CSV, and Excel
+buttons to investigate individual records.
+
+<!-- Developer-facing duplicate audit: comment out this section if it is no longer needed. -->
+
+```{r duplicate-pairings}
+collapse_text <- function(x) {
+  values <- sort(unique(na.omit(as.character(x))))
+  if (length(values) == 0) NA_character_ else paste(values, collapse = "; ")
+}
+
+collapse_dates <- function(x) {
+  values <- sort(unique(x[!is.na(x)]))
+  if (length(values) == 0) {
+    NA_character_
+  } else {
+    paste(format(values, "%Y-%m-%d"), collapse = "; ")
+  }
+}
+
+duplicate_pairings <- actual_sample_inventory %>%
+  filter(!is.na(primary_sample_id)) %>%
+  group_by(primary_sample_id) %>%
+  summarise(
+    observed_primary_sample_id = collapse_text(sample.id[!is_duplicate]),
+    duplicate_sample_id = collapse_text(sample.id[is_duplicate]),
+    has_primary = any(!is_duplicate),
+    has_duplicate = any(is_duplicate),
+    primary_collected_date = collapse_dates(collected_date[!is_duplicate]),
+    duplicate_collected_date = collapse_dates(collected_date[is_duplicate]),
+    primary_date_count = n_distinct(collected_date[!is_duplicate], na.rm = TRUE),
+    duplicate_date_count = n_distinct(collected_date[is_duplicate], na.rm = TRUE),
+    all_date_count = n_distinct(collected_date, na.rm = TRUE),
+    location.name = collapse_text(location.name),
+    treatment.name = collapse_text(treatment.name),
+    event.type = collapse_text(event.type),
+    location_count = n_distinct(location.name, na.rm = TRUE),
+    treatment_count = n_distinct(treatment.name, na.rm = TRUE),
+    event_type_count = n_distinct(event.type, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    pairing_status = case_when(
+      has_primary & has_duplicate ~ "Matched pair",
+      has_primary ~ "Primary only",
+      has_duplicate ~ "Duplicate present; primary missing",
+      TRUE ~ "No usable ID"
+    )
+  ) %>%
+  rowwise() %>%
+  mutate(
+    qc_notes = {
+      notes <- character(0)
+      if (!has_primary) notes <- c(notes, "Primary sample ID was not found")
+      if (all_date_count == 0) notes <- c(notes, "Collection date was not found")
+      if (primary_date_count > 1) notes <- c(notes, "Primary ID has multiple collection dates")
+      if (duplicate_date_count > 1) notes <- c(notes, "Duplicate ID has multiple collection dates")
+      if (has_primary && has_duplicate &&
+          !is.na(primary_collected_date) && !is.na(duplicate_collected_date) &&
+          primary_collected_date != duplicate_collected_date) {
+        notes <- c(notes, "Primary and duplicate collection dates differ")
+      }
+      if (location_count > 1) notes <- c(notes, "Multiple locations are mapped to this pair")
+      if (treatment_count > 1) notes <- c(notes, "Multiple treatments are mapped to this pair")
+      if (event_type_count > 1) notes <- c(notes, "Multiple event types are mapped to this pair")
+      if (length(notes) == 0) "" else paste(notes, collapse = "; ")
+    }
+  ) %>%
+  ungroup() %>%
+  arrange(desc(pairing_status == "Duplicate present; primary missing"),
+          desc(nzchar(qc_notes)), primary_sample_id)
+
+pair_issue_count <- sum(nzchar(duplicate_pairings$qc_notes))
+missing_date_count <- sum(duplicate_pairings$all_date_count == 0)
+missing_primary_count <- sum(!duplicate_pairings$has_primary)
+date_mismatch_count <- sum(
+  duplicate_pairings$has_primary & duplicate_pairings$has_duplicate &
+  !is.na(duplicate_pairings$primary_collected_date) &
+  !is.na(duplicate_pairings$duplicate_collected_date) &
+  duplicate_pairings$primary_collected_date != duplicate_pairings$duplicate_collected_date
+)
+
+if (pair_issue_count > 0) {
+  htmltools::div(
+    class = "alert alert-warning",
+    htmltools::tags$strong(paste(pair_issue_count, "duplicate-pairing rows require review.")),
+    paste(
+      "Missing primary IDs:", missing_primary_count,
+      "| Missing collection dates:", missing_date_count,
+      "| Primary/duplicate date mismatches:", date_mismatch_count,
+      "Filter the QC notes column below for sample-specific details."
+    )
+  )
+} else {
+  htmltools::div(
+    class = "alert alert-success",
+    "No missing dates, orphan duplicates, date mismatches, or conflicting pair metadata were found."
+  )
+}
+
+duplicate_pairings_display <- duplicate_pairings %>%
+  transmute(
+    `Review flag` = if_else(nzchar(qc_notes), "Review", ""),
+    `Primary sample ID` = observed_primary_sample_id,
+    `Duplicate sample ID` = duplicate_sample_id,
+    `Pairing status` = pairing_status,
+    `Primary collection date` = primary_collected_date,
+    `Duplicate collection date` = duplicate_collected_date,
+    Location = location.name,
+    Treatment = treatment.name,
+    `Event type` = event.type,
+    `QC notes` = qc_notes
+  )
+
+DT::datatable(
+  duplicate_pairings_display,
+  rownames = FALSE,
+  filter = "top",
+  caption = "Primary and duplicate sample-ID pairing audit (laboratory QC excluded)",
+  extensions = "Buttons",
+  options = modifyList(
+    dt_options,
+    list(
+      pageLength = 25,
+      order = list(list(0, "desc"), list(1, "asc")),
+      columnDefs = list(list(visible = FALSE, targets = 0))
+    )
+  )
+) %>%
+  DT::formatStyle(
+    "Review flag",
+    target = "row",
+    backgroundColor = DT::styleEqual("Review", "#fff3cd")
+  )
 ```
 
 # Raw data
