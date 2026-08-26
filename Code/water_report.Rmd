@@ -447,8 +447,8 @@ report. Use the CSV or Excel button to export the currently filtered error repor
 
 ```{r qc-report}
 qc_source <- dat %>%
-  distinct(sample.id, location.name, treatment.name, event.type, collected_date,
-           analyte, method)
+  distinct(sample.id, lab.id.x, location.name, treatment.name, event.type,
+           collected_date, analyte, method)
 
 qc_report <- bind_rows(
   qc_source %>% filter(is.na(sample.id)) %>% mutate(issue = "Missing sample ID"),
@@ -459,11 +459,19 @@ qc_report <- bind_rows(
   qc_source %>% filter(is.na(method)) %>% mutate(issue = "Missing method")
 ) %>%
   group_by(sample.id, location.name, treatment.name, event.type, collected_date, analyte) %>%
-  summarise(issue = paste(sort(unique(issue)), collapse = "; "), .groups = "drop") %>%
+  summarise(
+    issue = paste(sort(unique(issue)), collapse = "; "),
+    lab.id.x = {
+      lab_ids <- sort(unique(na.omit(lab.id.x)))
+      if (length(lab_ids) == 0) NA_character_ else paste(lab_ids, collapse = "; ")
+    },
+    .groups = "drop"
+  ) %>%
+  select(sample.id, issue, lab.id.x, everything()) %>%
   arrange(issue, sample.id)
 
 if (nrow(qc_report) == 0) {
-  htmltools::div(class = "alert alert-success", "No missing or unmapped required fields were found.")
+  htmltools::div(class = "alert alert-success", "No missing or unmapped required fields were found. Hooray!")
 } else {
   DT::datatable(
     qc_report,
