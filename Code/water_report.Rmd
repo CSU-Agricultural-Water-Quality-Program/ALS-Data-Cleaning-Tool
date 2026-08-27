@@ -98,7 +98,8 @@ names(dat) <- tolower(names(dat))
 
 required_columns <- c("sample.id", "analyte", "result", "units", "collected",
                       "location.name", "treatment.name", "event.type",
-                      "method.name", "event.count", "lab.id.x")
+                      "method.name", "event.count", "event.count.auto_corrected",
+                      "event.count.correction", "lab.id.x")
 missing_columns <- setdiff(required_columns, names(dat))
 if (length(missing_columns) > 0) {
   stop("Water report is missing required columns: ", paste(missing_columns, collapse = ", "))
@@ -132,7 +133,7 @@ lab_qc_labels <- c("Lab Blank", "Method Blank", "Lab Control Sample")
 dat <- dat %>%
   mutate(
     across(c(sample.id, lab.id.x, analyte, units, location.name, treatment.name,
-             event.type, method.name, event.count),
+             event.type, method.name, event.count, event.count.correction),
            ~ na_if(stringr::str_squish(as.character(.x)), "")),
     collected_date = safe_as_date(collected),
     is_duplicate = coalesce(stringr::str_detect(sample.id, "-D$"), FALSE),
@@ -147,6 +148,7 @@ dat <- dat %>%
 sample_inventory <- dat %>%
   distinct(sample.id, primary_sample_id, is_duplicate, location.name,
            treatment.name, event.type, method.name, event.count,
+           event.count.auto_corrected, event.count.correction,
            collected_date, is_lab_qc)
 
 actual_sample_inventory <- sample_inventory %>%
@@ -508,7 +510,9 @@ Each sample ID should map to a location, treatment, event type, collection
 method, and event number. Missing or unrecognized components can split one
 sampling event into multiple groups or place observations in the wrong event.
 This audit has one row per distinct sample-ID mapping and includes laboratory-QC
-records so unmapped identifiers cannot silently pass through the report.
+records so unmapped identifiers cannot silently pass through the report. Event
+numbers automatically recovered from likely ALS transcription errors remain in
+this table for review even though their event mapping was completed.
 
 ```{r sample-id-component-qc}
 sample_lab_ids <- dat %>%
@@ -529,7 +533,8 @@ sample_lab_ids <- dat %>%
 sample_id_component_qc <- sample_inventory %>%
   filter(!is.na(sample.id)) %>%
   distinct(sample.id, location.name, treatment.name, event.type,
-           method.name, event.count, is_lab_qc) %>%
+           method.name, event.count, event.count.auto_corrected,
+           event.count.correction, is_lab_qc) %>%
   left_join(sample_lab_ids, by = "sample.id") %>%
   rowwise() %>%
   mutate(
@@ -550,6 +555,12 @@ sample_id_component_qc <- sample_inventory %>%
       if (is.na(event.count)) {
         issues <- c(issues, "Missing/unmapped event-count code")
       }
+      if (isTRUE(event.count.auto_corrected)) {
+        issues <- c(
+          issues,
+          paste0("Event-count code auto-corrected: ", event.count.correction)
+        )
+      }
       paste(issues, collapse = "; ")
     }
   ) %>%
@@ -564,6 +575,7 @@ sample_id_component_qc <- sample_inventory %>%
     `Event type` = event.type,
     `Collection method` = method.name,
     `Event number` = event.count,
+    `Event-number correction` = event.count.correction,
     `Laboratory QC` = if_else(is_lab_qc, "Yes", "No")
   ) %>%
   arrange(Issue, `Sample ID`)
@@ -573,22 +585,22 @@ sample_id_component_issue_count <- n_distinct(sample_id_component_qc$`Sample ID`
 if (sample_id_component_issue_count == 0) {
   htmltools::div(
     class = "alert alert-success",
-    "All sample IDs mapped to every required component."
+    "All sample IDs mapped to every required component without automatic corrections."
   )
 } else {
   htmltools::tagList(
     htmltools::div(
       class = "alert alert-warning",
       htmltools::tags$strong(
-        paste(sample_id_component_issue_count, "sample IDs have missing or unmapped components.")
+        paste(sample_id_component_issue_count, "sample IDs have component issues or automatic corrections.")
       ),
-      "Review and correct the sample IDs or their dictionaries before using event-level summaries."
+      "Review automatic corrections and repair any remaining unmapped IDs before using event-level summaries."
     ),
     DT::datatable(
       sample_id_component_qc,
       rownames = FALSE,
       filter = "top",
-      caption = "Sample IDs with missing or unmapped parsed components",
+      caption = "Sample-ID component issues and automatic event-number corrections",
       extensions = "Buttons",
       options = modifyList(dt_options, list(pageLength = 25))
     )

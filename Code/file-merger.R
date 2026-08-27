@@ -749,6 +749,60 @@ map_by_regex <- function(x, rx_tbl) {
   out
 }
 
+# Event numbers normally use zero-padded tokens (01-08). ALS occasionally
+# transcribes zero as the letter O (for example, O4) or drops the leading zero
+# (for example, 6). Only normalize a single candidate token when it appears
+# immediately before a recognized event-type or collection-method token. This
+# avoids treating trailing analytical/sample-fraction suffixes such as -4 as
+# irrigation numbers. The original SAMPLE.ID is never changed.
+.event_count_context_codes <- toupper(unique(c(
+  unlist(eventType.dict, use.names = FALSE),
+  unlist(method.dict, use.names = FALSE)
+)))
+
+normalize_event_count_for_mapping <- function(x) {
+  sample_ids <- as.character(x)
+  normalized_ids <- sample_ids
+  correction_candidates <- rep(NA_character_, length(sample_ids))
+
+  for (i in seq_along(sample_ids)) {
+    sample_id <- sample_ids[[i]]
+    if (is.na(sample_id) || !nzchar(sample_id)) next
+
+    tokens <- strsplit(sample_id, "-", fixed = TRUE)[[1]]
+    if (length(tokens) < 2) next
+
+    next_is_context <- c(
+      toupper(tokens[-1]) %in% .event_count_context_codes,
+      FALSE
+    )
+    candidate_index <- which(
+      next_is_context & grepl("^(O[1-8]|[1-8])$", toupper(tokens))
+    )
+
+    # Multiple candidates are ambiguous and must remain visible to QC.
+    if (length(candidate_index) != 1) next
+
+    token_index <- candidate_index[[1]]
+    event_token <- toupper(tokens[[token_index]])
+
+    if (grepl("^O[1-8]$", event_token)) {
+      tokens[[token_index]] <- paste0("0", substring(event_token, 2))
+      correction_candidates[[i]] <- "Letter O in event code interpreted as zero"
+    } else {
+      tokens[[token_index]] <- sprintf("%02d", as.integer(event_token))
+      correction_candidates[[i]] <- "Single-digit event code padded with leading zero"
+    }
+
+    normalized_ids[[i]] <- paste(tokens, collapse = "-")
+  }
+
+  tibble::tibble(
+    sample_id_for_event_mapping = normalized_ids,
+    event_count_correction_candidate = correction_candidates
+  )
+}
+
 # --- ADD once (after dicts are defined) so they’re in scope globally ---
 validate_dictionary(location.dict, "location.dict")
 validate_dictionary(trt.dict, "trt.dict")
@@ -760,6 +814,8 @@ validate_dictionary(trt.dict, "trt.dict")
 .eventcnt_rx <- dict_to_regex(eventCount.dict)
 
 processData <- function(df) {
+  event_count_normalization <- normalize_event_count_for_mapping(df$SAMPLE.ID)
+
   df %>%
     mutate(
       duplicate      = stringr::str_detect(SAMPLE.ID, "-D"),
@@ -767,10 +823,33 @@ processData <- function(df) {
       method.name    = map_by_regex(SAMPLE.ID, .method_rx),
       event.type     = map_by_regex(SAMPLE.ID, .event_rx),
       treatment.name = map_by_regex(SAMPLE.ID, .trt_rx),
-      event.count    = map_by_regex(SAMPLE.ID, .eventcnt_rx),
+      event.count.strict = map_by_regex(SAMPLE.ID, .eventcnt_rx),
+      event.count.normalized = map_by_regex(
+        event_count_normalization$sample_id_for_event_mapping,
+        .eventcnt_rx
+      ),
+      event.count.auto_corrected =
+        is.na(event.count.strict) &
+        !is.na(event.count.normalized) &
+        (
+          event_count_normalization$event_count_correction_candidate ==
+            "Letter O in event code interpreted as zero" |
+          !is.na(location.name)
+        ),
+      event.count.correction = dplyr::if_else(
+        event.count.auto_corrected,
+        event_count_normalization$event_count_correction_candidate,
+        NA_character_
+      ),
+      event.count = dplyr::if_else(
+        event.count.auto_corrected,
+        event.count.normalized,
+        event.count.strict
+      ),
       treatment.name = dplyr::if_else(is.na(treatment.name), event.type, treatment.name),
       event.type     = dplyr::coalesce(event.type, "Point Sample")
     ) %>%
+    select(-event.count.strict, -event.count.normalized) %>%
     mutate(event.count = as.factor(event.count))
 }
 
