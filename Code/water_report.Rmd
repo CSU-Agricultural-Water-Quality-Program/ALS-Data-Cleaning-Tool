@@ -97,7 +97,8 @@ dat <- returnAllFiles(d = directory, export = TRUE)
 names(dat) <- tolower(names(dat))
 
 required_columns <- c("sample.id", "analyte", "result", "units", "collected",
-                      "location.name", "treatment.name", "event.type")
+                      "location.name", "treatment.name", "event.type",
+                      "method.name", "event.count", "lab.id.x")
 missing_columns <- setdiff(required_columns, names(dat))
 if (length(missing_columns) > 0) {
   stop("Water report is missing required columns: ", paste(missing_columns, collapse = ", "))
@@ -130,7 +131,8 @@ lab_qc_labels <- c("Lab Blank", "Method Blank", "Lab Control Sample")
 
 dat <- dat %>%
   mutate(
-    across(c(sample.id, analyte, units, location.name, treatment.name, event.type),
+    across(c(sample.id, lab.id.x, analyte, units, location.name, treatment.name,
+             event.type, method.name, event.count),
            ~ na_if(stringr::str_squish(as.character(.x)), "")),
     collected_date = safe_as_date(collected),
     is_duplicate = coalesce(stringr::str_detect(sample.id, "-D$"), FALSE),
@@ -144,7 +146,8 @@ dat <- dat %>%
 
 sample_inventory <- dat %>%
   distinct(sample.id, primary_sample_id, is_duplicate, location.name,
-           treatment.name, event.type, collected_date, is_lab_qc)
+           treatment.name, event.type, method.name, event.count,
+           collected_date, is_lab_qc)
 
 actual_sample_inventory <- sample_inventory %>%
   filter(!is_lab_qc)
@@ -498,6 +501,100 @@ DT::datatable(
 ```
 
 # Quality control
+
+## Sample-ID component completeness
+
+Each sample ID should map to a location, treatment, event type, collection
+method, and event number. Missing or unrecognized components can split one
+sampling event into multiple groups or place observations in the wrong event.
+This audit has one row per distinct sample-ID mapping and includes laboratory-QC
+records so unmapped identifiers cannot silently pass through the report.
+
+```{r sample-id-component-qc}
+sample_lab_ids <- dat %>%
+  filter(!is.na(sample.id)) %>%
+  group_by(sample.id) %>%
+  summarise(
+    lab.id.x = {
+      als_workorders <- sort(unique(na.omit(lab.id.x)))
+      if (length(als_workorders) == 0) {
+        NA_character_
+      } else {
+        paste(als_workorders, collapse = "; ")
+      }
+    },
+    .groups = "drop"
+  )
+
+sample_id_component_qc <- sample_inventory %>%
+  filter(!is.na(sample.id)) %>%
+  distinct(sample.id, location.name, treatment.name, event.type,
+           method.name, event.count, is_lab_qc) %>%
+  left_join(sample_lab_ids, by = "sample.id") %>%
+  rowwise() %>%
+  mutate(
+    issue = {
+      issues <- character(0)
+      if (is.na(location.name)) {
+        issues <- c(issues, "Missing/unmapped location code")
+      }
+      if (is.na(treatment.name)) {
+        issues <- c(issues, "Missing/unmapped treatment code")
+      }
+      if (is.na(event.type)) {
+        issues <- c(issues, "Missing/unmapped event-type code")
+      }
+      if (is.na(method.name)) {
+        issues <- c(issues, "Missing/unmapped collection-method code")
+      }
+      if (is.na(event.count)) {
+        issues <- c(issues, "Missing/unmapped event-count code")
+      }
+      paste(issues, collapse = "; ")
+    }
+  ) %>%
+  ungroup() %>%
+  filter(nzchar(issue)) %>%
+  transmute(
+    `Sample ID` = sample.id,
+    Issue = issue,
+    `ALS workorder (lab.id.x)` = lab.id.x,
+    Location = location.name,
+    Treatment = treatment.name,
+    `Event type` = event.type,
+    `Collection method` = method.name,
+    `Event number` = event.count,
+    `Laboratory QC` = if_else(is_lab_qc, "Yes", "No")
+  ) %>%
+  arrange(Issue, `Sample ID`)
+
+sample_id_component_issue_count <- n_distinct(sample_id_component_qc$`Sample ID`)
+
+if (sample_id_component_issue_count == 0) {
+  htmltools::div(
+    class = "alert alert-success",
+    "All sample IDs mapped to every required component."
+  )
+} else {
+  htmltools::tagList(
+    htmltools::div(
+      class = "alert alert-warning",
+      htmltools::tags$strong(
+        paste(sample_id_component_issue_count, "sample IDs have missing or unmapped components.")
+      ),
+      "Review and correct the sample IDs or their dictionaries before using event-level summaries."
+    ),
+    DT::datatable(
+      sample_id_component_qc,
+      rownames = FALSE,
+      filter = "top",
+      caption = "Sample IDs with missing or unmapped parsed components",
+      extensions = "Buttons",
+      options = modifyList(dt_options, list(pageLength = 25))
+    )
+  )
+}
+```
 
 ## Missing or unmapped fields
 
