@@ -622,6 +622,12 @@ if (length(levels(as.factor(filtered_df$treatment.name))) > 1) {
 ```
 
 # Static Bar Plots (Per Event)
+
+*Bars show arithmetic means, error bars show +/- 1 standard deviation, and
+points show individual results. Non-detects (ND) are plotted at zero. "All ND"
+means samples were analyzed but every result in that group was a non-detect;
+"Not sampled" means no sample was analyzed for that combination.*
+
 ```{r}
 event_date_only_labeller <- function(values) {
   dates <- label_map$event_date[match(values, label_map$event_facet)]
@@ -629,9 +635,9 @@ event_date_only_labeller <- function(values) {
 }
 
 # ============================================================
-# Plot function (same plot) but SAVE AS PNG (white background)
+# Plot function (same plot) but SAVE AS JPEG (white background)
 # ============================================================
-create_and_save_bar_plot_event_png <- function(df, output_dir, file_name_png, plot.title, x_axis_var) {
+create_and_save_bar_plot_event_jpg <- function(df, output_dir, file_name_jpg, plot.title, x_axis_var) {
   tryCatch({
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
@@ -643,9 +649,22 @@ create_and_save_bar_plot_event_png <- function(df, output_dir, file_name_png, pl
         result       = suppressWarnings(as.numeric(result)),
         analyte      = as.character(analyte),
         analyte.abbr = as.character(analyte.abbr),
-        units        = as.character(units)
+        units        = as.character(units),
+        non_detect_plot = dplyr::coalesce(as.logical(non.detect), FALSE)
       ) %>%
       filter(is.finite(result))
+
+    if (any(df$result < 0)) {
+      stop(
+        sum(df$result < 0),
+        " negative source result(s) found. Plotting stopped so invalid values are not hidden."
+      )
+    }
+
+    # Preserve the raw exported result while applying the report's stated
+    # graphical convention that non-detects are displayed at zero.
+    df <- df %>%
+      mutate(result_plot = dplyr::if_else(non_detect_plot, 0, result))
 
     if (x_axis_var %in% names(df)) {
       df[[x_axis_var]] <- factor(
@@ -660,24 +679,61 @@ create_and_save_bar_plot_event_png <- function(df, output_dir, file_name_png, pl
           !is.na(analyte.abbr) & analyte.abbr != "",
           analyte.abbr, analyte
         ),
-        facet_var = paste0(analyte_name_for_plot, "\n(", units, ")")
+        facet_var = paste0(analyte_name_for_plot, "\n(", units, ")"),
+        plot_x = factor(
+          as.character(.data[[x_axis_var]]),
+          levels = levels(df[[x_axis_var]])
+        )
       )
 
     summary_df <- df %>%
-      group_by(.data[[x_axis_var]], facet_var, event_facet) %>%
+      group_by(plot_x, facet_var, event_facet) %>%
       summarise(
-        mean = mean(result, na.rm = TRUE),
-        sd   = sd(result, na.rm = TRUE),
+        mean = mean(result_plot, na.rm = TRUE),
+        sd   = sd(result_plot, na.rm = TRUE),
         n    = n(),
         .groups = "drop"
+      )
+
+    observed_status <- df %>%
+      group_by(plot_x, facet_var, event_facet) %>%
+      summarise(
+        n_obs = n(),
+        all_nd = all(non_detect_plot),
+        .groups = "drop"
+      ) %>%
+      mutate(plot_x = as.character(plot_x), event_facet = as.character(event_facet))
+
+    status_df <- tidyr::expand_grid(
+      plot_x = levels(df$plot_x),
+      facet_var = unique(df$facet_var),
+      event_facet = levels(df$event_facet)
+    ) %>%
+      left_join(observed_status, by = c("plot_x", "facet_var", "event_facet")) %>%
+      mutate(
+        n_obs = dplyr::coalesce(n_obs, 0L),
+        status_label = case_when(
+          n_obs == 0L ~ "Not sampled",
+          all_nd ~ paste0("All ND\n(n = ", n_obs, ")"),
+          TRUE ~ NA_character_
+        ),
+        plot_x = factor(plot_x, levels = levels(df$plot_x)),
+        event_facet = factor(event_facet, levels = levels(df$event_facet))
       )
 
     summary_df$event_facet <- factor(summary_df$event_facet, levels = levels(df$event_facet))
     df$event_facet         <- factor(df$event_facet, levels = levels(df$event_facet))
 
-    file_path <- file.path(output_dir, file_name_png)
+    file_path <- file.path(output_dir, file_name_jpg)
 
-    bar_plot <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = .data[[x_axis_var]])) +
+    x_axis_label <- dplyr::recode(
+      x_axis_var,
+      "event.type" = "Event Type",
+      "treatment.name" = "Treatment",
+      .default = x_axis_var
+    )
+
+    bar_plot <- ggplot(summary_df, aes(x = plot_x, y = mean, fill = plot_x)) +
       geom_bar(stat = "identity", position = position_dodge(0), color = "black") +
       geom_errorbar(
         aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
@@ -685,10 +741,19 @@ create_and_save_bar_plot_event_png <- function(df, output_dir, file_name_png, pl
       ) +
       geom_jitter(
         data = df,
-        aes(x = .data[[x_axis_var]], y = result),
-        width = 0.2, alpha = 0.6, size = 1,
+        aes(x = plot_x, y = result_plot),
+        position = position_jitter(width = 0.2, height = 0, seed = 2026),
+        alpha = 0.6, size = 1,
         inherit.aes = FALSE,
         show.legend = FALSE
+      ) +
+      geom_text(
+        data = dplyr::filter(status_df, !is.na(status_label)),
+        aes(x = plot_x, y = 0, label = status_label),
+        inherit.aes = FALSE,
+        vjust = -0.7,
+        size = 3,
+        color = "grey30"
       ) +
       facet_grid(
         facet_var ~ event_facet,
@@ -704,44 +769,48 @@ create_and_save_bar_plot_event_png <- function(df, output_dir, file_name_png, pl
       ) +
       labs(
         title = plot.title,
-        x = "Event Type",
+        x = x_axis_label,
         y = "Mean Result",
-        fill = "Event Type"
+        fill = "Legend"
       ) +
-      scale_fill_brewer(palette = "Pastel1")
+      scale_fill_brewer(palette = "Pastel1") +
+      scale_y_continuous(
+        limits = c(0, NA),
+        expand = expansion(mult = c(0, 0.05))
+      )
 
-    # Save PNG using a robust device; force WHITE background
+    # Save JPEG using a robust device; force WHITE background
     if (requireNamespace("ragg", quietly = TRUE)) {
       ggsave(file_path, bar_plot,
              width = 11, height = 8.5, units = "in",
-             device = ragg::agg_png, background = "white", res = 200)
+             device = ragg::agg_jpeg, background = "white", res = 200)
     } else {
       ggsave(file_path, bar_plot,
              width = 11, height = 8.5, units = "in",
-             device = "png", bg = "white", dpi = 200)
+             device = "jpeg", bg = "white", dpi = 200)
     }
 
-    list(plot = bar_plot, png_path = file_path)
+    list(plot = bar_plot, image_path = file_path)
 
   }, error = function(e) {
-    message("Error in create_and_save_bar_plot_event_png: ", e$message)
+    message("Error in create_and_save_bar_plot_event_jpg: ", e$message)
     NULL
   })
 }
 
 # ============================================================
-# Embed saved PNG directly into HTML + working Download button
+# Embed saved JPEG directly into HTML + working Download button
 # (no relative paths, no broken links)
 # ============================================================
-embed_png_with_download_btn <- function(png_path, download_name = "plot.png", img_width = "100%") {
+embed_image_with_download_btn <- function(image_path, download_name = "plot.jpg", img_width = "100%") {
   library(htmltools)
 
-  # knitr::image_uri() returns a data URI like "data:image/png;base64,...."
+  # knitr::image_uri() returns a MIME-appropriate data URI.
   # This avoids all path issues in knitted HTML.
   if (!requireNamespace("knitr", quietly = TRUE)) {
-    stop("Package 'knitr' is required for embed_png_with_download_btn().")
+    stop("Package 'knitr' is required for embed_image_with_download_btn().")
   }
-  uri <- knitr::image_uri(png_path)
+  uri <- knitr::image_uri(image_path)
 
   wrap_id <- paste0("imgwrap_", sprintf("%06d", sample.int(999999, 1)))
   btn_id  <- paste0("btn_", sprintf("%06d", sample.int(999999, 1)))
@@ -749,7 +818,7 @@ embed_png_with_download_btn <- function(png_path, download_name = "plot.png", im
 
   js <- sprintf(
     "
-    window.downloadEmbeddedPNG_%s = function(){
+    window.downloadEmbeddedImage_%s = function(){
       var img = document.querySelector('#%s img');
       if(!img) return;
 
@@ -770,8 +839,8 @@ embed_png_with_download_btn <- function(png_path, download_name = "plot.png", im
       tags$button(
         id = btn_id,
         type = "button",
-        onclick = sprintf("downloadEmbeddedPNG_%s();", wrap_id),
-        "Download PNG"
+        onclick = sprintf("downloadEmbeddedImage_%s();", wrap_id),
+        "Download JPEG"
       )
     ),
     tags$script(HTML(js)),
@@ -788,32 +857,38 @@ embed_png_with_download_btn <- function(png_path, download_name = "plot.png", im
 
 ### N Plots
 ```{r}
-N_res <- create_and_save_bar_plot_event_png(
+N_res <- create_and_save_bar_plot_event_jpg(
   N_df, report_output_dir,
-  "bar_N.png", "Forms of Nitrogen (per Event)", x_axis_var_name
+  "bar_N.jpg", "Forms of Nitrogen (per Event)", x_axis_var_name
 )
-embed_png_with_download_btn(N_res$png_path, download_name = "bar_N.png")
+embed_image_with_download_btn(N_res$image_path, download_name = "bar_N.jpg")
 ```
 
 ### P Plots
 ```{r}
-P_res <- create_and_save_bar_plot_event_png(
+P_res <- create_and_save_bar_plot_event_jpg(
   P_df, report_output_dir,
-  "bar_P.png", "Forms of Phosphorus (per Event)", x_axis_var_name
+  "bar_P.jpg", "Forms of Phosphorus (per Event)", x_axis_var_name
 )
-embed_png_with_download_btn(P_res$png_path, download_name = "bar_P.png")
+embed_image_with_download_btn(P_res$image_path, download_name = "bar_P.jpg")
 ```
 
 ### Misc Plots
 ```{r}
-Misc_res <- create_and_save_bar_plot_event_png(
+Misc_res <- create_and_save_bar_plot_event_jpg(
   Misc_df, report_output_dir,
-  "bar_Misc.png", "Water Quality Analytes (per Event)", x_axis_var_name
+  "bar_Misc.jpg", "Water Quality Analytes (per Event)", x_axis_var_name
 )
-embed_png_with_download_btn(Misc_res$png_path, download_name = "bar_Misc.png")
+embed_image_with_download_btn(Misc_res$image_path, download_name = "bar_Misc.jpg")
 ```
 
-# Annual Means by Analyte & Treatment 
+# Annual Means by Analyte & Treatment
+
+*Bars show arithmetic means, error bars show +/- 1 standard deviation, and
+points show individual results. Non-detects (ND) are plotted at zero. "All ND"
+means samples were analyzed but every result in that group was a non-detect;
+"Not sampled" means no sample was analyzed for that combination.*
+
 ```{r}
 create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, stratify_by_method = FALSE) {
   tryCatch({
@@ -826,9 +901,20 @@ create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, 
         analyte      = as.character(analyte),
         analyte.abbr = as.character(analyte.abbr),
         units        = as.character(units),
-        method.name  = as.character(method.name)
+        method.name  = as.character(method.name),
+        non_detect_plot = dplyr::coalesce(as.logical(non.detect), FALSE)
       ) %>%
       dplyr::filter(is.finite(result))
+
+    if (any(df$result < 0)) {
+      stop(
+        sum(df$result < 0),
+        " negative source result(s) found. Plotting stopped so invalid values are not hidden."
+      )
+    }
+
+    df <- df %>%
+      dplyr::mutate(result_plot = dplyr::if_else(non_detect_plot, 0, result))
 
     # Ensure "Inflow" appears first (if present)
     if (x_axis_var %in% names(df)) {
@@ -847,24 +933,69 @@ create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, 
           analyte.abbr,
           analyte
         ),
-        facet_var = paste0(analyte_name_for_plot, " (", units, ")")
+        facet_var = paste0(analyte_name_for_plot, " (", units, ")"),
+        plot_x = factor(
+          as.character(.data[[x_axis_var]]),
+          levels = levels(df[[x_axis_var]])
+        )
       )
 
     # Keep raw data version for point overlay
     raw_df <- df
 
+    x_axis_label <- dplyr::recode(
+      x_axis_var,
+      "event.type" = "Event Type",
+      "treatment.name" = "Treatment",
+      .default = x_axis_var
+    )
+
+    observed_x_status <- df %>%
+      dplyr::group_by(plot_x, facet_var) %>%
+      dplyr::summarise(
+        n_obs = dplyr::n(),
+        all_nd = all(non_detect_plot),
+        .groups = "drop"
+      ) %>%
+      dplyr::mutate(plot_x = as.character(plot_x))
+
+    x_status_df <- tidyr::expand_grid(
+      plot_x = levels(df$plot_x),
+      facet_var = unique(df$facet_var)
+    ) %>%
+      dplyr::left_join(observed_x_status, by = c("plot_x", "facet_var")) %>%
+      dplyr::mutate(
+        n_obs = dplyr::coalesce(n_obs, 0L),
+        plot_x = factor(plot_x, levels = levels(df$plot_x))
+      )
+
     # Summaries (keep facet_var in the grouping so it cannot get “lost”)
     if (stratify_by_method) {
       summary_df <- df %>%
-        dplyr::group_by(.data[[x_axis_var]], facet_var, method.name) %>%
+        dplyr::group_by(plot_x, facet_var, method.name) %>%
         dplyr::summarise(
-          mean = mean(result, na.rm = TRUE),
-          sd   = sd(result, na.rm = TRUE),
+          mean = mean(result_plot, na.rm = TRUE),
+          sd   = sd(result_plot, na.rm = TRUE),
           n    = dplyr::n(),
           .groups = "drop"
         )
 
-      p <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = method.name)) +
+      method_status_df <- df %>%
+        dplyr::group_by(plot_x, facet_var, method.name) %>%
+        dplyr::summarise(
+          n_obs = dplyr::n(),
+          all_nd = all(non_detect_plot),
+          .groups = "drop"
+        ) %>%
+        dplyr::mutate(
+          status_label = dplyr::if_else(
+            all_nd,
+            paste0("All ND\n(n = ", n_obs, ")"),
+            NA_character_
+          )
+        )
+
+      p <- ggplot(summary_df, aes(x = plot_x, y = mean, fill = method.name)) +
         geom_bar(stat = "identity", position = position_dodge(width = 0.7), color = "black") +
         geom_errorbar(
           aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
@@ -873,25 +1004,46 @@ create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, 
         # ---- RAW DATA POINTS (dodged by method) ----
         geom_point(
           data = raw_df,
-          aes(x = .data[[x_axis_var]], y = result, color = method.name),
-          position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.7),
+          aes(x = plot_x, y = result_plot, color = method.name),
+          position = position_jitterdodge(
+            jitter.width = 0.15, jitter.height = 0,
+            dodge.width = 0.7, seed = 2026
+          ),
           alpha = 0.06,
           size = 1.6,
           inherit.aes = FALSE,
           show.legend = FALSE
+        ) +
+        geom_text(
+          data = method_status_df,
+          aes(x = plot_x, y = 0, label = status_label, group = method.name),
+          position = position_dodge(width = 0.7),
+          inherit.aes = FALSE,
+          vjust = -0.7,
+          size = 2.6,
+          color = "grey30",
+          na.rm = TRUE
+        ) +
+        geom_text(
+          data = dplyr::filter(x_status_df, n_obs == 0L),
+          aes(x = plot_x, y = 0, label = "Not sampled"),
+          inherit.aes = FALSE,
+          vjust = -0.7,
+          size = 2.6,
+          color = "grey30"
         )
 
     } else {
       summary_df <- df %>%
-        dplyr::group_by(.data[[x_axis_var]], facet_var) %>%
+        dplyr::group_by(plot_x, facet_var) %>%
         dplyr::summarise(
-          mean = mean(result, na.rm = TRUE),
-          sd   = sd(result, na.rm = TRUE),
+          mean = mean(result_plot, na.rm = TRUE),
+          sd   = sd(result_plot, na.rm = TRUE),
           n    = dplyr::n(),
           .groups = "drop"
         )
 
-      p <- ggplot(summary_df, aes(x = .data[[x_axis_var]], y = mean, fill = .data[[x_axis_var]])) +
+      p <- ggplot(summary_df, aes(x = plot_x, y = mean, fill = plot_x)) +
         geom_bar(stat = "identity", position = "dodge", color = "black") +
         geom_errorbar(
           aes(ymin = pmax(mean - sd, 0), ymax = mean + sd),
@@ -900,12 +1052,28 @@ create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, 
         # ---- RAW DATA POINTS ----
         geom_point(
           data = raw_df,
-          aes(x = .data[[x_axis_var]], y = result),
-          position = position_jitter(width = 0.15, height = 0),
+          aes(x = plot_x, y = result_plot),
+          position = position_jitter(width = 0.15, height = 0, seed = 2026),
           alpha = 0.06,
           size = 1.6,
           inherit.aes = FALSE,
           show.legend = FALSE
+        ) +
+        geom_text(
+          data = x_status_df %>%
+            dplyr::mutate(
+              status_label = dplyr::case_when(
+                n_obs == 0L ~ "Not sampled",
+                all_nd ~ paste0("All ND\n(n = ", n_obs, ")"),
+                TRUE ~ NA_character_
+              )
+            ) %>%
+            dplyr::filter(!is.na(status_label)),
+          aes(x = plot_x, y = 0, label = status_label),
+          inherit.aes = FALSE,
+          vjust = -0.7,
+          size = 2.6,
+          color = "grey30"
         )
     }
 
@@ -923,12 +1091,15 @@ create_facet_bar_plot_annual <- function(df, output_dir, file_name, x_axis_var, 
           "Annual Mean by Analyte (Stratified by Method)",
           "Annual Mean by Analyte"
         ),
-        x = "Event Type",
+        x = x_axis_label,
         y = "Mean Result",
-        fill = ifelse(stratify_by_method, "Method", x_axis_var)
+        fill = "Legend"
       ) +
       scale_fill_brewer(palette = "Pastel1") +
-      coord_cartesian(ylim = c(0, NA))
+      scale_y_continuous(
+        limits = c(0, NA),
+        expand = expansion(mult = c(0, 0.05))
+      )
 
     file_path <- file.path(output_dir, file_name)
     ggsave(file_path, p, width = 10, height = 8, units = "in")
